@@ -1,11 +1,11 @@
 ---
-import { group, type FooterColumn } from '../../lib/content';
+import { group, withBase, type FooterColumn } from '../../lib/content';
 const columns = await group<FooterColumn>('footerColumns');
 ---
 <footer class="footer" id="footer">
   <div class="footer__inner">
     <div class="footer__top">
-      <a href="/" class="footer__brand" aria-label="Morflow">Morflow</a>
+      <a href={withBase('/')} class="footer__brand" aria-label="Morflow">Morflow</a>
       <div class="footer__social">
         <span class="footer__social-label">Open Source</span>
         <div class="footer__social-btns">

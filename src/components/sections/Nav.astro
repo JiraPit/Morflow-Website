@@ -1,10 +1,10 @@
 ---
-import { group, type Link } from '../../lib/content';
+import { group, withBase, type Link } from '../../lib/content';
 const links = await group<Link>('navLinks');
 ---
 <header class="nav-bar" data-nav>
   <nav class="nav" aria-label="Main">
-    <a href="/" class="nav__brand" aria-label="Morflow">
+    <a href={withBase('/')} class="nav__brand" aria-label="Morflow">
       Morflow
     </a>
 

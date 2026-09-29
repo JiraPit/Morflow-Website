@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/content';
+
 interface Language {
   name: string;
   install: string;
@@ -9,22 +11,22 @@ const languages: Language[] = [
   {
     name: "Python",
     install: "pip install morflow",
-    image: "/assets/languages/python.png"
+    image: withBase("/assets/languages/python.png")
   },
   {
     name: "Node.js",
     install: "npm install morflow",
-    image: "/assets/languages/nodejs.png"
+    image: withBase("/assets/languages/nodejs.png")
   },
   {
     name: "Java",
     install: "org.morflow:morflow:0.1.0",
-    image: "/assets/languages/java.png"
+    image: withBase("/assets/languages/java.png")
   },
   {
     name: "Rust",
     install: "cargo add morflow",
-    image: "/assets/languages/rust.png"
+    image: withBase("/assets/languages/rust.png")
   }
 ];
 ---

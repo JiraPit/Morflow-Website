@@ -1,9 +1,10 @@
 ---
 import Button from '../Button.astro';
+import { withBase } from '../../lib/content';
 ---
 <section class="hero" id="hero">
   <div class="hero__panel" id="hero-media">
-    <img class="hero__img" src="/assets/Background.jpg" alt="" />
+    <img class="hero__img" src={withBase('/assets/Background.jpg')} alt="" />
     <div class="hero__overlay"></div>
     <div class="hero__content">
       <h1 class="hero__headline">
@@ -13,7 +14,7 @@ import Button from '../Button.astro';
         Morflow is a modular, high-performance data processing engine that allows developers to define media, audio, and tensor pipelines in declarative <code>.morf</code> files and execute them identically across many platforms and languages with native speed and zero train-serve skew.
       </p>
       <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
-        <Button href="/doc" label="Read Documentation" variant="primary" />
+        <Button href={withBase('/doc')} label="Read Documentation" variant="primary" />
       </div>
     </div>
   </div>

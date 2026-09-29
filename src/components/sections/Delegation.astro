@@ -1,5 +1,5 @@
 ---
-import { group, type Feature } from '../../lib/content';
+import { group, withBase, type Feature } from '../../lib/content';
 const features = await group<Feature>('features');
 ---
 <section class="delegation" id="highlights">
@@ -24,7 +24,7 @@ const features = await group<Feature>('features');
             aria-controls={`mock-${f.step}`}
             tabindex={f.step === 0 ? 0 : -1}
           >
-            <img class="feature__chevron" src="/assets/arrows.svg" alt="" aria-hidden="true" />
+            <img class="feature__chevron" src={withBase('/assets/arrows.svg')} alt="" aria-hidden="true" />
             <span class="feature__head">
               <h4 class="feature__label">{f.label}</h4>
               <span class="feature__desc">{f.desc}</span>

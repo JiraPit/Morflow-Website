@@ -1,5 +1,6 @@
 ---
 import schema from '../content/schema.json';
+import { withBase } from '../lib/content';
 
 /**
  * Page head. Titles, descriptions and the Open Graph image mirror the Framer
@@ -17,8 +18,9 @@ export interface Props {
   schema?: boolean;
 }
 const { title, description, path, ogImage, schema: withSchema = true } = Astro.props;
-const canonical = new URL(path, Astro.site).href;
-const card = new URL(ogImage ?? '/assets/og-image.jpg', Astro.site).href;
+const siteUrl = Astro.site ?? new URL('https://jirapit.github.io/Morflow-Website');
+const canonical = new URL(withBase(path), siteUrl).href;
+const card = new URL(withBase(ogImage ?? '/assets/og-image.jpg'), siteUrl).href;
 ---
 <meta charset="UTF-8" />
 <meta name="generator" content={Astro.generator} />
@@ -39,9 +41,9 @@ const card = new URL(ogImage ?? '/assets/og-image.jpg', Astro.site).href;
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={card} />
 
-<link rel="icon" type="image/png" href="/favicon.png" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="apple-touch-icon" href="/favicon.png" />
+<link rel="icon" type="image/png" href={withBase('/favicon.png')} />
+<link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+<link rel="apple-touch-icon" href={withBase('/favicon.png')} />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
