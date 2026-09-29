@@ -142,11 +142,11 @@ curl -fsSL https://raw.githubusercontent.com/JiraPit/Morflow/main/install.sh | b
               <span>Offline Action Preparation</span>
               <span>Bash</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># Download required action binaries into custom cache directory</span>
-morflow prep ./pipeline.morf --path ./actions_cache
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Download required action binaries into local cache</span>
+morflow prep ./pipeline.morf
 
 <span class="tok-comment"># Force re-download even if action is already present</span>
-morflow prep ./pipeline.morf --path ./actions_cache --force</code></pre>
+morflow prep ./pipeline.morf --force</code></pre>
           </div>
         </div>
 
