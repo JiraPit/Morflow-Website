@@ -2,7 +2,7 @@
   "benefits": [
     {
       "num": "01",
-      "active": true,
+      "active": false,
       "image": "/assets/01.png",
       "title": "Eliminate AI Train-Serve Skew",
       "desc": "In typical AI workflows, preprocessing code written in Python training notebooks is copy-pasted or rewritten in other languages for production services. This rewrite introduces subtle numerical discrepancies, library differences, and critical bugs (train-serve and cross-language skew). With Morflow, you write the pipeline once in a .morf file and execute the exact same deterministic operations across many platforms and languages in both training and production serving."
@@ -16,21 +16,21 @@
     },
     {
       "num": "03",
-      "active": false,
+      "active": true,
       "image": "/assets/03.png",
       "title": "Developer-Friendly & Self-Explanatory Pipelines",
       "desc": "Graph formats like TorchScript or ONNX are difficult to inspect, debug, or understand without specialized tools. A .morf file is clean, declarative, and easily understood by developers across different teams (data science, backend, infra) at a glance."
     },
     {
       "num": "04",
-      "active": false,
+      "active": true,
       "image": "/assets/04.png",
       "title": "Lean Production Images",
       "desc": "Rather than bundling massive, monolithic dependencies, Morflow ensures production deployments include only the specific actions required by the active pipelines, drastically reducing container image sizes."
     },
     {
       "num": "05",
-      "active": true,
+      "active": false,
       "image": "/assets/05.png",
       "title": "Rich Action Packs & Effortless Custom Actions",
       "desc": "Designed around an ecosystem of modular, reusable Action Packs (for computer vision, audio DSP, multimodal preprocessing, etc.) alongside a lightweight interface that makes creating custom actions straightforward and fast."

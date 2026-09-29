@@ -1386,10 +1386,13 @@ img {
   flex: 1 1 0;
   min-width: 0;
   height: 440px;
-  background: var(--footer);
+  background: #181512;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   cursor: pointer;
   outline: none;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   /* Framer's literal curve (0.34,1.2,0.64,1) overshoots, and because all
      cards share one flex row, that overshoot forces neighboring
      cards to reflow/settle a second time — reads as a shake. Decisive
@@ -1400,6 +1403,7 @@ img {
     height 380ms var(--e-tween-out) 150ms,
     background-color 380ms var(--e-tween-out) 150ms,
     border-radius 380ms var(--e-tween-out) 150ms,
+    border-color 380ms var(--e-tween-out) 150ms,
     box-shadow 380ms var(--e-tween-out) 150ms;
 }
 
@@ -1407,6 +1411,7 @@ img {
   flex: 0 0 490px;
   height: 460px;
   background: var(--white);
+  border-color: transparent;
   border-radius: 20px;
   box-shadow: 0 12px 24px 0 rgba(37, 31, 25, 0.08);
   /* The shadow's 16px blur bleeds past the 12px gap into the next card.
@@ -1421,6 +1426,7 @@ img {
     height 380ms var(--e-tween-out) 150ms,
     background-color 380ms var(--e-tween-out) 150ms,
     border-radius 380ms var(--e-tween-out) 150ms,
+    border-color 380ms var(--e-tween-out) 150ms,
     box-shadow 380ms var(--e-tween-out) 150ms;
 }
 
@@ -1430,7 +1436,7 @@ img {
     0 0 0 4px var(--brand-500);
 }
 
-/* closed state: number at top, title centered in middle with good margins */
+/* closed state: dimmed background image + white text */
 .wcard__closed {
   position: absolute;
   inset: 0;
@@ -1456,17 +1462,49 @@ img {
     transform 140ms var(--e-tween-out) 0ms;
 }
 
+.wcard__closed-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.wcard__closed-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.02);
+  transition: transform 400ms var(--e-tween-out);
+}
+
+.wcard:not(.is-active):hover .wcard__closed-media img {
+  transform: scale(1.06);
+}
+
+.wcard__closed-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.54);
+}
+
 .wcard__number {
+  position: relative;
+  z-index: 1;
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   font-size: var(--h2-size);
   line-height: var(--h2-line);
-  color: rgb(221, 216, 211);
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   font-variation-settings: "opsz" 14;
 }
 
 .wcard__closed-body {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   align-items: center;
@@ -1480,9 +1518,13 @@ img {
   font-weight: 600;
   font-size: 21px;
   line-height: 1.35;
-  color: var(--grey-900);
+  color: #ffffff;
   text-align: center;
   text-wrap: balance;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.6),
+    0 4px 16px rgba(0, 0, 0, 0.5),
+    0 8px 32px rgba(0, 0, 0, 0.4);
   font-variation-settings: "opsz" 14;
 }
 
