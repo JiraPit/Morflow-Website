@@ -6,6 +6,6 @@
     "url": "https://morflow.org",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Linux, macOS, Windows",
-    "description": "Modular, high-performance data processing engine for audio, image, and tensor pipelines with guaranteed determinism across many platforms and languages."
+    "description": "High-performance AI/ML data processing engine built for input/output processing and tensor transformations across images, audio, tensors and more with zero-copy, multi-threaded performance and zero train-serve skew."
   }
 ]
