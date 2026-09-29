@@ -18,7 +18,7 @@ const columns = await group<FooterColumn>('footerColumns');
 
     <div class="footer__mid">
       <p class="footer__tagline">
-        Modular, high-performance data processing engine for audio, image, and tensor pipelines with guaranteed determinism across many platforms and languages.
+        Modular, high-performance data processing engine built for AI/ML input/output processing and tensor transformations with zero train-serve skew.
       </p>
       <nav class="footer__cols" aria-label="Footer">
         {columns.map((col) => (
