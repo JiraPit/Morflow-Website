@@ -4,7 +4,7 @@
       "num": "01",
       "active": false,
       "image": "/assets/benefit-1.png",
-      "title": "Guaranteed Identical Operations",
+      "title": "Eliminate AI Train-Serve Skew",
       "desc": "In typical AI workflows, preprocessing code written in Python training notebooks is copy-pasted or rewritten in other languages for production services. This rewrite introduces subtle numerical discrepancies, library differences, and critical bugs (train-serve and cross-language skew). With Morflow, you write the pipeline once in a .morf file and execute the exact same deterministic operations across many platforms and languages in both training and production serving."
     },
     {
