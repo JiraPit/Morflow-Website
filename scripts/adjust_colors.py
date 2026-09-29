@@ -68,9 +68,11 @@ def process_images():
         lab_final = np.stack([l_new, 128.0 + a_centered, 128.0 + b_centered], axis=-1).astype(np.uint8)
         rgb_final = cv2.cvtColor(lab_final, cv2.COLOR_LAB2RGB)
 
-        # Save back to target file
+        # Save PNG and optimized WebP
         Image.fromarray(rgb_final).save(img_path)
-        print(f"Processed and updated {f}")
+        webp_path = os.path.splitext(img_path)[0] + '.webp'
+        Image.fromarray(rgb_final).save(webp_path, 'WEBP', quality=88)
+        print(f"Processed and updated {f} and {os.path.basename(webp_path)}")
 
 if __name__ == '__main__':
     process_images()

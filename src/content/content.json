@@ -3,42 +3,42 @@
     {
       "num": "01",
       "active": false,
-      "image": "/assets/01.png",
+      "image": "/assets/01.webp",
       "title": "Eliminate AI Train-Serve Skew",
       "desc": "In typical AI workflows, preprocessing code written in Python training notebooks is copy-pasted or rewritten in other languages for production services. This rewrite introduces subtle numerical discrepancies, library differences, and critical bugs (train-serve and cross-language skew). With Morflow, you write the pipeline once in a .morf file and execute the exact same deterministic operations across many platforms and languages in both training and production serving."
     },
     {
       "num": "02",
       "active": false,
-      "image": "/assets/02.png",
+      "image": "/assets/02.webp",
       "title": "High Performance Regardless of Host Language",
       "desc": "Written in Rust, Morflow provides zero-copy memory operations, automatic flow parallelism, and multi-threaded CPU execution. When calling Morflow from Python or another host language, you get the full speed and multi-core scalability of native Rust."
     },
     {
       "num": "03",
       "active": true,
-      "image": "/assets/03.png",
+      "image": "/assets/03.webp",
       "title": "Developer-Friendly & Self-Explanatory Pipelines",
       "desc": "Graph formats like TorchScript or ONNX are difficult to inspect, debug, or understand without specialized tools. A .morf file is clean, declarative, and easily understood by developers across different teams (data science, backend, infra) at a glance."
     },
     {
       "num": "04",
       "active": true,
-      "image": "/assets/04.png",
+      "image": "/assets/04.webp",
       "title": "Lean Production Images",
       "desc": "Rather than bundling massive, monolithic dependencies, Morflow ensures production deployments include only the specific actions required by the active pipelines, drastically reducing container image sizes."
     },
     {
       "num": "05",
       "active": false,
-      "image": "/assets/05.png",
+      "image": "/assets/05.webp",
       "title": "Rich Action Packs & Effortless Custom Actions",
       "desc": "Designed around an ecosystem of modular, reusable Action Packs (for computer vision, audio DSP, multimodal preprocessing, etc.) alongside a lightweight interface that makes creating custom actions straightforward and fast."
     },
     {
       "num": "06",
       "active": false,
-      "image": "/assets/06.png",
+      "image": "/assets/06.webp",
       "title": "Ship AI & Data Pipelines Together Without Server Rebuilds",
       "desc": "Because .morf pipelines and actions are decoupled from host application logic, data processing pipelines can be updated and shipped alongside AI models without requiring server code recompilation or backend service rebuilds."
     }
