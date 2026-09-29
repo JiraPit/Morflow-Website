@@ -10,35 +10,35 @@
     {
       "num": "02",
       "active": false,
-      "image": "/assets/parleys-plan.png",
+      "image": "/assets/02.png",
       "title": "High Performance Regardless of Host Language",
       "desc": "Written in Rust, Morflow provides zero-copy memory operations, automatic flow parallelism, and multi-threaded CPU execution. When calling Morflow from Python or another host language, you get the full speed and multi-core scalability of native Rust."
     },
     {
       "num": "03",
       "active": false,
-      "image": "/assets/benefit-3.png",
+      "image": "/assets/03.png",
       "title": "Developer-Friendly & Self-Explanatory Pipelines",
       "desc": "Graph formats like TorchScript or ONNX are difficult to inspect, debug, or understand without specialized tools. A .morf file is clean, declarative, and easily understood by developers across different teams (data science, backend, infra) at a glance."
     },
     {
       "num": "04",
       "active": false,
-      "image": "/assets/benefit-4.png",
+      "image": "/assets/04.png",
       "title": "Lean Production Images",
       "desc": "Rather than bundling massive, monolithic dependencies, Morflow ensures production deployments include only the specific actions required by the active pipelines, drastically reducing container image sizes."
     },
     {
       "num": "05",
       "active": true,
-      "image": "/assets/benefit-1.png",
+      "image": "/assets/05.png",
       "title": "Rich Action Packs & Effortless Custom Actions",
       "desc": "Designed around an ecosystem of modular, reusable Action Packs (for computer vision, audio DSP, multimodal preprocessing, etc.) alongside a lightweight interface that makes creating custom actions straightforward and fast."
     },
     {
       "num": "06",
       "active": false,
-      "image": "/assets/benefit-3.png",
+      "image": "/assets/06.png",
       "title": "Ship AI & Data Pipelines Together Without Server Rebuilds",
       "desc": "Because .morf pipelines and actions are decoupled from host application logic, data processing pipelines can be updated and shipped alongside AI models without requiring server code recompilation or backend service rebuilds."
     }
