@@ -677,7 +677,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         <div id="exec-rust" class="doc-section">
           <h3 class="doc-h3">3.4. Rust</h3>
           <p class="doc-p">
-            The native Rust engine crate (<code>morflow</code>) provides direct access to <code>core_types::Payload</code> variants (<code>Image</code>, <code>Audio</code>, <code>Tensor</code>, <code>Data</code>) with compile-time type safety and zero runtime overhead.
+            The native Rust engine crate (<code>morflow</code>) provides direct access to <code>Payload</code> variants (<code>Image</code>, <code>Audio</code>, <code>Tensor</code>, <code>Data</code>) with compile-time type safety and zero runtime overhead.
           </p>
 
           <div class="doc-code-card">
@@ -685,7 +685,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
               <span>Cargo Dependencies</span>
               <span>Shell</span>
             </div>
-            <pre class="doc-code-pre"><code>cargo add morflow core_types</code></pre>
+            <pre class="doc-code-pre"><code>cargo add morflow</code></pre>
           </div>
 
           <div class="doc-code-card">
@@ -693,8 +693,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
               <span>Native Pipeline Execution in Rust</span>
               <span>rust</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> core_types::&#123;ColorSpace, Image, Payload, RVec&#125;;
-<span class="tok-keyword">use</span> morflow::Morflow;
+            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> morflow::&#123;ColorSpace, Image, Morflow, Payload, RVec&#125;;
 <span class="tok-keyword">use</span> std::fs;
 
 <span class="tok-keyword">fn</span> <span class="tok-fn">main</span>() -&gt; Result&lt;(), Box&lt;<span class="tok-keyword">dyn</span> std::error::Error&gt;&gt; &#123;
