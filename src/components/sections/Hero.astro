@@ -1,0 +1,65 @@
+---
+import Button from '../Button.astro';
+---
+<section class="hero" id="hero">
+  <div class="hero__panel" id="hero-media">
+    <img class="hero__img" src="/assets/Background.jpg" alt="" />
+    <div class="hero__overlay"></div>
+    <div class="hero__content">
+      <h1 class="hero__headline">
+        Morflow
+      </h1>
+      <p class="hero__lede">
+        Morflow is a modular, high-performance data processing engine that allows developers to define media, audio, and tensor pipelines in declarative <code>.morf</code> files and execute them identically across many platforms and languages with native speed and zero train-serve skew.
+      </p>
+      <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
+        <Button href="/doc" label="Read Documentation" variant="primary" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero__headline {
+    margin: 0;
+    font-family: var(--font-logo);
+    font-weight: 400;
+    font-size: clamp(56px, 9vw, 88px);
+    line-height: 1.05;
+    letter-spacing: normal;
+    color: var(--white, #ffffff);
+    text-align: center;
+    text-shadow: 0 2px 24px rgba(26, 23, 20, 0.25);
+  }
+
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero__lede {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 18px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.95);
+    max-width: 780px;
+    text-align: center;
+    text-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.6),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .hero__lede code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92em;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: #ffd49c;
+  }
+</style>

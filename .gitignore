@@ -1,0 +1,13 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs and system
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.local

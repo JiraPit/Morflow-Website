@@ -1,0 +1,165 @@
+---
+interface Language {
+  name: string;
+  install: string;
+  image: string;
+}
+
+const languages: Language[] = [
+  {
+    name: "Python",
+    install: "pip install morflow",
+    image: "/assets/languages/python.png"
+  },
+  {
+    name: "Node.js",
+    install: "npm install morflow",
+    image: "/assets/languages/nodejs.png"
+  },
+  {
+    name: "Java",
+    install: "org.morflow:morflow:0.1.0",
+    image: "/assets/languages/java.png"
+  },
+  {
+    name: "Rust",
+    install: "cargo add morflow",
+    image: "/assets/languages/rust.png"
+  }
+];
+---
+
+<section class="languages-section" id="languages">
+  <header class="section-header">
+    <h2 class="section-title-orange">Supported Languages</h2>
+    <p class="section-desc">
+      Write your pipeline once in <code>.morf</code> and execute natively across these supported languages.
+    </p>
+  </header>
+
+  <div class="languages-grid">
+    {languages.map((lang) => (
+      <article class="lang-card">
+        <div class="lang-card__header">
+          <img class="lang-card__logo" src={lang.image} alt={lang.name} width="36" height="36" loading="lazy" />
+          <h3 class="lang-card__name">{lang.name}</h3>
+        </div>
+        <code class="lang-card__cmd">{lang.install}</code>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .languages-section {
+    padding: 60px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .section-title-orange {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1.2;
+    color: var(--brand-500, #db5837);
+  }
+
+  .section-desc {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--grey-800);
+    max-width: 820px;
+    text-align: left;
+  }
+
+  .section-desc code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    background: var(--grey-100);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #b94b00;
+  }
+
+  .languages-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+  }
+
+  @media (max-width: 1024px) {
+    .languages-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .languages-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .lang-card {
+    background: var(--white);
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+    transition: transform var(--d-spring) var(--e-spring), box-shadow var(--d-spring) var(--e-spring);
+  }
+
+  .lang-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(37, 31, 25, 0.08);
+  }
+
+  .lang-card__header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .lang-card__logo {
+    display: block;
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .lang-card__name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--grey-900);
+  }
+
+  .lang-card__cmd {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    background: var(--background);
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--grey-900);
+    border: 1px solid var(--grey-200);
+    word-break: break-all;
+  }
+</style>

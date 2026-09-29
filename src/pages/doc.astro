@@ -1,0 +1,746 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+---
+<Base
+  title="Documentation — Morflow Data Processing Engine"
+  description="Comprehensive step-by-step technical guide for the Morflow CLI and the .morf dataflow pipeline syntax."
+  path="/doc"
+>
+  <PageHero
+    badge="Documentation"
+  >
+    Morflow Engine &amp; <em>Syntax Reference</em>
+  </PageHero>
+
+  <div class="docs-layout">
+    <!-- Sticky Sidebar -->
+    <aside class="docs-sidebar" aria-label="Documentation Navigation">
+      <div class="docs-nav-group">
+        <a href="#cli" class="docs-nav-title">1. CLI Reference</a>
+        <ul class="docs-nav-list">
+          <li><a href="#cli-installation" class="docs-nav-link">1.1. Installation</a></li>
+          <li><a href="#cli-commands" class="docs-nav-link">1.2. Core CLI Commands</a></li>
+          <li><a href="#cli-prep" class="docs-nav-link">1.3. Offline Prep (prep)</a></li>
+          <li><a href="#cli-search-spec" class="docs-nav-link">1.4. Search &amp; Spec</a></li>
+          <li><a href="#cli-env" class="docs-nav-link">1.5. Environment Variables</a></li>
+        </ul>
+      </div>
+
+      <div class="docs-nav-group">
+        <a href="#syntax" class="docs-nav-title">2. .morf Syntax Guide</a>
+        <ul class="docs-nav-list">
+          <li><a href="#syntax-step1-action" class="docs-nav-link">2.1. Anatomy of an Action</a></li>
+          <li><a href="#syntax-step2-flow" class="docs-nav-link">2.2. Constructing a Flow</a></li>
+          <li><a href="#syntax-step3-emit" class="docs-nav-link">2.3. Emitting Output &amp; Intermediate Emission (emit)</a></li>
+          <li><a href="#syntax-step4-multiflow" class="docs-nav-link">2.4. Multiple Flows in One File</a></li>
+          <li><a href="#syntax-step5-control" class="docs-nav-link">2.5. Advanced Control Flow (Loops &amp; Conditionals)</a></li>
+          <li><a href="#syntax-step6-examples" class="docs-nav-link">2.6. Complete End-to-End Examples</a></li>
+        </ul>
+      </div>
+
+      <div class="docs-nav-group">
+        <a href="#exec" class="docs-nav-title">3. Pipeline Execution</a>
+        <ul class="docs-nav-list">
+          <li><a href="#exec-python" class="docs-nav-link">3.1. Python</a></li>
+          <li><a href="#exec-js" class="docs-nav-link">3.2. JavaScript / Node.js</a></li>
+          <li><a href="#exec-java" class="docs-nav-link">3.3. Java</a></li>
+          <li><a href="#exec-rust" class="docs-nav-link">3.4. Rust</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <article class="docs-content">
+      <!-- SECTION 1: CLI REFERENCE -->
+      <section id="cli" class="doc-section">
+        <div class="doc-section-header">
+          <p class="badge">Section 1</p>
+          <h2 class="doc-h2">1. CLI Reference</h2>
+          <p class="doc-p">
+            The <code>morflow</code> CLI handles dependency resolution, offline action caching, action discovery, and action specification inspection.
+          </p>
+        </div>
+
+        <div id="cli-installation" class="doc-section">
+          <h3 class="doc-h3">1.1. Installation</h3>
+          <p class="doc-p">
+            Install the standalone <code>morflow</code> command-line interface globally using npm, pip, or via curl:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>CLI Installation</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Install via NPM (Global CLI)</span>
+npm install -g morflow
+
+<span class="tok-comment"># Install via Pip (Python CLI)</span>
+pip install morflow
+
+<span class="tok-comment"># Install standalone binary via cURL</span>
+curl -fsSL https://raw.githubusercontent.com/JiraPit/Morflow/main/install.sh | bash</code></pre>
+          </div>
+        </div>
+
+        <div id="cli-commands" class="doc-section">
+          <h3 class="doc-h3">1.2. Core CLI Commands</h3>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Command</th>
+                  <th>Syntax</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>prep</code></td>
+                  <td><code>morflow prep &lt;file.morf&gt; [-p &lt;dir&gt;] [-f]</code></td>
+                  <td>Pre-downloads required actions for completely offline execution.</td>
+                </tr>
+                <tr>
+                  <td><code>search</code></td>
+                  <td><code>morflow search &lt;query&gt; [-l &lt;limit&gt;]</code></td>
+                  <td>Fuzzy searches actions in the central registry.</td>
+                </tr>
+                <tr>
+                  <td><code>spec</code></td>
+                  <td><code>morflow spec &lt;pkg&gt;/&lt;ver&gt;/&lt;action&gt;</code></td>
+                  <td>Inspects argument schemas, types, and action documentation.</td>
+                </tr>
+                <tr>
+                  <td><code>install</code></td>
+                  <td><code>morflow install &lt;action&gt; [-p &lt;dir&gt;] [-f]</code></td>
+                  <td>Installs a specific action binary directly into the cache.</td>
+                </tr>
+                <tr>
+                  <td><code>list</code></td>
+                  <td><code>morflow list [-p &lt;dir&gt;]</code></td>
+                  <td>Lists all installed action binaries in the local cache.</td>
+                </tr>
+                <tr>
+                  <td><code>clean</code></td>
+                  <td><code>morflow clean [-p &lt;dir&gt;]</code></td>
+                  <td>Removes cached action binaries from the action path.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="cli-prep" class="doc-section">
+          <h3 class="doc-h3">1.3. Offline Prep (<code>prep</code>)</h3>
+          <p class="doc-p">
+            In production deployments, you can ensure zero network requests at runtime by pre-downloading all action binaries during container image build:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Offline Action Preparation</span>
+              <span>Bash</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Download required action binaries into custom cache directory</span>
+morflow prep ./pipeline.morf --path ./actions_cache
+
+<span class="tok-comment"># Force re-download even if action is already present</span>
+morflow prep ./pipeline.morf --path ./actions_cache --force</code></pre>
+          </div>
+        </div>
+
+        <div id="cli-search-spec" class="doc-section">
+          <h3 class="doc-h3">1.4. Search &amp; Spec</h3>
+          <p class="doc-p">
+            Search for available actions and view their expected parameters directly in your terminal:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Action Discovery</span>
+              <span>Bash</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Search for color or audio transformation actions</span>
+morflow search color
+morflow search biquad
+
+<span class="tok-comment"># Inspect argument schemas and SPEC.md docs</span>
+morflow spec image_essentials/latest/color_adjust
+morflow spec audio_essentials/latest/biquad_filter</code></pre>
+          </div>
+        </div>
+
+        <div id="cli-env" class="doc-section">
+          <h3 class="doc-h3">1.5. Environment Variables</h3>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>MORFLOW_ACTIONS_PATH</code></td>
+                  <td><code>~/.morflow/actions</code></td>
+                  <td>Directory where Morflow caches and resolves compiled dynamic action libraries (<code>.so</code>, <code>.dylib</code>, <code>.dll</code>).</td>
+                </tr>
+                <tr>
+                  <td><code>MORFLOW_REPO</code></td>
+                  <td><code>JiraPit/Morflow</code></td>
+                  <td>Target GitHub repository used by the CLI to query releases and download precompiled action binaries.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: MORF SYNTAX STEP-BY-STEP -->
+      <section id="syntax" class="doc-section">
+        <div class="doc-section-header">
+          <p class="badge">Section 2</p>
+          <h2 class="doc-h2">2. .morf Syntax Guide</h2>
+          <p class="doc-p">
+            Learn <code>.morf</code> syntax from the ground up: starting from the smallest building block (an <strong>Action</strong>), to chaining them into a <strong>Flow</strong>, producing results with <strong>Emit</strong>, and composing <strong>Multiple Flows</strong> in a single file.
+          </p>
+        </div>
+
+        <!-- STEP 1: ANATOMY OF AN ACTION -->
+        <div id="syntax-step1-action" class="doc-section">
+          <h3 class="doc-h3">2.1. Anatomy of an Action</h3>
+          <p class="doc-p">
+            An <strong>Action</strong> is the fundamental atomic unit of computation in Morflow. It represents an isolated, high-performance compiled operation (e.g. image resizing, Gaussian blur, audio biquad filtering, tensor normalization).
+          </p>
+
+          <p class="doc-p">
+            Actions can be invoked in three main forms:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Action Invocation Forms</span>
+              <span>.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Form 1: Zero-argument actions (parentheses are optional)</span>
+to_image
+to_wav
+identity
+
+<span class="tok-comment"># Form 2: Keyword arguments (key=value)</span>
+resize(width=512, height=512, filter=<span class="tok-str">"bilinear"</span>)
+color_adjust(contrast=1.15, saturation=1.05, brightness=0.02)
+biquad_filter(type=<span class="tok-str">"highpass"</span>, freq=30.0, sample_rate=48000)
+
+<span class="tok-comment"># Form 3: Variable arguments (passing pipeline parameters to action parameters)</span>
+resize(width=$target_width, height=$target_height)
+resample(to_rate=$target_sample_rate)</code></pre>
+          </div>
+
+          <p class="doc-p">
+            Before using actions, import their parent <strong>Action Pack</strong> at the top of your <code>.morf</code> file:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Importing Actions</span>
+              <span>.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Package-level import (brings actions into scope or under an alias)</span>
+<span class="tok-keyword">import</span> base/latest
+<span class="tok-keyword">import</span> audio_essentials/latest <span class="tok-keyword">as</span> audio
+
+<span class="tok-comment"># Item import (brings specific actions into local scope)</span>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> to_tensor, resize, color_adjust, gaussian_blur, to_image</code></pre>
+          </div>
+        </div>
+
+        <!-- STEP 2: CONSTRUCTING A FLOW -->
+        <div id="syntax-step2-flow" class="doc-section">
+          <h3 class="doc-h3">2.2. Constructing a Flow</h3>
+          <p class="doc-p">
+            A <strong>Flow</strong> connects an input variable through a sequence of actions using the <code>&gt;&gt;</code> dataflow operator. Each action receives the output payload of the previous action with zero memory copying.
+          </p>
+
+          <p class="doc-p">
+            Inputs and parameters are declared using <code>accept</code> at the top of the file:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Declaring Inputs and Parameters</span>
+              <span>.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Required input passed from host runtime</span>
+<span class="tok-keyword">accept</span> $img_in
+
+<span class="tok-comment"># Configurable parameters with default values</span>
+<span class="tok-keyword">accept</span> $target_width = 512
+<span class="tok-keyword">accept</span> $target_height = 512</code></pre>
+          </div>
+
+          <p class="doc-p">
+            Once inputs are declared, chain actions into a continuous dataflow stream:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>A Sequential Flow Chain</span>
+              <span>.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># The flow starts with the input variable $img_in and passes data step-by-step</span>
+$img_in
+    &gt;&gt; <span class="tok-fn">to_tensor</span>(color=<span class="tok-str">"rgb"</span>, dtype=<span class="tok-str">"f32"</span>, layout=<span class="tok-str">"hwc"</span>, normalize=<span class="tok-keyword">true</span>)
+    &gt;&gt; <span class="tok-fn">resize</span>(width=$target_width, height=$target_height, filter=<span class="tok-str">"bilinear"</span>)
+    &gt;&gt; <span class="tok-fn">color_adjust</span>(contrast=1.15, saturation=1.05)
+    &gt;&gt; <span class="tok-fn">gaussian_blur</span>(sigma=1.2)
+    &gt;&gt; <span class="tok-fn">to_image</span>(color=<span class="tok-str">"rgba"</span>, dtype=<span class="tok-str">"u8"</span>)</code></pre>
+          </div>
+        </div>
+
+        <!-- STEP 3: EMITTING OUTPUT -->
+        <div id="syntax-step3-emit" class="doc-section">
+          <h3 class="doc-h3">2.3. Emitting Output &amp; Intermediate Emission (<code>emit</code>)</h3>
+          <p class="doc-p">
+            Outputs are transferred back to the calling host application across many platforms and languages using the <code>emit</code> keyword. Importantly, <strong><code>emit</code> is a non-terminating passthrough operation</strong> — it yields the computed payload at that point in execution while passing the data directly down the chain for subsequent operations.
+          </p>
+
+          <p class="doc-p">
+            This enables <strong>intermediate emission</strong>, allowing a single continuous flow to dispatch checkpoints, previews, or multi-scale outputs without duplicating upstream work or branching into separate pipelines:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Intermediate Emission & Chaining</span>
+              <span>.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Form A: Single primary emission</span>
+$img_in &gt;&gt; <span class="tok-fn">to_tensor</span> &gt;&gt; <span class="tok-fn">resize</span>(width=512, height=512) &gt;&gt; <span class="tok-fn">emit</span>
+
+<span class="tok-comment"># Form B: Named stream emission</span>
+$audio_in &gt;&gt; <span class="tok-fn">to_audio</span> &gt;&gt; <span class="tok-fn">normalize</span> &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"normalized_audio"</span>)
+
+<span class="tok-comment"># Form C: Intermediate emission with chained downstream processing</span>
+$img_in
+    &gt;&gt; <span class="tok-fn">to_tensor</span>(color=<span class="tok-str">"rgb"</span>, normalize=<span class="tok-keyword">true</span>)
+    &gt;&gt; <span class="tok-fn">resize</span>(width=1024, height=1024)
+    &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"high_res"</span>)               <span class="tok-comment"># Emits intermediate 1024x1024 tensor to host</span>
+    &gt;&gt; <span class="tok-fn">resize</span>(width=256, height=256)   <span class="tok-comment"># Continues stream without re-ingesting $img_in</span>
+    &gt;&gt; <span class="tok-fn">color_adjust</span>(contrast=1.2)
+    &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"preview"</span>)                <span class="tok-comment"># Emits downstream preview thumbnail</span></code></pre>
+          </div>
+
+          <div class="doc-callout">
+            <strong>Host Return Type & Multi-Emission:</strong> When a flow contains multiple or named emissions (such as intermediate emissions), host SDKs receive a structured dictionary or map of typed outputs (e.g. <code>dict[str, np.ndarray]</code> in Python, <code>Map&lt;String, MorflowTensor&gt;</code> in Java, or <code>MorflowOutput</code> in Rust). For streaming invocations, intermediate emissions can also be consumed asynchronously as they are produced.
+          </div>
+        </div>
+
+        <!-- STEP 4: MULTIPLE FLOWS IN ONE FILE -->
+        <div id="syntax-step4-multiflow" class="doc-section">
+          <h3 class="doc-h3">2.4. Multiple Flows in One File</h3>
+          <p class="doc-p">
+            A single <code>.morf</code> file can contain <strong>multiple flows</strong>. You can capture intermediate states mid-stream into a tapped variable using <code>&gt;&gt; $var_name</code>, and then spawn independent branch flows from that variable.
+          </p>
+
+          <p class="doc-p">
+            Morflow automatically compiles all flows into an acyclic dependency graph (DAG) and executes non-dependent branches concurrently across multi-threaded CPU cores with zero lock overhead:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Multi-Flow Audio Split Pipeline</span>
+              <span>audio_split_pipeline.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+ 
+<span class="tok-keyword">accept</span> $input_audio
+
+<span class="tok-comment"># FLOW 1: Ingest input audio, convert to structured stream, and tap into $decoded</span>
+$input_audio &gt;&gt; <span class="tok-fn">to_audio</span> &gt;&gt; $decoded
+
+<span class="tok-comment"># FLOW 2: Extract channel 0 (Left), apply low-pass filtering, convert to WAV, and emit</span>
+$decoded[0] &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"lowpass"</span>, freq=1200.0) &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"left_filtered"</span>)
+
+<span class="tok-comment"># FLOW 3: Extract channel 1 (Right), apply high-pass filtering, convert to WAV, and emit</span>
+$decoded[1] &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"highpass"</span>, freq=800.0) &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"right_filtered"</span>)</code></pre>
+          </div>
+
+          <p class="doc-p">
+            In this pipeline, <strong>Flow 2 and Flow 3 run concurrently in parallel</strong> immediately after Flow 1 finishes. Because both downstream branches depend solely on the shared output of Flow 1 (<code>$decoded</code>) but have no dependency on each other, Morflow's runtime automatically schedules and evaluates them simultaneously across CPU worker threads with zero lock overhead.
+          </p>
+
+          <p class="doc-p">
+            <strong>Static Single Assignment (SSA) Rule:</strong> A tapped variable identifier (e.g. <code>$decoded</code>) cannot be reassigned or mutated within the same scope. This mathematical guarantee ensures safe multi-threaded memory buffer sharing without copy overhead.
+          </p>
+        </div>
+
+        <!-- STEP 5: LOOPS & CONDITIONALS -->
+        <div id="syntax-step5-control" class="doc-section">
+          <h3 class="doc-h3">2.5. Advanced Control Flow (Loops &amp; Conditionals)</h3>
+          <p class="doc-p">
+            Morflow includes built-in constructs for parallel loops, conditional branching, and pattern routing within flows:
+          </p>
+
+          <p class="doc-p">
+            <strong>Parallel Map Loop (<code>each</code>):</strong> The <code>each</code> block applies a transformation sub-flow across elements of a collection, batch, or multi-channel audio/image tensor. <strong>Each iteration is executed concurrently in parallel</strong> across multi-threaded CPU workers. Once all parallel iterations complete, their resulting outputs are automatically <strong>stacked back together</strong> in sequence order and passed directly to the next action in the stream.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Parallel Map Loop (each)</span>
+              <span>.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Iterates each channel concurrently in parallel, transforms, and stacks back together</span>
+$input_audio
+    &gt;&gt; <span class="tok-fn">to_audio</span>(sample_rate=44100)
+    &gt;&gt; <span class="tok-keyword">each</span> ($channel) &#123;
+        $channel
+            &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"highpass"</span>, freq=30.0, sample_rate=48000)
+            &gt;&gt; <span class="tok-fn">compressor</span>(threshold_db=-12.0, ratio=3.0)
+    &#125;
+    &gt;&gt; <span class="tok-fn">stereo_widen</span>(width=1.2)   <span class="tok-comment"># Receives the stacked multi-channel stream</span>
+    &gt;&gt; <span class="tok-fn">to_wav</span>
+    &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+          </div>
+
+          <div class="doc-callout">
+            <strong>Emission Rule for Loops:</strong> Direct emission (<code>emit</code>) inside an <code>each</code> block is strictly <strong>not allowed</strong>. Because loop iterations execute concurrently and asynchronously out-of-order, emissions must be performed outside the <code>each</code> block on the aggregated and stacked stream to maintain deterministic host synchronization and graph integrity.
+          </div>
+
+          <p class="doc-p" style="margin-top: 24px;">
+            <strong>Conditionals &amp; Dynamic Routing:</strong> Branch pipelines conditionally based on runtime metadata or route streams dynamically:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Conditionals &amp; Dynamic Routing</span>
+              <span>.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. If / Else branching</span>
+<span class="tok-keyword">if</span> ($sample_rate != 48000) &#123;
+    $input_audio &gt;&gt; <span class="tok-fn">resample</span>(to_rate=48000) &gt;&gt; $prepared
+&#125; <span class="tok-keyword">else</span> &#123;
+    $input_audio &gt;&gt; $prepared
+&#125;
+
+<span class="tok-comment"># 2. Dynamic route pattern matching</span>
+$prepared &gt;&gt; <span class="tok-keyword">route</span> &#123;
+    $channels == 1 =&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"lowpass"</span>, freq=1000.0)
+    $channels == 2 =&gt; <span class="tok-fn">stereo_widen</span>(width=1.4)
+    <span class="tok-keyword">else</span> =&gt; <span class="tok-fn">identity</span>
+&#125; &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+          </div>
+        </div>
+
+        <!-- STEP 6: COMPLETE EXAMPLES -->
+        <div id="syntax-step6-examples" class="doc-section">
+          <h3 class="doc-h3">2.6. Complete End-to-End Examples</h3>
+          <p class="doc-p">
+            Here are two complete, production-ready <code>.morf</code> pipeline definitions:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Complete Vision Pipeline</span>
+              <span>image_pipeline.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Morflow Image Processing Pipeline (.morf)</span>
+
+<span class="tok-keyword">import</span> base/latest
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> to_tensor, resize, color_adjust, gaussian_blur, to_image
+
+<span class="tok-keyword">accept</span> $img_in
+<span class="tok-keyword">accept</span> $target_width = 512
+<span class="tok-keyword">accept</span> $target_height = 512
+
+<span class="tok-comment"># Direct chained dataflow from host image input to emitted output</span>
+$img_in
+    &gt;&gt; <span class="tok-fn">to_tensor</span>(color=<span class="tok-str">"rgb"</span>, dtype=<span class="tok-str">"f32"</span>, layout=<span class="tok-str">"hwc"</span>, normalize=<span class="tok-keyword">true</span>)
+    &gt;&gt; <span class="tok-fn">resize</span>(width=$target_width, height=$target_height, filter=<span class="tok-str">"bilinear"</span>)
+    &gt;&gt; <span class="tok-fn">color_adjust</span>(contrast=1.15, saturation=1.05, brightness=0.02)
+    &gt;&gt; <span class="tok-fn">gaussian_blur</span>(sigma=1.2)
+    &gt;&gt; <span class="tok-fn">to_image</span>(color=<span class="tok-str">"rgba"</span>, dtype=<span class="tok-str">"u8"</span>)
+    &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Complete Audio DSP Pipeline</span>
+              <span>audio_pipeline.morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Morflow Audio DSP Pipeline (.morf)</span>
+
+<span class="tok-keyword">import</span> audio_essentials/latest
+
+<span class="tok-keyword">accept</span> $input_audio
+<span class="tok-keyword">accept</span> $sample_rate = 44100
+
+<span class="tok-comment"># Direct chained DSP processing with inline multi-channel loop</span>
+$input_audio
+    &gt;&gt; <span class="tok-fn">to_audio</span>(sample_rate=$sample_rate)
+    &gt;&gt; <span class="tok-fn">resample</span>(to_rate=48000)
+    &gt;&gt; <span class="tok-fn">normalize</span>(target_peak=0.95)
+    &gt;&gt; <span class="tok-keyword">each</span> ($channel) &#123;
+        $channel
+            &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"highpass"</span>, freq=30.0, sample_rate=48000)
+            &gt;&gt; <span class="tok-fn">compressor</span>(threshold_db=-12.0, ratio=3.0)
+    &#125;
+    &gt;&gt; <span class="tok-fn">stereo_widen</span>(width=1.2)
+    &gt;&gt; <span class="tok-fn">limiter</span>(ceiling_db=-0.1)
+    &gt;&gt; <span class="tok-fn">to_wav</span>
+    &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: PIPELINE EXECUTION -->
+      <section id="exec" class="doc-section">
+        <div class="doc-section-header">
+          <p class="badge">Section 3</p>
+          <h2 class="doc-h2">3. Pipeline Execution</h2>
+          <p class="doc-p">
+            Execute compiled <code>.morf</code> dataflow graphs natively across languages with zero train-serve skew. Morflow provides idiomatic host SDKs for Python, JavaScript/Node.js, Java, and Rust, mapping host tensors, image arrays, and raw binary streams directly into the engine's execution graph.
+          </p>
+        </div>
+
+        <!-- 3.1: PYTHON -->
+        <div id="exec-python" class="doc-section">
+          <h3 class="doc-h3">3.1. Python</h3>
+          <p class="doc-p">
+            The Python SDK (<code>morflow</code>) integrates directly with NumPy arrays, raw bytes, and file streams with zero-copy buffer sharing into the underlying engine.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Installation</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code>pip install morflow</code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Image &amp; Audio Processing in Python</span>
+              <span>python</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> numpy <span class="tok-keyword">as</span> np
+<span class="tok-keyword">from</span> PIL <span class="tok-keyword">import</span> Image
+<span class="tok-keyword">import</span> morflow
+
+<span class="tok-comment"># 1. Load pipeline from file</span>
+pipeline = morflow.load(<span class="tok-str">"image_pipeline.morf"</span>)
+
+<span class="tok-comment"># 2. Pass NumPy arrays directly [H, W, C]</span>
+img = Image.open(<span class="tok-str">"input.png"</span>).convert(<span class="tok-str">"RGB"</span>)
+np_img = np.array(img, dtype=np.uint8)
+
+<span class="tok-comment"># 3. Execute pipeline synchronously with native speed</span>
+result_np = pipeline.run(np_img)
+
+<span class="tok-comment"># 4. Save result</span>
+out_img = Image.fromarray(result_np)
+out_img.save(<span class="tok-str">"output.png"</span>)
+
+<span class="tok-comment"># ----------------------------------------------------</span>
+<span class="tok-comment"># Audio Processing (Pass and receive raw WAV bytes)</span>
+<span class="tok-comment"># ----------------------------------------------------</span>
+audio_pipe = morflow.load(<span class="tok-str">"audio_pipeline.morf"</span>)
+<span class="tok-keyword">with</span> open(<span class="tok-str">"input.wav"</span>, <span class="tok-str">"rb"</span>) <span class="tok-keyword">as</span> f:
+    input_bytes = f.read()
+
+<span class="tok-comment"># Single output returns bytes; multi-stream returns dict[str, bytes]</span>
+output_wav_bytes = audio_pipe.run(input_bytes)
+<span class="tok-keyword">with</span> open(<span class="tok-str">"output.wav"</span>, <span class="tok-str">"wb"</span>) <span class="tok-keyword">as</span> f:
+    f.write(output_wav_bytes)</code></pre>
+          </div>
+        </div>
+
+        <!-- 3.2: JAVASCRIPT / NODE.JS -->
+        <div id="exec-js" class="doc-section">
+          <h3 class="doc-h3">3.2. JavaScript / Node.js</h3>
+          <p class="doc-p">
+            The Node.js SDK provides both asynchronous execution (via <code>pipeline.run()</code> to offload work to a background worker pool without blocking the V8 event loop) and synchronous execution (via <code>pipeline.runSync()</code>).
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Installation</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code>npm install morflow</code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Async Pipeline Execution in Node.js</span>
+              <span>javascript</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> fs <span class="tok-keyword">from</span> <span class="tok-str">'node:fs'</span>;
+<span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
+
+<span class="tok-comment">// 1. Load pipeline from file</span>
+<span class="tok-keyword">const</span> pipeline = morflow.load(<span class="tok-str">'image_pipeline.morf'</span>);
+
+<span class="tok-comment">// 2. Construct TensorInput with shape and buffer</span>
+<span class="tok-keyword">const</span> inputBuffer = fs.readFileSync(<span class="tok-str">'input_raw_rgb.bin'</span>);
+<span class="tok-keyword">const</span> tensorInput = &#123;
+  data: inputBuffer,
+  shape: [1080, 1920, 3],
+  dtype: <span class="tok-str">'u8'</span>
+&#125;;
+
+<span class="tok-comment">// 3. Run asynchronously off the main thread</span>
+<span class="tok-keyword">const</span> outputTensor = <span class="tok-keyword">await</span> pipeline.run(tensorInput);
+
+console.log(<span class="tok-str">`Shape: $&#123;outputTensor.shape&#125;, Dtype: $&#123;outputTensor.dtype&#125;`</span>);
+<span class="tok-keyword">const</span> outBuffer = outputTensor.toBuffer();
+fs.writeFileSync(<span class="tok-str">'output_raw_rgba.bin'</span>, outBuffer);
+
+<span class="tok-comment">// ----------------------------------------------------</span>
+<span class="tok-comment">// Audio DSP Execution (Direct Buffer I/O)</span>
+<span class="tok-comment">// ----------------------------------------------------</span>
+<span class="tok-keyword">const</span> audioPipe = morflow.load(<span class="tok-str">'audio_pipeline.morf'</span>);
+<span class="tok-keyword">const</span> wavBuffer = fs.readFileSync(<span class="tok-str">'input.wav'</span>);
+
+<span class="tok-comment">// Execute asynchronously</span>
+<span class="tok-keyword">const</span> outWav = <span class="tok-keyword">await</span> audioPipe.run(wavBuffer);
+fs.writeFileSync(<span class="tok-str">'output.wav'</span>, outWav.toBuffer());</code></pre>
+          </div>
+        </div>
+
+        <!-- 3.3: JAVA -->
+        <div id="exec-java" class="doc-section">
+          <h3 class="doc-h3">3.3. Java</h3>
+          <p class="doc-p">
+            The Java SDK wraps native JNI bindings with type-safe classes, automatic memory cleanup, and direct tensor buffers for high-throughput enterprise JVM backends.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Maven Dependency (pom.xml)</span>
+              <span>XML</span>
+            </div>
+            <pre class="doc-code-pre"><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.morflow&lt;/groupId&gt;
+    &lt;artifactId&gt;morflow&lt;/artifactId&gt;
+    &lt;version&gt;0.1.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Pipeline Execution in Java</span>
+              <span>java</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> org.morflow.Morflow;
+<span class="tok-keyword">import</span> org.morflow.Pipeline;
+<span class="tok-keyword">import</span> org.morflow.MorflowTensor;
+<span class="tok-keyword">import</span> java.nio.file.Files;
+<span class="tok-keyword">import</span> java.nio.file.Path;
+
+<span class="tok-keyword">public class</span> <span class="tok-fn">MorflowRunner</span> &#123;
+    <span class="tok-keyword">public static void</span> <span class="tok-fn">main</span>(String[] args) <span class="tok-keyword">throws</span> Exception &#123;
+        <span class="tok-comment">// 1. Load pipeline</span>
+        <span class="tok-keyword">try</span> (Pipeline pipeline = Morflow.load(<span class="tok-str">"image_pipeline.morf"</span>)) &#123;
+            <span class="tok-comment">// 2. Wrap image bytes into MorflowTensor [H, W, C]</span>
+            <span class="tok-keyword">byte</span>[] rgbBytes = Files.readAllBytes(Path.of(<span class="tok-str">"input_rgb.raw"</span>));
+            MorflowTensor inputTensor = MorflowTensor.fromByteArray(
+                rgbBytes,
+                <span class="tok-keyword">new int</span>[]&#123;1080, 1920, 3&#125;
+            );
+
+            <span class="tok-comment">// 3. Execute pipeline</span>
+            <span class="tok-keyword">try</span> (MorflowTensor outputTensor = pipeline.run(inputTensor)) &#123;
+                <span class="tok-keyword">int</span>[] outShape = outputTensor.getShape();
+                <span class="tok-keyword">byte</span>[] outBytes = outputTensor.toByteArray();
+                Files.write(Path.of(<span class="tok-str">"output.raw"</span>), outBytes);
+            &#125;
+        &#125;
+
+        <span class="tok-comment">// Audio WAV execution</span>
+        Pipeline audioPipe = Morflow.load(<span class="tok-str">"audio_pipeline.morf"</span>);
+        <span class="tok-keyword">byte</span>[] inputWav = Files.readAllBytes(Path.of(<span class="tok-str">"input.wav"</span>));
+        MorflowTensor audioOut = audioPipe.run(inputWav);
+        Files.write(Path.of(<span class="tok-str">"output.wav"</span>), audioOut.toByteArray());
+    &#125;
+&#125;</code></pre>
+          </div>
+        </div>
+
+        <!-- 3.4: RUST -->
+        <div id="exec-rust" class="doc-section">
+          <h3 class="doc-h3">3.4. Rust</h3>
+          <p class="doc-p">
+            The native Rust engine crate (<code>morflow</code>) provides direct access to <code>core_types::Payload</code> variants (<code>Image</code>, <code>Audio</code>, <code>Tensor</code>, <code>Data</code>) with compile-time type safety and zero runtime overhead.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Cargo Dependencies</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code>cargo add morflow core_types</code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Native Pipeline Execution in Rust</span>
+              <span>rust</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> core_types::&#123;ColorSpace, Image, Payload, RVec&#125;;
+<span class="tok-keyword">use</span> morflow::Morflow;
+<span class="tok-keyword">use</span> std::fs;
+
+<span class="tok-keyword">fn</span> <span class="tok-fn">main</span>() -&gt; Result&lt;(), Box&lt;<span class="tok-keyword">dyn</span> std::error::Error&gt;&gt; &#123;
+    <span class="tok-comment">// 1. Load pipeline from file</span>
+    <span class="tok-keyword">let mut</span> pipeline = Morflow::load(<span class="tok-str">"image_pipeline.morf"</span>)?;
+
+    <span class="tok-comment">// 2. Wrap image buffer into a Morflow Image payload</span>
+    <span class="tok-keyword">let</span> img = image::open(<span class="tok-str">"input.png"</span>)?.to_rgb8();
+    <span class="tok-keyword">let</span> input = Image::from_u8_hwc(
+        &amp;img,
+        img.width() <span class="tok-keyword">as</span> usize,
+        img.height() <span class="tok-keyword">as</span> usize,
+        ColorSpace::Rgb,
+    ).map_err(|e| e.to_string())?;
+
+    <span class="tok-comment">// 3. Execute Morflow pipeline</span>
+    <span class="tok-keyword">let</span> outputs = pipeline.run(Payload::Image(input))?;
+
+    <span class="tok-comment">// 4. Extract emitted payload and save output</span>
+    <span class="tok-keyword">if let</span> Payload::Image(out) = outputs.into_single()? &#123;
+        <span class="tok-keyword">let</span> bytes = out.to_contiguous_bytes();
+        image::save_buffer(
+            <span class="tok-str">"output.png"</span>,
+            bytes.as_slice(),
+            out.width() <span class="tok-keyword">as</span> u32,
+            out.height() <span class="tok-keyword">as</span> u32,
+            image::ColorType::Rgba8,
+        )?;
+    &#125;
+
+    <span class="tok-comment">// ----------------------------------------------------</span>
+    <span class="tok-comment">// Audio DSP Execution (Direct Data Payload)</span>
+    <span class="tok-comment">// ----------------------------------------------------</span>
+    <span class="tok-keyword">let mut</span> audio_pipe = Morflow::load(<span class="tok-str">"audio_pipeline.morf"</span>)?;
+    <span class="tok-keyword">let</span> wav_bytes = fs::read(<span class="tok-str">"input.wav"</span>)?;
+
+    <span class="tok-keyword">let</span> audio_out = audio_pipe.run(Payload::Data &#123;
+        buffer: RVec::from(wav_bytes),
+    &#125;)?;
+
+    <span class="tok-keyword">if let</span> Payload::Data &#123; buffer &#125; = audio_out.into_single()? &#123;
+        fs::write(<span class="tok-str">"output.wav"</span>, buffer.as_slice())?;
+    &#125;
+
+    Ok(())
+&#125;</code></pre>
+          </div>
+        </div>
+      </section>
+    </article>
+  </div>
+</Base>

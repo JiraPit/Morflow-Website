@@ -1,0 +1,144 @@
+---
+---
+<div class="showcase-box">
+  <!-- Left Side: .morf pipeline -->
+  <div class="showcase-panel">
+    <div class="showcase-header">
+      <div class="showcase-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-500);">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        <span>image_pipeline.morf</span>
+      </div>
+      <span class="showcase-tag">Pipeline DSL</span>
+    </div>
+    <pre class="code-container"><code><span class="tok-comment"># Declare Action Pack imports</span>
+<span class="tok-keyword">import</span> base.latest
+<span class="tok-keyword">from</span> image_essentials.latest <span class="tok-keyword">import</span> (
+    resize, color_adjust, gaussian_blur, to_image
+)
+
+<span class="tok-comment"># Accept inputs with defaults</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_w</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_h</span> = <span class="tok-num">512</span>
+
+<span class="tok-comment"># Flow transformations via &gt;&gt;</span>
+<span class="tok-var">$img_in</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(color=<span class="tok-str">"rgb"</span>, normalize=<span class="tok-keyword">true</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(width=<span class="tok-var">$target_w</span>, height=<span class="tok-var">$target_h</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(contrast=<span class="tok-num">1.15</span>, saturation=<span class="tok-num">1.05</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">gaussian_blur</span>(sigma=<span class="tok-num">1.2</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span>(color=<span class="tok-str">"rgba"</span>, dtype=<span class="tok-str">"u8"</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
+  </div>
+
+  <!-- Right Side: Multi-Language host execution -->
+  <div class="showcase-panel">
+    <div class="showcase-header">
+      <div class="tabs-nav" role="tablist">
+        <button class="tab-btn is-active" data-tab="py" role="tab" aria-selected="true">Python</button>
+        <button class="tab-btn" data-tab="js" role="tab" aria-selected="false">Node.js</button>
+        <button class="tab-btn" data-tab="java" role="tab" aria-selected="false">Java</button>
+        <button class="tab-btn" data-tab="rust" role="tab" aria-selected="false">Rust</button>
+      </div>
+      <span class="showcase-tag">Host Runtime</span>
+    </div>
+
+    <!-- Python Tab -->
+    <div class="tab-content" id="tab-py">
+      <pre class="code-container"><code><span class="tok-keyword">import</span> morflow
+<span class="tok-keyword">import</span> numpy <span class="tok-keyword">as</span> np
+<span class="tok-keyword">from</span> PIL <span class="tok-keyword">import</span> Image
+
+<span class="tok-comment"># 1. Load pipeline</span>
+pipeline = morflow.load(<span class="tok-str">"image_pipeline.morf"</span>)
+
+<span class="tok-comment"># 2. Input NumPy array (zero-copy)</span>
+img = Image.open(<span class="tok-str">"input.png"</span>).convert(<span class="tok-str">"RGB"</span>)
+input_arr = np.array(img, dtype=np.uint8)
+
+<span class="tok-comment"># 3. Execute with native Rust speed</span>
+result_arr = pipeline.run(input_arr)
+Image.fromarray(result_arr).save(<span class="tok-str">"output.png"</span>)</code></pre>
+    </div>
+
+    <!-- Node.js Tab -->
+    <div class="tab-content" id="tab-js" style="display: none;">
+      <pre class="code-container"><code><span class="tok-keyword">import</span> fs <span class="tok-keyword">from</span> <span class="tok-str">'node:fs'</span>;
+<span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
+
+<span class="tok-comment">// 1. Load pipeline</span>
+<span class="tok-keyword">const</span> pipeline = morflow.load(<span class="tok-str">'image_pipeline.morf'</span>);
+<span class="tok-keyword">const</span> inputBuffer = fs.readFileSync(<span class="tok-str">'input.png'</span>);
+
+<span class="tok-comment">// 2. Execute asynchronously on worker thread</span>
+<span class="tok-keyword">const</span> outputTensor = <span class="tok-keyword">await</span> pipeline.run(inputBuffer);
+
+<span class="tok-comment">// 3. Save processed buffer</span>
+fs.writeFileSync(<span class="tok-str">'output.png'</span>, outputTensor.toBuffer());</code></pre>
+    </div>
+
+    <!-- Java Tab -->
+    <div class="tab-content" id="tab-java" style="display: none;">
+      <pre class="code-container"><code><span class="tok-keyword">import</span> org.morflow.*;
+<span class="tok-keyword">import</span> java.nio.file.Files;
+<span class="tok-keyword">import</span> java.nio.file.Path;
+
+<span class="tok-comment">// 1. Load pipeline with AutoCloseable support</span>
+<span class="tok-keyword">try</span> (Pipeline pipeline = Morflow.load(<span class="tok-str">"image_pipeline.morf"</span>)) &#123;
+    <span class="tok-keyword">byte</span>[] inputBytes = Files.readAllBytes(Path.of(<span class="tok-str">"input.png"</span>));
+
+    <span class="tok-comment">// 2. Execute with Direct ByteBuffer zero-copy</span>
+    MorflowTensor output = pipeline.run(inputBytes);
+    Files.write(Path.of(<span class="tok-str">"output.png"</span>), output.toByteArray());
+&#125;</code></pre>
+    </div>
+
+    <!-- Rust Tab -->
+    <div class="tab-content" id="tab-rust" style="display: none;">
+      <pre class="code-container"><code><span class="tok-keyword">use</span> morflow::&#123;Morflow, Payload, Image, ColorSpace&#125;;
+
+<span class="tok-comment">// 1. Load &amp; parse pipeline</span>
+<span class="tok-keyword">let</span> <span class="tok-keyword">mut</span> pipeline = Morflow::load(<span class="tok-str">"image_pipeline.morf"</span>)?;
+
+<span class="tok-comment">// 2. Wrap image data</span>
+<span class="tok-keyword">let</span> img = Image::from_u8_hwc(&amp;bytes, <span class="tok-num">640</span>, <span class="tok-num">480</span>, ColorSpace::Rgb)?;
+
+<span class="tok-comment">// 3. Run multi-threaded pipeline</span>
+<span class="tok-keyword">let</span> outputs = pipeline.run(Payload::Image(img))?;
+<span class="tok-keyword">let</span> single = outputs.into_single()?;</code></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabContents = {
+    py: document.getElementById('tab-py'),
+    js: document.getElementById('tab-js'),
+    java: document.getElementById('tab-java'),
+    rust: document.getElementById('tab-rust'),
+  };
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-tab');
+      if (!target) return;
+
+      tabButtons.forEach(b => {
+        b.classList.remove('is-active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-selected', 'true');
+
+      Object.entries(tabContents).forEach(([key, el]) => {
+        if (el) {
+          el.style.display = key === target ? 'block' : 'none';
+        }
+      });
+    });
+  });
+</script>

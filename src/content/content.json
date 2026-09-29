@@ -1,0 +1,122 @@
+{
+  "benefits": [
+    {
+      "num": "01",
+      "active": false,
+      "image": "/assets/benefit-1.png",
+      "title": "Guaranteed Identical Operations",
+      "desc": "In typical AI workflows, preprocessing code written in Python training notebooks is copy-pasted or rewritten in other languages for production services. This rewrite introduces subtle numerical discrepancies, library differences, and critical bugs (train-serve and cross-language skew). With Morflow, you write the pipeline once in a .morf file and execute the exact same deterministic operations across many platforms and languages in both training and production serving."
+    },
+    {
+      "num": "02",
+      "active": true,
+      "image": "/assets/parleys-plan.png",
+      "title": "High Performance Regardless of Host Language",
+      "desc": "Written in Rust, Morflow provides zero-copy memory operations, automatic flow parallelism, and multi-threaded CPU execution. When calling Morflow from Python or another host language, you get the full speed and multi-core scalability of native Rust."
+    },
+    {
+      "num": "03",
+      "active": false,
+      "image": "/assets/benefit-3.png",
+      "title": "Developer-Friendly & Self-Explanatory Pipelines",
+      "desc": "Graph formats like TorchScript or ONNX are difficult to inspect, debug, or understand without specialized tools. A .morf file is clean, declarative, and easily understood by developers across different teams (data science, backend, infra) at a glance."
+    },
+    {
+      "num": "04",
+      "active": false,
+      "image": "/assets/benefit-4.png",
+      "title": "Lean Production Images",
+      "desc": "Rather than bundling massive, monolithic dependencies, Morflow ensures production deployments include only the specific actions required by the active pipelines, drastically reducing container image sizes."
+    },
+    {
+      "num": "05",
+      "active": true,
+      "image": "/assets/benefit-1.png",
+      "title": "Rich Action Packs & Effortless Custom Actions",
+      "desc": "Designed around an ecosystem of modular, reusable Action Packs (for computer vision, audio DSP, multimodal preprocessing, etc.) alongside a lightweight interface that makes creating custom actions straightforward and fast."
+    },
+    {
+      "num": "06",
+      "active": false,
+      "image": "/assets/benefit-3.png",
+      "title": "Ship AI & Data Pipelines Together Without Server Rebuilds",
+      "desc": "Because .morf pipelines and actions are decoupled from host application logic, data processing pipelines can be updated and shipped alongside AI models without requiring server code recompilation or backend service rebuilds."
+    }
+  ],
+  "features": [
+    {
+      "step": 0,
+      "label": "Declarative .morf Pipelines",
+      "desc": "Define transformations with clean >> flow operators, action arguments, and mid-stream taps instead of complex code.",
+      "mock": "/assets/mock-0.png",
+      "srcset": "/assets/mock-0.png 1x, /assets/mock-0@2x.png 2x"
+    },
+    {
+      "step": 1,
+      "label": "Multi-Language Zero-Copy",
+      "desc": "Directly pass NumPy arrays, Float32Array buffers, or Java Direct ByteBuffers without memory copying overhead.",
+      "mock": "/assets/mock-2.png",
+      "srcset": "/assets/mock-2.png 1x, /assets/mock-2@2x.png 2x"
+    },
+    {
+      "step": 2,
+      "label": "Auto-Parallel Scheduling",
+      "desc": "Independent flows and each ($channel) loops dynamically unroll across multi-threaded CPU workers with zero-copy layered environments.",
+      "mock": "/assets/mock-1.png",
+      "srcset": "/assets/mock-1.png 1x, /assets/mock-1@2x.png 2x"
+    },
+    {
+      "step": 3,
+      "label": "Deterministic Multi-Stream Output",
+      "desc": "Emit single values or multiple named channels (e.g. emit('left'), emit('right')) returned as native dictionaries and maps.",
+      "mock": "/assets/mock-3.png",
+      "srcset": "/assets/mock-3.png 1x, /assets/mock-3@2x.png 2x"
+    }
+  ],
+  "footerColumns": [
+    {
+      "title": "Documentation",
+      "links": [
+        {
+          "href": "/doc#cli",
+          "label": "CLI Reference"
+        },
+        {
+          "href": "/doc#syntax",
+          "label": ".morf Syntax"
+        },
+        {
+          "href": "/doc#cli-installation",
+          "label": "Installation"
+        }
+      ]
+    },
+    {
+      "title": "Project",
+      "links": [
+        {
+          "href": "/",
+          "label": "Home"
+        },
+        {
+          "href": "/doc",
+          "label": "Documentation"
+        },
+        {
+          "href": "https://github.com/JiraPit/Morflow",
+          "label": "GitHub"
+        }
+      ]
+    }
+  ],
+  "navLinks": [
+    {
+      "href": "/",
+      "label": "Home"
+    },
+    {
+      "href": "/doc",
+      "label": "Documentation"
+    }
+  ]
+}

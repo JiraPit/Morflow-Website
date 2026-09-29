@@ -1,0 +1,16 @@
+---
+export interface Props {
+  badge: string;
+  center?: boolean;
+  class?: string;
+  display?: boolean;
+}
+const { badge, center = false, display = false, class: extra = '' } = Astro.props;
+---
+<header class={`phero${center ? ' phero--center' : ''} ${extra}`.trim()}>
+  <div class="phero__main">
+    <p class="badge">{badge}</p>
+    <h1 class={display ? 'phero__title ts-display' : 'phero__title'}><slot /></h1>
+    <slot name="after-title" />
+  </div>
+</header>
