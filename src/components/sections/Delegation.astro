@@ -24,7 +24,20 @@ const features = await group<Feature>('features');
             aria-controls={`mock-${f.step}`}
             tabindex={f.step === 0 ? 0 : -1}
           >
-            <img class="feature__chevron" src={withBase('/assets/arrows.svg')} alt="" aria-hidden="true" />
+            <svg
+              class="feature__chevron"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--brand-500, #db5837)"
+              stroke-width="2.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
             <span class="feature__head">
               <h4 class="feature__label">{f.label}</h4>
               <span class="feature__desc">{f.desc}</span>
