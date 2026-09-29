@@ -699,37 +699,33 @@ img {
   position: relative;
   flex: 1 1 0;
   min-width: 0;
-  min-height: 520px;
   background: var(--footer);
   border-radius: 20px;
-  overflow: hidden;
-  isolation: isolate;
   border: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
 }
 
 .mock {
-  position: absolute;
-  inset: 0;
-  padding: 32px 36px;
+  padding: 24px 28px;
   opacity: 0;
-  transform: translateY(12px) scale(0.99);
+  transform: translateY(8px);
   transition:
     opacity var(--d-spring) var(--e-tween-out),
     transform var(--d-spring) var(--e-spring);
-  pointer-events: none;
-  display: flex;
+  display: none;
   flex-direction: column;
-  justify-content: center;
+  width: 100%;
 }
 
 .mock[hidden] {
-  display: block;
+  display: none !important;
 }
 
 .mock.is-active {
   opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
+  transform: translateY(0);
+  display: flex;
 }
 
 /* ============ TESTIMONIALS ============ */

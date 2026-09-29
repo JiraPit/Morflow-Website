@@ -43,37 +43,34 @@ const features = await group<Feature>('features');
         aria-labelledby="feature-0"
         data-step="0"
       >
-        <div class="code-window">
-          <div class="code-window__header">
-            <div class="window-controls">
+        <div class="code-card">
+          <div class="code-card__header">
+            <div class="window-dots">
               <span class="dot dot-red"></span>
               <span class="dot dot-yellow"></span>
               <span class="dot dot-green"></span>
             </div>
-            <div class="window-tab">
-              <svg class="file-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <span class="window-title">pipeline.morf</span>
-            </div>
-            <span class="window-badge">.morf</span>
+            <span class="code-card__title">image_pipeline.morf</span>
+            <span class="code-card__pill">.morf pipeline</span>
           </div>
-          <div class="code-window__body">
-            <pre class="tok-code"><code><span class="tok-comment"># Declarative image transformation flow</span>
-<span class="tok-keyword">import</span> image_essentials/latest <span class="tok-keyword">as</span> img
+          <pre class="code-card__pre"><code><span class="tok-comment"># Declarative image transformation flow</span>
+<span class="tok-keyword">import</span> base/latest
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
 
-<span class="tok-keyword">input</span> <span class="tok-var">$img_in</span>: <span class="tok-type">Image</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
 
-<span class="tok-keyword">flow</span> <span class="tok-fn">main</span> &#123;
-  <span class="tok-var">$img_in</span>
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">img.resize</span>(<span class="tok-param">width</span>: <span class="tok-num">1920</span>, <span class="tok-param">height</span>: <span class="tok-num">1080</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">img.color_adjust</span>(<span class="tok-param">saturation</span>: <span class="tok-num">1.2</span>, <span class="tok-param">brightness</span>: <span class="tok-num">0.95</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">img.sharpen</span>(<span class="tok-param">strength</span>: <span class="tok-num">0.5</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>()
-&#125;</code></pre>
-          </div>
+<span class="tok-var">$img_in</span>
+  <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">normalize</span>=<span class="tok-num">true</span>)
+  <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-var">$target_width</span>, <span class="tok-param">height</span>=<span class="tok-var">$target_height</span>)
+  <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.15</span>, <span class="tok-param">saturation</span>=<span class="tok-num">1.05</span>)
+  <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgba"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"u8"</span>)
+  <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
         </div>
       </div>
 
-      <!-- 1: Multi-Language (Python, JS, Rust - 3 blocks of code) -->
+      <!-- 1: Multi-Language (Python, JS, Rust) -->
       <div
         class="mock"
         id="mock-1"
@@ -82,71 +79,50 @@ const features = await group<Feature>('features');
         data-step="1"
         hidden
       >
-        <div class="code-multi-stack">
+        <div class="lang-stack">
           <!-- Python -->
-          <div class="code-window mini">
-            <div class="code-window__header">
-              <div class="window-controls">
-                <span class="dot dot-red"></span>
-                <span class="dot dot-yellow"></span>
-                <span class="dot dot-green"></span>
+          <div class="code-card mini">
+            <div class="code-card__header">
+              <div class="lang-title-group">
+                <img class="lang-logo" src={withBase('/assets/languages/python.png')} alt="" width="18" height="18" />
+                <span class="code-card__title">Python</span>
               </div>
-              <div class="window-tab">
-                <span class="lang-dot dot-py"></span>
-                <span class="window-title">Python</span>
-              </div>
-              <span class="window-badge badge-py">python</span>
+              <span class="code-card__pill">pip install morflow</span>
             </div>
-            <div class="code-window__body">
-              <pre class="tok-code"><code><span class="tok-keyword">import</span> morflow
+            <pre class="code-card__pre"><code><span class="tok-keyword">import</span> morflow
 
-pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"pipeline.morf"</span>)
+pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"image_pipeline.morf"</span>)
 result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
-            </div>
           </div>
 
           <!-- JavaScript / Node.js -->
-          <div class="code-window mini">
-            <div class="code-window__header">
-              <div class="window-controls">
-                <span class="dot dot-red"></span>
-                <span class="dot dot-yellow"></span>
-                <span class="dot dot-green"></span>
+          <div class="code-card mini">
+            <div class="code-card__header">
+              <div class="lang-title-group">
+                <img class="lang-logo" src={withBase('/assets/languages/nodejs.png')} alt="" width="18" height="18" />
+                <span class="code-card__title">JavaScript / Node.js</span>
               </div>
-              <div class="window-tab">
-                <span class="lang-dot dot-js"></span>
-                <span class="window-title">JavaScript / Node.js</span>
-              </div>
-              <span class="window-badge badge-js">node.js</span>
+              <span class="code-card__pill">npm install morflow</span>
             </div>
-            <div class="code-window__body">
-              <pre class="tok-code"><code><span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
+            <pre class="code-card__pre"><code><span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
 
-<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'pipeline.morf'</span>);
-<span class="tok-keyword">const</span> result = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>(inputImage);</code></pre>
-            </div>
+<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'image_pipeline.morf'</span>);
+<span class="tok-keyword">const</span> result = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>(tensorInput);</code></pre>
           </div>
 
           <!-- Rust -->
-          <div class="code-window mini">
-            <div class="code-window__header">
-              <div class="window-controls">
-                <span class="dot dot-red"></span>
-                <span class="dot dot-yellow"></span>
-                <span class="dot dot-green"></span>
+          <div class="code-card mini">
+            <div class="code-card__header">
+              <div class="lang-title-group">
+                <img class="lang-logo" src={withBase('/assets/languages/rust.png')} alt="" width="18" height="18" />
+                <span class="code-card__title">Rust</span>
               </div>
-              <div class="window-tab">
-                <span class="lang-dot dot-rs"></span>
-                <span class="window-title">Rust</span>
-              </div>
-              <span class="window-badge badge-rs">rust</span>
+              <span class="code-card__pill">cargo add morflow</span>
             </div>
-            <div class="code-window__body">
-              <pre class="tok-code"><code><span class="tok-keyword">use</span> morflow::Morflow;
+            <pre class="code-card__pre"><code><span class="tok-keyword">use</span> morflow::Morflow;
 
-<span class="tok-keyword">let mut</span> pipeline = Morflow::<span class="tok-fn">load</span>(<span class="tok-str">"pipeline.morf"</span>)?;
-<span class="tok-keyword">let</span> result = pipeline.<span class="tok-fn">run</span>(input_image)?;</code></pre>
-            </div>
+<span class="tok-keyword">let mut</span> pipeline = Morflow::<span class="tok-fn">load</span>(<span class="tok-str">"image_pipeline.morf"</span>)?;
+<span class="tok-keyword">let</span> result = pipeline.<span class="tok-fn">run</span>(payload)?;</code></pre>
           </div>
         </div>
       </div>
@@ -160,38 +136,30 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
         data-step="2"
         hidden
       >
-        <div class="code-window">
-          <div class="code-window__header">
-            <div class="window-controls">
+        <div class="code-card">
+          <div class="code-card__header">
+            <div class="window-dots">
               <span class="dot dot-red"></span>
               <span class="dot dot-yellow"></span>
               <span class="dot dot-green"></span>
             </div>
-            <div class="window-tab">
-              <svg class="file-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <span class="window-title">parallel_audio.morf</span>
-            </div>
-            <span class="window-badge">.morf</span>
+            <span class="code-card__title">audio_split_pipeline.morf</span>
+            <span class="code-card__pill">auto-parallel</span>
           </div>
-          <div class="code-window__body">
-            <pre class="tok-code"><code><span class="tok-keyword">import</span> audio_essentials/latest <span class="tok-keyword">as</span> audio
+          <pre class="code-card__pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">input</span> <span class="tok-var">$input_audio</span>: <span class="tok-type">Audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$input_audio</span>
 
-<span class="tok-keyword">flow</span> <span class="tok-fn">main</span> &#123;
-  <span class="tok-var">$input_audio</span>
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">audio.to_audio</span>(<span class="tok-param">sample_rate</span>: <span class="tok-num">44100</span>)
-    <span class="tok-comment"># Concurrently unrolled across CPU worker threads</span>
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span> (<span class="tok-var">$channel</span>) &#123;
-      <span class="tok-var">$channel</span>
-        <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">audio.biquad_filter</span>(<span class="tok-param">filter_type</span>: <span class="tok-str">"highpass"</span>, <span class="tok-param">frequency</span>: <span class="tok-num">80.0</span>)
-        <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">audio.compressor</span>(<span class="tok-param">threshold_db</span>: <span class="tok-num">-12.0</span>, <span class="tok-param">ratio</span>: <span class="tok-num">3.0</span>)
-    &#125;
-    <span class="tok-comment"># Receives stacked multi-channel stream</span>
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">audio.stereo_widen</span>(<span class="tok-param">width</span>: <span class="tok-num">1.2</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>()
-&#125;</code></pre>
-          </div>
+<span class="tok-comment"># FLOW 1 — ingest and decode</span>
+<span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$decoded</span>
+
+<span class="tok-comment"># FLOW 2 &amp; FLOW 3 run concurrently ──────────────────────────</span>
+
+<span class="tok-comment"># FLOW 2 — left channel, low-pass filter</span>
+<span class="tok-var">$decoded</span>[0] <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"lowpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">1200.0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"left_filtered"</span>)
+
+<span class="tok-comment"># FLOW 3 — right channel, high-pass filter</span>
+<span class="tok-var">$decoded</span>[1] <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"highpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">800.0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"right_filtered"</span>)</code></pre>
         </div>
       </div>
 
@@ -204,34 +172,27 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
         data-step="3"
         hidden
       >
-        <div class="code-window">
-          <div class="code-window__header">
-            <div class="window-controls">
+        <div class="code-card">
+          <div class="code-card__header">
+            <div class="window-dots">
               <span class="dot dot-red"></span>
               <span class="dot dot-yellow"></span>
               <span class="dot dot-green"></span>
             </div>
-            <div class="window-tab">
-              <svg class="file-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <span class="window-title">action_library.morf</span>
-            </div>
-            <span class="window-badge">.morf</span>
+            <span class="code-card__title">modular_pipeline.morf</span>
+            <span class="code-card__pill">actions library</span>
           </div>
-          <div class="code-window__body">
-            <pre class="tok-code"><code><span class="tok-comment"># Import pre-built actions across vision, DSP &amp; AI</span>
-<span class="tok-keyword">import</span> image_essentials/latest <span class="tok-keyword">as</span> img
-<span class="tok-keyword">import</span> audio_essentials/latest <span class="tok-keyword">as</span> audio
-<span class="tok-keyword">import</span> vision_models/latest <span class="tok-keyword">as</span> cv
-<span class="tok-keyword">import</span> tensor_math/latest <span class="tok-keyword">as</span> math
+          <pre class="code-card__pre"><code><span class="tok-comment"># Compose actions across image processing &amp; audio DSP</span>
+<span class="tok-keyword">import</span> base/latest
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
+<span class="tok-keyword">from</span> audio_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_audio</span>, <span class="tok-fn">biquad_filter</span>, <span class="tok-fn">to_wav</span>
 
-<span class="tok-keyword">flow</span> <span class="tok-fn">main</span> &#123;
-  <span class="tok-var">$frame</span>
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">cv.detect_objects</span>(<span class="tok-param">model</span>: <span class="tok-str">"yolov8n"</span>, <span class="tok-param">confidence</span>: <span class="tok-num">0.85</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">img.draw_overlays</span>(<span class="tok-param">palette</span>: <span class="tok-str">"neon"</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">img.color_adjust</span>(<span class="tok-param">contrast</span>: <span class="tok-num">1.1</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>()
-&#125;</code></pre>
-          </div>
+<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$audio_in</span>
+
+<span class="tok-comment"># Vision and Audio streams running together</span>
+<span class="tok-var">$img_in</span>   <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">1280</span>, <span class="tok-param">height</span>=<span class="tok-num">720</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"image"</span>)
+<span class="tok-var">$audio_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"lowpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">1200.0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"audio"</span>)</code></pre>
         </div>
       </div>
     </div>
@@ -267,176 +228,133 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
     text-align: left;
   }
 
-  /* Code Window Container */
-  .code-window {
-    background: #181512;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
+  /* Code Card Container */
+  .code-card {
+    background: #191715;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
     overflow: hidden;
     box-shadow:
-      0 20px 40px -12px rgba(26, 23, 20, 0.28),
-      0 2px 8px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(255, 255, 255, 0.05);
+      0 20px 40px -15px rgba(28, 24, 20, 0.28),
+      0 0 0 1px rgba(255, 255, 255, 0.04);
     display: flex;
     flex-direction: column;
     width: 100%;
   }
 
-  .code-window__header {
+  .code-card__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 11px 18px;
-    background: #211e1a;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 13px 20px;
+    background: #221f1b;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  .window-controls {
+  .window-dots {
     display: flex;
     align-items: center;
     gap: 7px;
   }
 
-  .window-controls .dot {
-    width: 11px;
-    height: 11px;
+  .window-dots .dot {
+    width: 10.5px;
+    height: 10.5px;
     border-radius: 50%;
     display: inline-block;
   }
-  .dot-red { background: #ff5f56; box-shadow: 0 0 4px rgba(255, 95, 86, 0.4); }
-  .dot-yellow { background: #ffbd2e; box-shadow: 0 0 4px rgba(255, 189, 46, 0.4); }
-  .dot-green { background: #27c93f; box-shadow: 0 0 4px rgba(39, 201, 63, 0.4); }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
 
-  .window-tab {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    color: #cbd5e1;
-  }
-
-  .file-icon {
-    color: #94a3b8;
-    display: block;
-  }
-
-  .window-title {
+  .code-card__title {
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
     font-weight: 500;
-    color: #e2e8f0;
+    color: #ded9d2;
     letter-spacing: -0.01em;
   }
 
-  .window-badge {
+  .code-card__pill {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #ff8a65;
-    background: rgba(255, 138, 101, 0.12);
-    border: 1px solid rgba(255, 138, 101, 0.3);
-    padding: 3px 8px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--brand-500, #db5837);
+    background: rgba(219, 88, 55, 0.12);
+    border: 1px solid rgba(219, 88, 55, 0.25);
+    padding: 2.5px 8px;
     border-radius: 5px;
   }
 
-  .badge-py {
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.12);
-    border-color: rgba(56, 189, 248, 0.3);
-  }
-
-  .badge-js {
-    color: #facc15;
-    background: rgba(250, 204, 21, 0.12);
-    border-color: rgba(250, 204, 21, 0.3);
-  }
-
-  .badge-rs {
-    color: #fb923c;
-    background: rgba(251, 146, 60, 0.12);
-    border-color: rgba(251, 146, 60, 0.3);
-  }
-
-  .lang-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .dot-py { background: #38bdf8; }
-  .dot-js { background: #facc15; }
-  .dot-rs { background: #fb923c; }
-
-  .code-window__body {
-    padding: 20px 24px;
-    overflow-x: auto;
-    background: #181512;
-  }
-
-  .tok-code {
+  .code-card__pre {
     margin: 0;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 14.5px;
-    line-height: 1.7;
-    color: #f8fafc;
-    white-space: pre;
+    padding: 24px 26px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #f3eee8;
+    background: #191715;
   }
 
-  .tok-code code {
-    color: #f8fafc;
+  .code-card__pre code {
     font-family: inherit;
     font-size: inherit;
+    color: inherit;
     background: none;
     padding: 0;
     border: 0;
   }
 
-  /* Multi-Stack (Python, JS, Rust) */
-  .code-multi-stack {
+  /* Multi-Language Stack */
+  .lang-stack {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     width: 100%;
   }
 
-  .code-window.mini {
-    border-radius: 11px;
-    box-shadow:
-      0 8px 20px -6px rgba(26, 23, 20, 0.25),
-      0 0 0 1px rgba(255, 255, 255, 0.05);
+  .code-card.mini {
+    border-radius: 13px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
-  .code-window.mini .code-window__header {
-    padding: 7px 14px;
+  .code-card.mini .code-card__header {
+    padding: 9px 16px;
   }
 
-  .code-window.mini .window-title {
-    font-size: 12px;
+  .lang-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .code-window.mini .window-badge {
-    font-size: 10px;
-    padding: 2px 6px;
+  .lang-logo {
+    display: block;
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
   }
 
-  .code-window.mini .code-window__body {
-    padding: 12px 18px;
+  .code-card.mini .code-card__title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #f1ede8;
   }
 
-  .code-window.mini .tok-code {
+  .code-card.mini .code-card__pre {
+    padding: 14px 18px;
     font-size: 13.5px;
-    line-height: 1.55;
+    line-height: 1.6;
   }
 
-  /* High-Contrast Vivid Syntax Highlighting Tokens */
+  /* Syntax Highlighting Tokens */
   .tok-keyword { color: #ff7a59; font-weight: 600; }
   .tok-fn { color: #38bdf8; font-weight: 500; }
   .tok-var { color: #fde047; font-weight: 500; }
   .tok-param { color: #93c5fd; }
   .tok-str { color: #4ade80; }
   .tok-num { color: #c084fc; font-weight: 500; }
-  .tok-type { color: #fb923c; font-weight: 600; }
-  .tok-op { color: #f43f5e; font-weight: 600; }
-  .tok-comment { color: #94a3b8; font-style: italic; }
+  .tok-op { color: #ff8a65; font-weight: 600; }
+  .tok-comment { color: #8e8880; font-style: italic; }
 </style>
