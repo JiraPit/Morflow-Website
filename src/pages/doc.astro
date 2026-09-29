@@ -226,7 +226,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Action Invocation Forms</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Form 1: Zero-argument actions (parentheses are optional)</span>
 <span class="tok-fn">to_image</span>
@@ -250,7 +250,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Importing Actions</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Package-level import (brings actions into scope or under an alias)</span>
 <span class="tok-keyword">import</span> base/latest
@@ -275,7 +275,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Declaring Inputs and Parameters</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Required input passed from host runtime</span>
 <span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
@@ -292,7 +292,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>A Sequential Flow Chain</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># The flow starts with the input variable $img_in and passes data step-by-step</span>
 <span class="tok-var">$img_in</span>
@@ -318,7 +318,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Intermediate Emission & Chaining</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Form A: Single primary emission</span>
 <span class="tok-var">$img_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">512</span>, <span class="tok-param">height</span>=<span class="tok-num">512</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>
@@ -355,7 +355,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Multi-Flow Audio Split Pipeline</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
  
@@ -394,7 +394,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Parallel Map Loop (each)</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Iterates each channel concurrently in parallel, transforms, and stacks back together</span>
 <span class="tok-var">$input_audio</span>
@@ -420,7 +420,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Conditionals &amp; Dynamic Routing</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># 1. If / Else branching</span>
 <span class="tok-keyword">if</span> (<span class="tok-var">$sample_rate</span> != <span class="tok-num">48000</span>) &#123;
@@ -448,7 +448,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Complete Vision Pipeline</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Morflow Image Processing Pipeline (.morf)</span>
 
@@ -472,7 +472,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <div class="doc-code-card">
             <div class="doc-code-header">
               <span>Complete Audio DSP Pipeline</span>
-              <span>.morf</span>
+              <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Morflow Audio DSP Pipeline (.morf)</span>
 
