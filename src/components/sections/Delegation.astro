@@ -64,7 +64,6 @@ const features = await group<Feature>('features');
               <span class="dot dot-green"></span>
             </div>
             <span class="code-card__title">image_pipeline.morf</span>
-            <span class="code-card__pill">.morf pipeline</span>
           </div>
           <pre class="code-card__pre"><code><span class="tok-comment"># Declarative image transformation flow</span>
 <span class="tok-keyword">import</span> base/latest
@@ -100,7 +99,6 @@ const features = await group<Feature>('features');
                 <img class="lang-logo" src={withBase('/assets/languages/python.png')} alt="" width="18" height="18" />
                 <span class="code-card__title">Python</span>
               </div>
-              <span class="code-card__pill">pip install morflow</span>
             </div>
             <pre class="code-card__pre"><code><span class="tok-keyword">import</span> morflow
 
@@ -115,7 +113,6 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
                 <img class="lang-logo" src={withBase('/assets/languages/nodejs.png')} alt="" width="18" height="18" />
                 <span class="code-card__title">JavaScript / Node.js</span>
               </div>
-              <span class="code-card__pill">npm install morflow</span>
             </div>
             <pre class="code-card__pre"><code><span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
 
@@ -130,7 +127,6 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
                 <img class="lang-logo" src={withBase('/assets/languages/rust.png')} alt="" width="18" height="18" />
                 <span class="code-card__title">Rust</span>
               </div>
-              <span class="code-card__pill">cargo add morflow</span>
             </div>
             <pre class="code-card__pre"><code><span class="tok-keyword">use</span> morflow::Morflow;
 
@@ -157,7 +153,6 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
               <span class="dot dot-green"></span>
             </div>
             <span class="code-card__title">audio_split_pipeline.morf</span>
-            <span class="code-card__pill">auto-parallel</span>
           </div>
           <pre class="code-card__pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
 
@@ -193,7 +188,6 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
               <span class="dot dot-green"></span>
             </div>
             <span class="code-card__title">modular_pipeline.morf</span>
-            <span class="code-card__pill">actions library</span>
           </div>
           <pre class="code-card__pre"><code><span class="tok-comment"># Compose actions across image processing &amp; audio DSP</span>
 <span class="tok-keyword">import</span> base/latest
@@ -258,7 +252,7 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
   .code-card__header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 14px;
     padding: 13px 20px;
     background: #221f1b;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -286,17 +280,6 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
     font-weight: 500;
     color: #ded9d2;
     letter-spacing: -0.01em;
-  }
-
-  .code-card__pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--brand-500, #db5837);
-    background: rgba(219, 88, 55, 0.12);
-    border: 1px solid rgba(219, 88, 55, 0.25);
-    padding: 2.5px 8px;
-    border-radius: 5px;
   }
 
   .code-card__pre {
