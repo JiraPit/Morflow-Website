@@ -53,22 +53,22 @@
     },
     {
       "step": 1,
-      "label": "Multi-Language Zero-Copy",
-      "desc": "Directly pass NumPy arrays, Float32Array buffers, or Java Direct ByteBuffers without memory copying overhead.",
+      "label": "Multi-Language",
+      "desc": "Load and run .morf pipelines seamlessly across Python, JavaScript, and Rust with native type conversion.",
       "mock": "/assets/mock-2.png",
       "srcset": "/assets/mock-2.png 1x, /assets/mock-2@2x.png 2x"
     },
     {
       "step": 2,
       "label": "Auto-Parallel Scheduling",
-      "desc": "Independent flows and each ($channel) loops dynamically unroll across multi-threaded CPU workers with zero-copy layered environments.",
+      "desc": "Independent branch flows and each ($channel) loops dynamically unroll across multi-threaded CPU workers.",
       "mock": "/assets/mock-1.png",
       "srcset": "/assets/mock-1.png 1x, /assets/mock-1@2x.png 2x"
     },
     {
       "step": 3,
-      "label": "Deterministic Multi-Stream Output",
-      "desc": "Emit single values or multiple named channels (e.g. emit('left'), emit('right')) returned as native dictionaries and maps.",
+      "label": "Large Library of Actions",
+      "desc": "A rich ecosystem of native actions for audio DSP, computer vision, image filters, and machine learning models.",
       "mock": "/assets/mock-3.png",
       "srcset": "/assets/mock-3.png 1x, /assets/mock-3@2x.png 2x"
     }
