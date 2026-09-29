@@ -21,9 +21,10 @@ import PageHero from '../components/PageHero.astro';
         <ul class="docs-nav-list">
           <li><a href="#cli-installation" class="docs-nav-link">1.1. Installation</a></li>
           <li><a href="#cli-commands" class="docs-nav-link">1.2. Core CLI Commands</a></li>
-          <li><a href="#cli-prep" class="docs-nav-link">1.3. Offline Prep (prep)</a></li>
-          <li><a href="#cli-search-spec" class="docs-nav-link">1.4. Search &amp; Spec</a></li>
-          <li><a href="#cli-env" class="docs-nav-link">1.5. Environment Variables</a></li>
+          <li><a href="#cli-check" class="docs-nav-link">1.3. Pipeline Verification (check)</a></li>
+          <li><a href="#cli-prep" class="docs-nav-link">1.4. Offline Prep (prep)</a></li>
+          <li><a href="#cli-search-spec" class="docs-nav-link">1.5. Search &amp; Spec</a></li>
+          <li><a href="#cli-env" class="docs-nav-link">1.6. Environment Variables</a></li>
         </ul>
       </div>
 
@@ -97,6 +98,11 @@ pip install morflow</code></pre>
               </thead>
               <tbody>
                 <tr>
+                  <td><code>check</code></td>
+                  <td><code>morflow check &lt;file.morf&gt; [-p &lt;dir&gt;]</code></td>
+                  <td>Validates syntax, verifies Single Static Assignment (SSA), inspects dynamic action FFI types, and performs a dry-run execution simulation.</td>
+                </tr>
+                <tr>
                   <td><code>prep</code></td>
                   <td><code>morflow prep &lt;file.morf&gt; [-p &lt;dir&gt;] [-f]</code></td>
                   <td>Pre-downloads required actions for completely offline execution.</td>
@@ -131,8 +137,27 @@ pip install morflow</code></pre>
           </div>
         </div>
 
+        <div id="cli-check" class="doc-section">
+          <h3 class="doc-h3">1.3. Pipeline Verification (<code>check</code>)</h3>
+          <p class="doc-p">
+            The <code>check</code> command performs a comprehensive static analysis and dry-run simulation of your <code>.morf</code> pipeline without requiring live input data. It guarantees that syntax, Single Static Assignment (SSA) rules, action binaries, and data type transitions are 100% valid before deployment:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Pipeline Static Analysis &amp; Dry-Run</span>
+              <span>Bash</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Verify pipeline syntax, action binaries, and type compatibility</span>
+morflow check ./pipeline.morf
+
+<span class="tok-comment"># Check with a custom action cache directory</span>
+morflow check ./pipeline.morf --path ./actions_cache</code></pre>
+          </div>
+        </div>
+
         <div id="cli-prep" class="doc-section">
-          <h3 class="doc-h3">1.3. Offline Prep (<code>prep</code>)</h3>
+          <h3 class="doc-h3">1.4. Offline Prep (<code>prep</code>)</h3>
           <p class="doc-p">
             In production deployments, you can ensure zero network requests at runtime by pre-downloading all action binaries during container image build:
           </p>
@@ -154,7 +179,7 @@ morflow prep ./pipeline.morf --path ./actions_cache</code></pre>
         </div>
 
         <div id="cli-search-spec" class="doc-section">
-          <h3 class="doc-h3">1.4. Search &amp; Spec</h3>
+          <h3 class="doc-h3">1.5. Search &amp; Spec</h3>
           <p class="doc-p">
             Search for available actions and view their expected parameters directly in your terminal:
           </p>
@@ -175,7 +200,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         </div>
 
         <div id="cli-env" class="doc-section">
-          <h3 class="doc-h3">1.5. Environment Variables</h3>
+          <h3 class="doc-h3">1.6. Environment Variables</h3>
           <div class="doc-table-container">
             <table class="doc-table">
               <thead>
