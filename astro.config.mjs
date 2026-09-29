@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   output: 'static',
-  site: 'https://jirapit.github.io',
-  base: '/Morflow-Website',
+  site: 'https://morflow.org',
+  base: '/',
   devToolbar: { enabled: false },
 });
