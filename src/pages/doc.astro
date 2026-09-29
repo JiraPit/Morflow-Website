@@ -65,7 +65,7 @@ import PageHero from '../components/PageHero.astro';
         <div id="cli-installation" class="doc-section">
           <h3 class="doc-h3">1.1. Installation</h3>
           <p class="doc-p">
-            Install the standalone <code>morflow</code> command-line interface globally using npm, pip, or via curl:
+            Install the standalone <code>morflow</code> command-line interface globally via cURL, npm, or pip:
           </p>
 
           <div class="doc-code-card">
@@ -73,14 +73,14 @@ import PageHero from '../components/PageHero.astro';
               <span>CLI Installation</span>
               <span>Shell</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># Install via NPM (Global CLI)</span>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Install standalone native binary via cURL</span>
+curl -fsSL https://morflow.org/install.sh | bash
+
+<span class="tok-comment"># Or install via NPM (Global CLI)</span>
 npm install -g morflow
 
-<span class="tok-comment"># Install via Pip (Python CLI)</span>
-pip install morflow
-
-<span class="tok-comment"># Install standalone binary via cURL</span>
-curl -fsSL https://morflow.org/install.sh | bash</code></pre>
+<span class="tok-comment"># Or install via Pip (Python CLI)</span>
+pip install morflow</code></pre>
           </div>
         </div>
 
