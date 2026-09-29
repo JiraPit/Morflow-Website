@@ -229,18 +229,18 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>.morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Form 1: Zero-argument actions (parentheses are optional)</span>
-to_image
-to_wav
-identity
+<span class="tok-fn">to_image</span>
+<span class="tok-fn">to_wav</span>
+<span class="tok-fn">identity</span>
 
 <span class="tok-comment"># Form 2: Keyword arguments (key=value)</span>
-resize(width=512, height=512, filter=<span class="tok-str">"bilinear"</span>)
-color_adjust(contrast=1.15, saturation=1.05, brightness=0.02)
-biquad_filter(type=<span class="tok-str">"highpass"</span>, freq=30.0, sample_rate=48000)
+<span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">512</span>, <span class="tok-param">height</span>=<span class="tok-num">512</span>, <span class="tok-param">filter</span>=<span class="tok-str">"bilinear"</span>)
+<span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.15</span>, <span class="tok-param">saturation</span>=<span class="tok-num">1.05</span>, <span class="tok-param">brightness</span>=<span class="tok-num">0.02</span>)
+<span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"highpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">30.0</span>, <span class="tok-param">sample_rate</span>=<span class="tok-num">48000</span>)
 
 <span class="tok-comment"># Form 3: Variable arguments (passing pipeline parameters to action parameters)</span>
-resize(width=$target_width, height=$target_height)
-resample(to_rate=$target_sample_rate)</code></pre>
+<span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-var">$target_width</span>, <span class="tok-param">height</span>=<span class="tok-var">$target_height</span>)
+<span class="tok-fn">resample</span>(<span class="tok-param">to_rate</span>=<span class="tok-var">$target_sample_rate</span>)</code></pre>
           </div>
 
           <p class="doc-p">
@@ -257,7 +257,7 @@ resample(to_rate=$target_sample_rate)</code></pre>
 <span class="tok-keyword">import</span> audio_essentials/latest <span class="tok-keyword">as</span> audio
 
 <span class="tok-comment"># Item import (brings specific actions into local scope)</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> to_tensor, resize, color_adjust, gaussian_blur, to_image</code></pre>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span></code></pre>
           </div>
         </div>
 
@@ -278,11 +278,11 @@ resample(to_rate=$target_sample_rate)</code></pre>
               <span>.morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Required input passed from host runtime</span>
-<span class="tok-keyword">accept</span> $img_in
+<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
 
 <span class="tok-comment"># Configurable parameters with default values</span>
-<span class="tok-keyword">accept</span> $target_width = 512
-<span class="tok-keyword">accept</span> $target_height = 512</code></pre>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span></code></pre>
           </div>
 
           <p class="doc-p">
@@ -295,12 +295,12 @@ resample(to_rate=$target_sample_rate)</code></pre>
               <span>.morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># The flow starts with the input variable $img_in and passes data step-by-step</span>
-$img_in
-    &gt;&gt; <span class="tok-fn">to_tensor</span>(color=<span class="tok-str">"rgb"</span>, dtype=<span class="tok-str">"f32"</span>, layout=<span class="tok-str">"hwc"</span>, normalize=<span class="tok-keyword">true</span>)
-    &gt;&gt; <span class="tok-fn">resize</span>(width=$target_width, height=$target_height, filter=<span class="tok-str">"bilinear"</span>)
-    &gt;&gt; <span class="tok-fn">color_adjust</span>(contrast=1.15, saturation=1.05)
-    &gt;&gt; <span class="tok-fn">gaussian_blur</span>(sigma=1.2)
-    &gt;&gt; <span class="tok-fn">to_image</span>(color=<span class="tok-str">"rgba"</span>, dtype=<span class="tok-str">"u8"</span>)</code></pre>
+<span class="tok-var">$img_in</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">layout</span>=<span class="tok-str">"hwc"</span>, <span class="tok-param">normalize</span>=<span class="tok-keyword">true</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-var">$target_width</span>, <span class="tok-param">height</span>=<span class="tok-var">$target_height</span>, <span class="tok-param">filter</span>=<span class="tok-str">"bilinear"</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.15</span>, <span class="tok-param">saturation</span>=<span class="tok-num">1.05</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">gaussian_blur</span>(<span class="tok-param">sigma</span>=<span class="tok-num">1.2</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgba"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"u8"</span>)</code></pre>
           </div>
         </div>
 
@@ -321,19 +321,19 @@ $img_in
               <span>.morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Form A: Single primary emission</span>
-$img_in &gt;&gt; <span class="tok-fn">to_tensor</span> &gt;&gt; <span class="tok-fn">resize</span>(width=512, height=512) &gt;&gt; <span class="tok-fn">emit</span>
+<span class="tok-var">$img_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">512</span>, <span class="tok-param">height</span>=<span class="tok-num">512</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>
 
 <span class="tok-comment"># Form B: Named stream emission</span>
-$audio_in &gt;&gt; <span class="tok-fn">to_audio</span> &gt;&gt; <span class="tok-fn">normalize</span> &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"normalized_audio"</span>)
+<span class="tok-var">$audio_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">normalize</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"normalized_audio"</span>)
 
 <span class="tok-comment"># Form C: Intermediate emission with chained downstream processing</span>
-$img_in
-    &gt;&gt; <span class="tok-fn">to_tensor</span>(color=<span class="tok-str">"rgb"</span>, normalize=<span class="tok-keyword">true</span>)
-    &gt;&gt; <span class="tok-fn">resize</span>(width=1024, height=1024)
-    &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"high_res"</span>)               <span class="tok-comment"># Emits intermediate 1024x1024 tensor to host</span>
-    &gt;&gt; <span class="tok-fn">resize</span>(width=256, height=256)   <span class="tok-comment"># Continues stream without re-ingesting $img_in</span>
-    &gt;&gt; <span class="tok-fn">color_adjust</span>(contrast=1.2)
-    &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"preview"</span>)                <span class="tok-comment"># Emits downstream preview thumbnail</span></code></pre>
+<span class="tok-var">$img_in</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">normalize</span>=<span class="tok-keyword">true</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">1024</span>, <span class="tok-param">height</span>=<span class="tok-num">1024</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"high_res"</span>)               <span class="tok-comment"># Emits intermediate 1024x1024 tensor to host</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">256</span>, <span class="tok-param">height</span>=<span class="tok-num">256</span>)   <span class="tok-comment"># Continues stream without re-ingesting $img_in</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.2</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"preview"</span>)                <span class="tok-comment"># Emits downstream preview thumbnail</span></code></pre>
           </div>
 
           <div class="doc-callout">
@@ -359,16 +359,16 @@ $img_in
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
  
-<span class="tok-keyword">accept</span> $input_audio
+<span class="tok-keyword">accept</span> <span class="tok-var">$input_audio</span>
 
 <span class="tok-comment"># FLOW 1: Ingest input audio, convert to structured stream, and tap into $decoded</span>
-$input_audio &gt;&gt; <span class="tok-fn">to_audio</span> &gt;&gt; $decoded
+<span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$decoded</span>
 
 <span class="tok-comment"># FLOW 2: Extract channel 0 (Left), apply low-pass filtering, convert to WAV, and emit</span>
-$decoded[0] &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"lowpass"</span>, freq=1200.0) &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"left_filtered"</span>)
+<span class="tok-var">$decoded</span>[0] <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"lowpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">1200.0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"left_filtered"</span>)
 
 <span class="tok-comment"># FLOW 3: Extract channel 1 (Right), apply high-pass filtering, convert to WAV, and emit</span>
-$decoded[1] &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"highpass"</span>, freq=800.0) &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-fn">emit</span>(<span class="tok-str">"right_filtered"</span>)</code></pre>
+<span class="tok-var">$decoded</span>[1] <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"highpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">800.0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"right_filtered"</span>)</code></pre>
           </div>
 
           <p class="doc-p">
@@ -397,16 +397,16 @@ $decoded[1] &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class=
               <span>.morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Iterates each channel concurrently in parallel, transforms, and stacks back together</span>
-$input_audio
-    &gt;&gt; <span class="tok-fn">to_audio</span>(sample_rate=44100)
-    &gt;&gt; <span class="tok-keyword">each</span> ($channel) &#123;
-        $channel
-            &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"highpass"</span>, freq=30.0, sample_rate=48000)
-            &gt;&gt; <span class="tok-fn">compressor</span>(threshold_db=-12.0, ratio=3.0)
+<span class="tok-var">$input_audio</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span>(<span class="tok-param">sample_rate</span>=<span class="tok-num">44100</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span> (<span class="tok-var">$channel</span>) &#123;
+        <span class="tok-var">$channel</span>
+            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"highpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">30.0</span>, <span class="tok-param">sample_rate</span>=<span class="tok-num">48000</span>)
+            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">compressor</span>(<span class="tok-param">threshold_db</span>=<span class="tok-num">-12.0</span>, <span class="tok-param">ratio</span>=<span class="tok-num">3.0</span>)
     &#125;
-    &gt;&gt; <span class="tok-fn">stereo_widen</span>(width=1.2)   <span class="tok-comment"># Receives the stacked multi-channel stream</span>
-    &gt;&gt; <span class="tok-fn">to_wav</span>
-    &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">stereo_widen</span>(<span class="tok-param">width</span>=<span class="tok-num">1.2</span>)   <span class="tok-comment"># Receives the stacked multi-channel stream</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
           </div>
 
           <div class="doc-callout">
@@ -423,18 +423,18 @@ $input_audio
               <span>.morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># 1. If / Else branching</span>
-<span class="tok-keyword">if</span> ($sample_rate != 48000) &#123;
-    $input_audio &gt;&gt; <span class="tok-fn">resample</span>(to_rate=48000) &gt;&gt; $prepared
+<span class="tok-keyword">if</span> (<span class="tok-var">$sample_rate</span> != <span class="tok-num">48000</span>) &#123;
+    <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resample</span>(<span class="tok-param">to_rate</span>=<span class="tok-num">48000</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$prepared</span>
 &#125; <span class="tok-keyword">else</span> &#123;
-    $input_audio &gt;&gt; $prepared
+    <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$prepared</span>
 &#125;
 
 <span class="tok-comment"># 2. Dynamic route pattern matching</span>
-$prepared &gt;&gt; <span class="tok-keyword">route</span> &#123;
-    $channels == 1 =&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"lowpass"</span>, freq=1000.0)
-    $channels == 2 =&gt; <span class="tok-fn">stereo_widen</span>(width=1.4)
+<span class="tok-var">$prepared</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">route</span> &#123;
+    <span class="tok-var">$channels</span> == <span class="tok-num">1</span> =&gt; <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"lowpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">1000.0</span>)
+    <span class="tok-var">$channels</span> == <span class="tok-num">2</span> =&gt; <span class="tok-fn">stereo_widen</span>(<span class="tok-param">width</span>=<span class="tok-num">1.4</span>)
     <span class="tok-keyword">else</span> =&gt; <span class="tok-fn">identity</span>
-&#125; &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+&#125; <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
           </div>
         </div>
 
@@ -453,20 +453,20 @@ $prepared &gt;&gt; <span class="tok-keyword">route</span> &#123;
             <pre class="doc-code-pre"><code><span class="tok-comment"># Morflow Image Processing Pipeline (.morf)</span>
 
 <span class="tok-keyword">import</span> base/latest
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> to_tensor, resize, color_adjust, gaussian_blur, to_image
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span>
 
-<span class="tok-keyword">accept</span> $img_in
-<span class="tok-keyword">accept</span> $target_width = 512
-<span class="tok-keyword">accept</span> $target_height = 512
+<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
 
 <span class="tok-comment"># Direct chained dataflow from host image input to emitted output</span>
-$img_in
-    &gt;&gt; <span class="tok-fn">to_tensor</span>(color=<span class="tok-str">"rgb"</span>, dtype=<span class="tok-str">"f32"</span>, layout=<span class="tok-str">"hwc"</span>, normalize=<span class="tok-keyword">true</span>)
-    &gt;&gt; <span class="tok-fn">resize</span>(width=$target_width, height=$target_height, filter=<span class="tok-str">"bilinear"</span>)
-    &gt;&gt; <span class="tok-fn">color_adjust</span>(contrast=1.15, saturation=1.05, brightness=0.02)
-    &gt;&gt; <span class="tok-fn">gaussian_blur</span>(sigma=1.2)
-    &gt;&gt; <span class="tok-fn">to_image</span>(color=<span class="tok-str">"rgba"</span>, dtype=<span class="tok-str">"u8"</span>)
-    &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+<span class="tok-var">$img_in</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">layout</span>=<span class="tok-str">"hwc"</span>, <span class="tok-param">normalize</span>=<span class="tok-keyword">true</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-var">$target_width</span>, <span class="tok-param">height</span>=<span class="tok-var">$target_height</span>, <span class="tok-param">filter</span>=<span class="tok-str">"bilinear"</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.15</span>, <span class="tok-param">saturation</span>=<span class="tok-num">1.05</span>, <span class="tok-param">brightness</span>=<span class="tok-num">0.02</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">gaussian_blur</span>(<span class="tok-param">sigma</span>=<span class="tok-num">1.2</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgba"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"u8"</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
           </div>
 
           <div class="doc-code-card">
@@ -478,23 +478,23 @@ $img_in
 
 <span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">accept</span> $input_audio
-<span class="tok-keyword">accept</span> $sample_rate = 44100
+<span class="tok-keyword">accept</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
 
 <span class="tok-comment"># Direct chained DSP processing with inline multi-channel loop</span>
-$input_audio
-    &gt;&gt; <span class="tok-fn">to_audio</span>(sample_rate=$sample_rate)
-    &gt;&gt; <span class="tok-fn">resample</span>(to_rate=48000)
-    &gt;&gt; <span class="tok-fn">normalize</span>(target_peak=0.95)
-    &gt;&gt; <span class="tok-keyword">each</span> ($channel) &#123;
-        $channel
-            &gt;&gt; <span class="tok-fn">biquad_filter</span>(type=<span class="tok-str">"highpass"</span>, freq=30.0, sample_rate=48000)
-            &gt;&gt; <span class="tok-fn">compressor</span>(threshold_db=-12.0, ratio=3.0)
+<span class="tok-var">$input_audio</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span>(<span class="tok-param">sample_rate</span>=<span class="tok-var">$sample_rate</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resample</span>(<span class="tok-param">to_rate</span>=<span class="tok-num">48000</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">normalize</span>(<span class="tok-param">target_peak</span>=<span class="tok-num">0.95</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span> (<span class="tok-var">$channel</span>) &#123;
+        <span class="tok-var">$channel</span>
+            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"highpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">30.0</span>, <span class="tok-param">sample_rate</span>=<span class="tok-num">48000</span>)
+            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">compressor</span>(<span class="tok-param">threshold_db</span>=<span class="tok-num">-12.0</span>, <span class="tok-param">ratio</span>=<span class="tok-num">3.0</span>)
     &#125;
-    &gt;&gt; <span class="tok-fn">stereo_widen</span>(width=1.2)
-    &gt;&gt; <span class="tok-fn">limiter</span>(ceiling_db=-0.1)
-    &gt;&gt; <span class="tok-fn">to_wav</span>
-    &gt;&gt; <span class="tok-fn">emit</span></code></pre>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">stereo_widen</span>(<span class="tok-param">width</span>=<span class="tok-num">1.2</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">limiter</span>(<span class="tok-param">ceiling_db</span>=<span class="tok-num">-0.1</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
           </div>
         </div>
       </section>
@@ -534,30 +534,30 @@ $input_audio
 <span class="tok-keyword">import</span> morflow
 
 <span class="tok-comment"># 1. Load pipeline from file</span>
-pipeline = morflow.load(<span class="tok-str">"image_pipeline.morf"</span>)
+pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"image_pipeline.morf"</span>)
 
 <span class="tok-comment"># 2. Pass NumPy arrays directly [H, W, C]</span>
-img = Image.open(<span class="tok-str">"input.png"</span>).convert(<span class="tok-str">"RGB"</span>)
-np_img = np.array(img, dtype=np.uint8)
+img = Image.<span class="tok-fn">open</span>(<span class="tok-str">"input.png"</span>).<span class="tok-fn">convert</span>(<span class="tok-str">"RGB"</span>)
+np_img = np.<span class="tok-fn">array</span>(img, dtype=np.uint8)
 
 <span class="tok-comment"># 3. Execute pipeline synchronously with native speed</span>
-result_np = pipeline.run(np_img)
+result_np = pipeline.<span class="tok-fn">run</span>(np_img)
 
 <span class="tok-comment"># 4. Save result</span>
-out_img = Image.fromarray(result_np)
-out_img.save(<span class="tok-str">"output.png"</span>)
+out_img = Image.<span class="tok-fn">fromarray</span>(result_np)
+out_img.<span class="tok-fn">save</span>(<span class="tok-str">"output.png"</span>)
 
 <span class="tok-comment"># ----------------------------------------------------</span>
 <span class="tok-comment"># Audio Processing (Pass and receive raw WAV bytes)</span>
 <span class="tok-comment"># ----------------------------------------------------</span>
-audio_pipe = morflow.load(<span class="tok-str">"audio_pipeline.morf"</span>)
-<span class="tok-keyword">with</span> open(<span class="tok-str">"input.wav"</span>, <span class="tok-str">"rb"</span>) <span class="tok-keyword">as</span> f:
-    input_bytes = f.read()
+audio_pipe = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"audio_pipeline.morf"</span>)
+<span class="tok-keyword">with</span> <span class="tok-fn">open</span>(<span class="tok-str">"input.wav"</span>, <span class="tok-str">"rb"</span>) <span class="tok-keyword">as</span> f:
+    input_bytes = f.<span class="tok-fn">read</span>()
 
 <span class="tok-comment"># Single output returns bytes; multi-stream returns dict[str, bytes]</span>
-output_wav_bytes = audio_pipe.run(input_bytes)
-<span class="tok-keyword">with</span> open(<span class="tok-str">"output.wav"</span>, <span class="tok-str">"wb"</span>) <span class="tok-keyword">as</span> f:
-    f.write(output_wav_bytes)</code></pre>
+output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes)
+<span class="tok-keyword">with</span> <span class="tok-fn">open</span>(<span class="tok-str">"output.wav"</span>, <span class="tok-str">"wb"</span>) <span class="tok-keyword">as</span> f:
+    f.<span class="tok-fn">write</span>(output_wav_bytes)</code></pre>
           </div>
         </div>
 
@@ -585,32 +585,32 @@ output_wav_bytes = audio_pipe.run(input_bytes)
 <span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
 
 <span class="tok-comment">// 1. Load pipeline from file</span>
-<span class="tok-keyword">const</span> pipeline = morflow.load(<span class="tok-str">'image_pipeline.morf'</span>);
+<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'image_pipeline.morf'</span>);
 
 <span class="tok-comment">// 2. Construct TensorInput with shape and buffer</span>
-<span class="tok-keyword">const</span> inputBuffer = fs.readFileSync(<span class="tok-str">'input_raw_rgb.bin'</span>);
+<span class="tok-keyword">const</span> inputBuffer = fs.<span class="tok-fn">readFileSync</span>(<span class="tok-str">'input_raw_rgb.bin'</span>);
 <span class="tok-keyword">const</span> tensorInput = &#123;
   data: inputBuffer,
-  shape: [1080, 1920, 3],
+  shape: [<span class="tok-num">1080</span>, <span class="tok-num">1920</span>, <span class="tok-num">3</span>],
   dtype: <span class="tok-str">'u8'</span>
 &#125;;
 
 <span class="tok-comment">// 3. Run asynchronously off the main thread</span>
-<span class="tok-keyword">const</span> outputTensor = <span class="tok-keyword">await</span> pipeline.run(tensorInput);
+<span class="tok-keyword">const</span> outputTensor = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>(tensorInput);
 
-console.log(<span class="tok-str">`Shape: $&#123;outputTensor.shape&#125;, Dtype: $&#123;outputTensor.dtype&#125;`</span>);
-<span class="tok-keyword">const</span> outBuffer = outputTensor.toBuffer();
-fs.writeFileSync(<span class="tok-str">'output_raw_rgba.bin'</span>, outBuffer);
+console.<span class="tok-fn">log</span>(<span class="tok-str">`Shape: $&#123;outputTensor.shape&#125;, Dtype: $&#123;outputTensor.dtype&#125;`</span>);
+<span class="tok-keyword">const</span> outBuffer = outputTensor.<span class="tok-fn">toBuffer</span>();
+fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output_raw_rgba.bin'</span>, outBuffer);
 
 <span class="tok-comment">// ----------------------------------------------------</span>
 <span class="tok-comment">// Audio DSP Execution (Direct Buffer I/O)</span>
 <span class="tok-comment">// ----------------------------------------------------</span>
-<span class="tok-keyword">const</span> audioPipe = morflow.load(<span class="tok-str">'audio_pipeline.morf'</span>);
-<span class="tok-keyword">const</span> wavBuffer = fs.readFileSync(<span class="tok-str">'input.wav'</span>);
+<span class="tok-keyword">const</span> audioPipe = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'audio_pipeline.morf'</span>);
+<span class="tok-keyword">const</span> wavBuffer = fs.<span class="tok-fn">readFileSync</span>(<span class="tok-str">'input.wav'</span>);
 
 <span class="tok-comment">// Execute asynchronously</span>
-<span class="tok-keyword">const</span> outWav = <span class="tok-keyword">await</span> audioPipe.run(wavBuffer);
-fs.writeFileSync(<span class="tok-str">'output.wav'</span>, outWav.toBuffer());</code></pre>
+<span class="tok-keyword">const</span> outWav = <span class="tok-keyword">await</span> audioPipe.<span class="tok-fn">run</span>(wavBuffer);
+fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'</span>, outWav.<span class="tok-fn">toBuffer</span>());</code></pre>
           </div>
         </div>
 
@@ -647,27 +647,27 @@ fs.writeFileSync(<span class="tok-str">'output.wav'</span>, outWav.toBuffer());<
 <span class="tok-keyword">public class</span> <span class="tok-fn">MorflowRunner</span> &#123;
     <span class="tok-keyword">public static void</span> <span class="tok-fn">main</span>(String[] args) <span class="tok-keyword">throws</span> Exception &#123;
         <span class="tok-comment">// 1. Load pipeline</span>
-        <span class="tok-keyword">try</span> (Pipeline pipeline = Morflow.load(<span class="tok-str">"image_pipeline.morf"</span>)) &#123;
+        <span class="tok-keyword">try</span> (Pipeline pipeline = Morflow.<span class="tok-fn">load</span>(<span class="tok-str">"image_pipeline.morf"</span>)) &#123;
             <span class="tok-comment">// 2. Wrap image bytes into MorflowTensor [H, W, C]</span>
-            <span class="tok-keyword">byte</span>[] rgbBytes = Files.readAllBytes(Path.of(<span class="tok-str">"input_rgb.raw"</span>));
-            MorflowTensor inputTensor = MorflowTensor.fromByteArray(
+            <span class="tok-keyword">byte</span>[] rgbBytes = Files.<span class="tok-fn">readAllBytes</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"input_rgb.raw"</span>));
+            MorflowTensor inputTensor = MorflowTensor.<span class="tok-fn">fromByteArray</span>(
                 rgbBytes,
-                <span class="tok-keyword">new int</span>[]&#123;1080, 1920, 3&#125;
+                <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">1080</span>, <span class="tok-num">1920</span>, <span class="tok-num">3</span>&#125;
             );
 
             <span class="tok-comment">// 3. Execute pipeline</span>
-            <span class="tok-keyword">try</span> (MorflowTensor outputTensor = pipeline.run(inputTensor)) &#123;
-                <span class="tok-keyword">int</span>[] outShape = outputTensor.getShape();
-                <span class="tok-keyword">byte</span>[] outBytes = outputTensor.toByteArray();
-                Files.write(Path.of(<span class="tok-str">"output.raw"</span>), outBytes);
+            <span class="tok-keyword">try</span> (MorflowTensor outputTensor = pipeline.<span class="tok-fn">run</span>(inputTensor)) &#123;
+                <span class="tok-keyword">int</span>[] outShape = outputTensor.<span class="tok-fn">getShape</span>();
+                <span class="tok-keyword">byte</span>[] outBytes = outputTensor.<span class="tok-fn">toByteArray</span>();
+                Files.<span class="tok-fn">write</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"output.raw"</span>), outBytes);
             &#125;
         &#125;
 
         <span class="tok-comment">// Audio WAV execution</span>
-        Pipeline audioPipe = Morflow.load(<span class="tok-str">"audio_pipeline.morf"</span>);
-        <span class="tok-keyword">byte</span>[] inputWav = Files.readAllBytes(Path.of(<span class="tok-str">"input.wav"</span>));
-        MorflowTensor audioOut = audioPipe.run(inputWav);
-        Files.write(Path.of(<span class="tok-str">"output.wav"</span>), audioOut.toByteArray());
+        Pipeline audioPipe = Morflow.<span class="tok-fn">load</span>(<span class="tok-str">"audio_pipeline.morf"</span>);
+        <span class="tok-keyword">byte</span>[] inputWav = Files.<span class="tok-fn">readAllBytes</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"input.wav"</span>));
+        MorflowTensor audioOut = audioPipe.<span class="tok-fn">run</span>(inputWav);
+        Files.<span class="tok-fn">write</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"output.wav"</span>), audioOut.<span class="tok-fn">toByteArray</span>());
     &#125;
 &#125;</code></pre>
           </div>
@@ -699,28 +699,28 @@ fs.writeFileSync(<span class="tok-str">'output.wav'</span>, outWav.toBuffer());<
 
 <span class="tok-keyword">fn</span> <span class="tok-fn">main</span>() -&gt; Result&lt;(), Box&lt;<span class="tok-keyword">dyn</span> std::error::Error&gt;&gt; &#123;
     <span class="tok-comment">// 1. Load pipeline from file</span>
-    <span class="tok-keyword">let mut</span> pipeline = Morflow::load(<span class="tok-str">"image_pipeline.morf"</span>)?;
+    <span class="tok-keyword">let mut</span> pipeline = Morflow::<span class="tok-fn">load</span>(<span class="tok-str">"image_pipeline.morf"</span>)?;
 
     <span class="tok-comment">// 2. Wrap image buffer into a Morflow Image payload</span>
-    <span class="tok-keyword">let</span> img = image::open(<span class="tok-str">"input.png"</span>)?.to_rgb8();
-    <span class="tok-keyword">let</span> input = Image::from_u8_hwc(
+    <span class="tok-keyword">let</span> img = image::<span class="tok-fn">open</span>(<span class="tok-str">"input.png"</span>)?.<span class="tok-fn">to_rgb8</span>();
+    <span class="tok-keyword">let</span> input = Image::<span class="tok-fn">from_u8_hwc</span>(
         &amp;img,
-        img.width() <span class="tok-keyword">as</span> usize,
-        img.height() <span class="tok-keyword">as</span> usize,
+        img.<span class="tok-fn">width</span>() <span class="tok-keyword">as</span> usize,
+        img.<span class="tok-fn">height</span>() <span class="tok-keyword">as</span> usize,
         ColorSpace::Rgb,
-    ).map_err(|e| e.to_string())?;
+    ).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
 
     <span class="tok-comment">// 3. Execute Morflow pipeline</span>
-    <span class="tok-keyword">let</span> outputs = pipeline.run(Payload::Image(input))?;
+    <span class="tok-keyword">let</span> outputs = pipeline.<span class="tok-fn">run</span>(Payload::Image(input))?;
 
     <span class="tok-comment">// 4. Extract emitted payload and save output</span>
-    <span class="tok-keyword">if let</span> Payload::Image(out) = outputs.into_single()? &#123;
-        <span class="tok-keyword">let</span> bytes = out.to_contiguous_bytes();
-        image::save_buffer(
+    <span class="tok-keyword">if let</span> Payload::Image(out) = outputs.<span class="tok-fn">into_single</span>()? &#123;
+        <span class="tok-keyword">let</span> bytes = out.<span class="tok-fn">to_contiguous_bytes</span>();
+        image::<span class="tok-fn">save_buffer</span>(
             <span class="tok-str">"output.png"</span>,
-            bytes.as_slice(),
-            out.width() <span class="tok-keyword">as</span> u32,
-            out.height() <span class="tok-keyword">as</span> u32,
+            bytes.<span class="tok-fn">as_slice</span>(),
+            out.<span class="tok-fn">width</span>() <span class="tok-keyword">as</span> u32,
+            out.<span class="tok-fn">height</span>() <span class="tok-keyword">as</span> u32,
             image::ColorType::Rgba8,
         )?;
     &#125;
@@ -728,11 +728,11 @@ fs.writeFileSync(<span class="tok-str">'output.wav'</span>, outWav.toBuffer());<
     <span class="tok-comment">// ----------------------------------------------------</span>
     <span class="tok-comment">// Audio DSP Execution (Direct Data Payload)</span>
     <span class="tok-comment">// ----------------------------------------------------</span>
-    <span class="tok-keyword">let mut</span> audio_pipe = Morflow::load(<span class="tok-str">"audio_pipeline.morf"</span>)?;
-    <span class="tok-keyword">let</span> wav_bytes = fs::read(<span class="tok-str">"input.wav"</span>)?;
+    <span class="tok-keyword">let mut</span> audio_pipe = Morflow::<span class="tok-fn">load</span>(<span class="tok-str">"audio_pipeline.morf"</span>)?;
+    <span class="tok-keyword">let</span> wav_bytes = fs::<span class="tok-fn">read</span>(<span class="tok-str">"input.wav"</span>)?;
 
-    <span class="tok-keyword">let</span> audio_out = audio_pipe.run(Payload::Data &#123;
-        buffer: RVec::from(wav_bytes),
+    <span class="tok-keyword">let</span> audio_out = audio_pipe.<span class="tok-fn">run</span>(Payload::Data &#123;
+        buffer: RVec::<span class="tok-fn">from</span>(wav_bytes),
     &#125;)?;
 
     <span class="tok-keyword">if let</span> Payload::Data &#123; buffer &#125; = audio_out.into_single()? &#123;
