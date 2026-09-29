@@ -54,7 +54,7 @@
     {
       "step": 1,
       "label": "Run Identically Anyway",
-      "desc": "Load and run .morf pipelines seamlessly across Python, JavaScript, and Rust with native type conversion.",
+      "desc": "Load and run .morf pipelines seamlessly across multiple platforms and languages with native type conversion.",
       "mock": "/assets/mock-2.png",
       "srcset": "/assets/mock-2.png 1x, /assets/mock-2@2x.png 2x"
     },
