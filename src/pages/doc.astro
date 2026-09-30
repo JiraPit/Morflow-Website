@@ -620,14 +620,14 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                 <tr>
                   <td><code>Image</code></td>
                   <td>Flowable Payload</td>
-                  <td><code>Image</code>, <code>Image[*, *, C]</code>, <code>Image[H, W, C]</code></td>
+                  <td><code>Image</code>, <code>Image[*, *, C]</code> (HWC), <code>Image[C, *, *]</code> (CHW)</td>
                   <td>Yes</td>
                   <td>Yes (Channel Axis)</td>
                 </tr>
                 <tr>
                   <td><code>Audio</code></td>
                   <td>Flowable Payload</td>
-                  <td><code>Audio</code>, <code>Audio[*, *]</code>, <code>Audio[C, *]</code></td>
+                  <td><code>Audio</code>, <code>Audio[C, *]</code> (Planar), <code>Audio[*, C]</code> (Interleaved)</td>
                   <td>Yes</td>
                   <td>Yes (Channel or Sample)</td>
                 </tr>
@@ -817,16 +817,16 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Image Shape Declarations</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. Unconstrained: Any resolution and channel count</span>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. Unconstrained: Any resolution, channel count, or memory layout accepted</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 
-<span class="tok-comment"># 2. Dynamic resolution with fixed 3-channel RGB/BGR</span>
+<span class="tok-comment"># 2. 3-channel RGB/BGR in HWC format (or Image[3, *, *] for planar CHW format)</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Image[*, *, 3]</span> <span class="tok-var">$rgb_in</span>
 
-<span class="tok-comment"># 3. Grayscale image with 1 channel</span>
+<span class="tok-comment"># 3. Grayscale image with 1 channel in HWC (or Image[1, *, *] for CHW, or 2D Image[*, *])</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Image[*, *, 1]</span> <span class="tok-var">$gray_in</span>
 
-<span class="tok-comment"># 4. Fixed static resolution and channel count</span>
+<span class="tok-comment"># 4. Fixed static resolution and channel count in HWC (or Image[3, 1080, 1920] for CHW)</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Image[1080, 1920, 3]</span> <span class="tok-var">$frame</span></code></pre>
           </div>
 
@@ -903,16 +903,16 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Audio Declarations</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. Unconstrained: Any channel count and duration</span>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. Unconstrained: Any channel count, sample length, or memory layout accepted</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Audio</span> <span class="tok-var">$audio_in</span>
 
-<span class="tok-comment"># 2. Dynamic 2D audio signal (channels x samples)</span>
+<span class="tok-comment"># 2. Dynamic 2D audio signal in Planar layout (or Audio[*, *] for Interleaved)</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Audio[*, *]</span> <span class="tok-var">$stream</span>
 
-<span class="tok-comment"># 3. Stereo audio (2 channels) with dynamic sample length</span>
+<span class="tok-comment"># 3. Stereo audio (2 channels) in Planar format (or Audio[*, 2] for Interleaved format)</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Audio[2, *]</span> <span class="tok-var">$stereo</span>
 
-<span class="tok-comment"># 4. Mono audio signal</span>
+<span class="tok-comment"># 4. Mono audio signal in Planar format (or Audio[*, 1] for Interleaved, or 1D Audio[*])</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Audio[1, *]</span> <span class="tok-var">$mono</span></code></pre>
           </div>
 
