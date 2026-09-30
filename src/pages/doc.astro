@@ -314,7 +314,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
 
           <p class="doc-p">
-            Inputs and configurable parameters are declared using <code>accept</code> at the top of the file:
+            Inputs and configurable parameters are declared using <code>accept</code> at the top of the file (see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a> for all supported flowable payload and configuration argument types):
           </p>
 
           <div class="doc-code-card">
@@ -332,7 +332,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines use an explicit typed parameter model (<code>Tensor</code>, <code>Image</code>, <code>Audio</code>, <code>Scalar</code>, <code>RawBytes</code>, and <code>*Arg</code>). For a complete walkthrough of every data type, shape declaration syntax, and how types behave under parallel slicing, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
+            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines enforce an explicit type system (<code>Tensor</code>, <code>Image</code>, <code>Audio</code>, <code>Scalar</code>, <code>RawBytes</code>, and <code>*Arg</code>). For a complete walkthrough of every data type, dimension declaration syntax, and component structures, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 20px;">
@@ -451,7 +451,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
 
           <p class="doc-p">
-            <strong>Parallel Map Loop (<code>each</code>):</strong> The <code>each</code> block applies a transformation sub-flow across elements of a compound collection, batch, or multi-channel audio/image payload. <strong>Each iteration is executed concurrently in parallel</strong> across multi-threaded CPU workers. <strong>The general rule for <code>each</code> is that the result is always stacked back to the same data type as the input</strong>, so the result of each sub-flow must be able to be combined back to the original compound type. Once all parallel iterations complete, their resulting outputs are automatically stacked back together in sequence order and passed directly to the next action in the stream.
+            <strong>Parallel Map Loop (<code>each</code>):</strong> The <code>each</code> block applies a transformation sub-flow across elements of a compound collection, batch, or multi-channel audio/image payload (see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a> for type-specific slicing rules). <strong>Each iteration is executed concurrently in parallel</strong> across multi-threaded CPU workers. <strong>The general rule for <code>each</code> is that the result is always stacked back to the same data type as the input</strong>, so the result of each sub-flow must be able to be combined back to the original compound type. Once all parallel iterations complete, their resulting outputs are automatically stacked back together in sequence order and passed directly to the next action in the stream.
           </p>
 
           <div class="doc-code-card">
@@ -477,7 +477,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>The Compound Restacking Rule:</strong> In Morflow, <code>each</code> always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original compound type (e.g. multi-channel <code>Audio</code> &rarr; mono <code>Audio</code> slices &rarr; restacked multi-channel <code>Audio</code>). Changing the payload kind inside the loop (e.g. returning a <code>Tensor</code> or <code>Scalar</code> from an <code>Image</code> channel loop) violates static rule <code>E009</code>. Furthermore, direct emission (<code>emit</code>) inside an <code>each</code> block is strictly prohibited to guarantee deterministic stream synchronization.
+            <strong>The Compound Restacking Rule:</strong> In Morflow, <code>each</code> always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original compound type (e.g. multi-channel <code>Audio</code> &rarr; mono <code>Audio</code> slices &rarr; restacked multi-channel <code>Audio</code>). Changing the payload kind inside the loop (e.g. returning a <code>Tensor</code> or <code>Scalar</code> from an <code>Image</code> channel loop) violates static rule <code>E009</code>. Furthermore, direct emission (<code>emit</code>) inside an <code>each</code> block is strictly prohibited to guarantee deterministic stream synchronization. For an in-depth breakdown of slicing dimensions, type derivation, and restacking contracts for every compound type, see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 24px;">
