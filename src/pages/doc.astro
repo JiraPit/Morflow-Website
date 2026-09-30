@@ -1197,13 +1197,13 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># ❌ COMPILE ERROR E009: Sub-flow changes payload kind</span>
-<span class="tok-comment"># The loop variable $channel is an Image slice, but the body produces a Tensor.</span>
-<span class="tok-comment"># Results cannot be combined back into the compound Image container!</span>
+<span class="tok-comment"># The loop input is an Image, so each sub-flow must produce an Image.</span>
+<span class="tok-comment"># Here, 'relu' returns a Tensor, which cannot be restacked back into the compound Image!</span>
 <span class="tok-var">$rgb_image</span>
     <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span> (<span class="tok-var">$channel</span>) &#123;
         <span class="tok-var">$channel</span>
             <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>
-            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">relu</span>  <span class="tok-comment"># Error E009: 'each' body changes the payload kind</span>
+            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">relu</span>  <span class="tok-comment"># Error E009: body produces Tensor, expected Image</span>
     &#125;
 
 <span class="tok-comment"># ✅ VALID: Sub-flow produces compatible Image slices</span>
