@@ -74,14 +74,14 @@ import PageHero from '../components/PageHero.astro';
           <p class="badge">Section 1</p>
           <h2 class="doc-h2">1. CLI Reference</h2>
           <p class="doc-p">
-            The <code>morflow</code> CLI handles dependency resolution, offline action caching, action discovery, and action specification inspection.
+            The morflow CLI handles dependency resolution, offline action caching, action discovery, and action specification inspection.
           </p>
         </div>
 
         <div id="cli-installation" class="doc-section">
           <h3 class="doc-h3">1.1. Installation</h3>
           <p class="doc-p">
-            Install the standalone <code>morflow</code> command-line interface globally via cURL, npm, or pip:
+            Install the standalone morflow command-line interface globally via cURL, npm, or pip:
           </p>
 
           <div class="doc-code-card">
@@ -155,12 +155,12 @@ pip install morflow</code></pre>
         <div id="cli-check" class="doc-section">
           <h3 class="doc-h3">1.3. Pipeline Verification (<code>check</code>)</h3>
           <p class="doc-p">
-            The <code>check</code> command performs comprehensive static analysis, type checking, and shape inference on your <code>.morf</code> pipeline without requiring live input data. It guarantees that syntax, Single Static Assignment (SSA) rules, action binaries, flowable types, and tensor dimensions are 100% valid before deployment:
+            The check command performs comprehensive static analysis, type checking, and shape inference on your .morf pipeline without requiring live input data. It guarantees that syntax, Single Static Assignment (SSA) rules, action binaries, flowable types, and tensor dimensions are 100% valid before deployment:
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Type &amp; Parameter Validation:</strong> Verifies all declared parameter types, ensuring argument types (e.g. <code>IntArg</code>) are not piped as flow heads (preventing <code>E007</code>) and that actions receive matching inputs.</li>
-            <li><strong>Shape Inference ABI:</strong> Evaluates action shape contracts (<code>get_output_shape</code>) across the dataflow graph to verify rank compatibility, wildcard dimensions (e.g. <code>Tensor[*, *]</code>), and channel derivations.</li>
-            <li><strong>Reducer Axis Bounds Checking:</strong> Statically proves that reduction operations (e.g. <code>sum</code>, <code>mean</code>, <code>max</code>, <code>min</code>, <code>norm</code>, <code>argmax</code>) do not specify out-of-bounds axes against pinned tensor ranks (preventing <code>E010</code>).</li>
+            <li><strong>Type &amp; Parameter Validation:</strong> Verifies all declared parameter types, ensuring argument types (e.g. IntArg) are not piped as flow heads (preventing E007) and that actions receive matching inputs.</li>
+            <li><strong>Shape Inference ABI:</strong> Evaluates action shape contracts (get_output_shape) across the dataflow graph to verify rank compatibility, wildcard dimensions (e.g. Tensor[*, *]), and channel derivations.</li>
+            <li><strong>Reducer Axis Bounds Checking:</strong> Statically proves that reduction operations (e.g. sum, mean, max, min, norm, argmax) do not specify out-of-bounds axes against pinned tensor ranks (preventing E010).</li>
           </ul>
 
           <div class="doc-code-card">
@@ -253,7 +253,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <p class="badge">Section 2</p>
           <h2 class="doc-h2">2. .morf Syntax Guide</h2>
           <p class="doc-p">
-            Learn <code>.morf</code> syntax from the ground up: starting from the smallest building block (an <strong>Action</strong>), to chaining them into a <strong>Flow</strong>, producing results with <strong>Emit</strong>, and composing <strong>Multiple Flows</strong> in a single file.
+            Learn .morf syntax from the ground up: starting from the smallest building block (an <strong>Action</strong>), to chaining them into a <strong>Flow</strong>, producing results with <strong>Emit</strong>, and composing <strong>Multiple Flows</strong> in a single file.
           </p>
         </div>
 
@@ -289,7 +289,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            Before using actions, import their parent <strong>Action Pack</strong> at the top of your <code>.morf</code> file:
+            Before using actions, import their parent <strong>Action Pack</strong> at the top of your .morf file:
           </p>
 
           <div class="doc-code-card">
@@ -310,11 +310,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="syntax-step2-flow" class="doc-section">
           <h3 class="doc-h3">2.2. Inputs &amp; Constructing a Flow</h3>
           <p class="doc-p">
-            A <strong>Flow</strong> connects an input variable through a sequence of actions using the <code>&gt;&gt;</code> dataflow operator. Each action receives the output payload of the previous action with zero memory copying.
+            A <strong>Flow</strong> connects an input variable through a sequence of actions using the &gt;&gt; dataflow operator. Each action receives the output payload of the previous action with zero memory copying.
           </p>
 
           <p class="doc-p">
-            Inputs and configurable parameters are declared using <code>accept</code> at the top of the file (see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a> for all supported flowable payload and configuration argument types):
+            Inputs and configurable parameters are declared using accept at the top of the file (see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a> for all supported flowable payload and configuration argument types):
           </p>
 
           <div class="doc-code-card">
@@ -332,7 +332,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines enforce an explicit type system (<code>Tensor</code>, <code>Image</code>, <code>Audio</code>, <code>Scalar</code>, <code>RawBytes</code>, and <code>*Arg</code>). For a complete walkthrough of every data type, dimension declaration syntax, and component structures, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
+            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines enforce an explicit type system (Tensor, Image, Audio, Scalar, RawBytes, and *Arg). For a complete walkthrough of every data type, dimension declaration syntax, and component structures, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 20px;">
@@ -358,7 +358,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="syntax-step3-emit" class="doc-section">
           <h3 class="doc-h3">2.3. Emitting Output &amp; Intermediate Emission (<code>emit</code>)</h3>
           <p class="doc-p">
-            Outputs are transferred back to the calling host application across many platforms and languages using the <code>emit</code> keyword. Importantly, <strong><code>emit</code> is a non-terminating passthrough operation</strong> — it yields the computed payload at that point in execution while passing the data directly down the chain for subsequent operations.
+            Outputs are transferred back to the calling host application across many platforms and languages using the emit keyword. Importantly, <strong>emit is a non-terminating passthrough operation</strong> — it yields the computed payload at that point in execution while passing the data directly down the chain for subsequent operations.
           </p>
 
           <p class="doc-p">
@@ -400,7 +400,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>Host Return Type & Multi-Emission:</strong> When a flow contains multiple or named emissions (such as intermediate emissions), host SDKs receive a structured dictionary or map of typed outputs (e.g. <code>dict[str, np.ndarray]</code> in Python, <code>Map&lt;String, MorflowTensor&gt;</code> in Java, or <code>MorflowOutput</code> in Rust). For streaming invocations, intermediate emissions can also be consumed asynchronously as they are produced.
+            <strong>Host Return Type & Multi-Emission:</strong> When a flow contains multiple or named emissions (such as intermediate emissions), host SDKs receive a structured dictionary or map of typed outputs (e.g. dict[str, np.ndarray] in Python, Map&lt;String, MorflowTensor&gt; in Java, or MorflowOutput in Rust). For streaming invocations, intermediate emissions can also be consumed asynchronously as they are produced.
           </div>
         </div>
 
@@ -408,7 +408,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="syntax-step4-multiflow" class="doc-section">
           <h3 class="doc-h3">2.4. Multiple Flows in One File</h3>
           <p class="doc-p">
-            A single <code>.morf</code> file can contain <strong>multiple flows</strong>. You can capture intermediate states mid-stream into a tapped variable using <code>&gt;&gt; $var_name</code>, and then spawn independent branch flows from that variable.
+            A single .morf file can contain <strong>multiple flows</strong>. You can capture intermediate states mid-stream into a tapped variable using &gt;&gt; $var_name, and then spawn independent branch flows from that variable.
           </p>
 
           <p class="doc-p">
@@ -435,11 +435,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            In this pipeline, <strong>Flow 2 and Flow 3 run concurrently in parallel</strong> immediately after Flow 1 finishes. Because both downstream branches depend solely on the shared output of Flow 1 (<code>$decoded</code>) but have no dependency on each other, Morflow's runtime automatically schedules and evaluates them simultaneously across CPU worker threads with zero lock overhead.
+            In this pipeline, <strong>Flow 2 and Flow 3 run concurrently in parallel</strong> immediately after Flow 1 finishes. Because both downstream branches depend solely on the shared output of Flow 1 ($decoded) but have no dependency on each other, Morflow's runtime automatically schedules and evaluates them simultaneously across CPU worker threads with zero lock overhead.
           </p>
 
           <p class="doc-p">
-            <strong>Static Single Assignment (SSA) Rule:</strong> A tapped variable identifier (e.g. <code>$decoded</code>) cannot be reassigned or mutated within the same scope. This mathematical guarantee ensures safe multi-threaded memory buffer sharing without copy overhead.
+            <strong>Static Single Assignment (SSA) Rule:</strong> A tapped variable identifier (e.g. $decoded) cannot be reassigned or mutated within the same scope. This mathematical guarantee ensures safe multi-threaded memory buffer sharing without copy overhead.
           </p>
         </div>
 
@@ -451,7 +451,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
 
           <p class="doc-p">
-            <strong>Parallel Map Loop (<code>each</code>):</strong> The <code>each</code> block applies a transformation sub-flow across elements of a compound collection, batch, or multi-channel audio/image payload (see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a> for type-specific slicing rules). <strong>Each iteration is executed concurrently in parallel</strong> across multi-threaded CPU workers. <strong>The general rule for <code>each</code> is that the result is always stacked back to the same data type as the input</strong>, so the result of each sub-flow must be able to be combined back to the original compound type. Once all parallel iterations complete, their resulting outputs are automatically stacked back together in sequence order and passed directly to the next action in the stream.
+            <strong>Parallel Map Loop (each):</strong> The each block applies a transformation sub-flow across elements of a compound collection, batch, or multi-channel audio/image payload (see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a> for type-specific slicing rules). <strong>Each iteration is executed concurrently in parallel</strong> across multi-threaded CPU workers. <strong>The general rule for each is that the result is always stacked back to the same data type as the input</strong>, so the result of each sub-flow must be able to be combined back to the original compound type. Once all parallel iterations complete, their resulting outputs are automatically stacked back together in sequence order and passed directly to the next action in the stream.
           </p>
 
           <div class="doc-code-card">
@@ -477,7 +477,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>The Compound Restacking Rule:</strong> In Morflow, <code>each</code> always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original compound type (e.g. multi-channel <code>Audio</code> &rarr; mono <code>Audio</code> slices &rarr; restacked multi-channel <code>Audio</code>). Changing the payload kind inside the loop (e.g. returning a <code>Tensor</code> or <code>Scalar</code> from an <code>Image</code> channel loop) violates static rule <code>E009</code>. Furthermore, direct emission (<code>emit</code>) inside an <code>each</code> block is strictly prohibited to guarantee deterministic stream synchronization. For an in-depth breakdown of slicing dimensions, type derivation, and restacking contracts for every compound type, see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a>.
+            <strong>The Compound Restacking Rule:</strong> In Morflow, each always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original compound type (e.g. multi-channel Audio &rarr; mono Audio slices &rarr; restacked multi-channel Audio). Changing the payload kind inside the loop (e.g. returning a Tensor or Scalar from an Image channel loop) violates static rule E009. Furthermore, direct emission (emit) inside an each block is strictly prohibited to guarantee deterministic stream synchronization. For an in-depth breakdown of slicing dimensions, type derivation, and restacking contracts for every compound type, see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 24px;">
@@ -515,7 +515,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="syntax-step6-examples" class="doc-section">
           <h3 class="doc-h3">2.6. Complete End-to-End Examples</h3>
           <p class="doc-p">
-            Here are two complete, production-ready <code>.morf</code> pipeline definitions:
+            Here are two complete, production-ready .morf pipeline definitions:
           </p>
 
           <div class="doc-code-card">
@@ -579,7 +579,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <p class="badge">Section 3</p>
           <h2 class="doc-h2">3. Data Types &amp; Type System</h2>
           <p class="doc-p">
-            Morflow features an explicit, compile-time verified type system and shape algebra. Every input parameter accepted by a pipeline and every payload streaming through <code>&gt;&gt;</code> flows carries a verifiable type and rank constraint, enabling static validation and zero train-serve skew without runtime execution overhead.
+            Morflow features an explicit, compile-time verified type system and shape algebra. Every input parameter accepted by a pipeline and every payload streaming through &gt;&gt; flows carries a verifiable type and rank constraint, enabling static validation and zero train-serve skew without runtime execution overhead.
           </p>
         </div>
 
@@ -591,10 +591,10 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li>
-              <strong>Flowable Payloads:</strong> High-performance multi-dimensional arrays, signals, images, or byte buffers that stream through <code>&gt;&gt;</code> dataflow chains, participate in parallel <code>each</code> loops, and can be yielded to the host via <code>emit</code>.
+              <strong>Flowable Payloads:</strong> High-performance multi-dimensional arrays, signals, images, or byte buffers that stream through &gt;&gt; dataflow chains, participate in parallel each loops, and can be yielded to the host via emit.
             </li>
             <li>
-              <strong>Configuration Arguments (<code>*Arg</code>):</strong> Parameter values passed from host applications to configure action arguments (such as image resolutions, filter cutoffs, or sample rates). Arguments <em>cannot</em> be piped as the head of a flow (preventing compile error <code>E007</code>).
+              <strong>Configuration Arguments (*Arg):</strong> Parameter values passed from host applications to configure action arguments (such as image resolutions, filter cutoffs, or sample rates). Arguments <em>cannot</em> be piped as the head of a flow (preventing compile error E007).
             </li>
           </ul>
 
@@ -750,17 +750,17 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            <strong>How <code>Tensor</code> Works with <code>each</code>:</strong>
+            <strong>How Tensor Works with each:</strong>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li><strong>Iteration Axis:</strong> Always iterates along <strong>Axis 0</strong> (the leading dimension / batch axis).</li>
-            <li><strong>Iteration Count:</strong> Exactly <code>shape[0]</code> parallel iterations are spawned.</li>
+            <li><strong>Iteration Count:</strong> Exactly shape[0] parallel iterations are spawned.</li>
             <li><strong>Loop Variable Derivation:</strong>
-              <br />• If rank &ge; 2: Each iteration produces an independent <code>Tensor</code> with rank reduced by one (rank N &minus; 1). Slicing <code>Tensor[32, 128]</code> yields 32 parallel sub-flows each receiving a <code>Tensor[128]</code>.
-              <br />• If rank 1: Iterating a 1D tensor slices single elements, binding each iteration to a <strong><code>Scalar</code></strong> (rank-0 numeric value).
+              <br />• If rank &ge; 2: Each iteration produces an independent Tensor with rank reduced by one (rank N &minus; 1). Slicing Tensor[32, 128] yields 32 parallel sub-flows each receiving a Tensor[128].
+              <br />• If rank 1: Iterating a 1D tensor slices single elements, binding each iteration to a <strong>Scalar</strong> (rank-0 numeric value).
               <br />• If rank 0: A rank-0 scalar tensor has no dimensions to slice and is rejected at compile time.
             </li>
-            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape. In accordance with the compound restacking rule, sub-flows must yield rank-(N &minus; 1) tensors so that slices can be reassembled back into the original compound <code>Tensor[rank=N]</code>.</li>
+            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape. In accordance with the compound restacking rule, sub-flows must yield rank-(N &minus; 1) tensors so that slices can be reassembled back into the original compound Tensor[rank=N].</li>
           </ul>
         </div>
 
@@ -831,17 +831,17 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            <strong>How <code>Image</code> Works with <code>each</code> (Channel Slicing):</strong>
+            <strong>How Image Works with each (Channel Slicing):</strong>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Iteration Axis:</strong> Crucially, <code>each</code> on an <code>Image</code> slices along the <strong>Color Channel Axis</strong> (C), <em>not</em> spatial rows or columns!
-              <br />• In <code>hwc</code> layout: slices along <strong>Axis 2</strong>.
-              <br />• In <code>chw</code> layout: slices along <strong>Axis 0</strong>.
+            <li><strong>Iteration Axis:</strong> Crucially, each on an Image slices along the <strong>Color Channel Axis</strong> (C), <em>not</em> spatial rows or columns!
+              <br />• In hwc layout: slices along <strong>Axis 2</strong>.
+              <br />• In chw layout: slices along <strong>Axis 0</strong>.
             </li>
             <li><strong>Iteration Count:</strong> Exactly C parallel workers (e.g. 3 for RGB, 4 for RGBA).</li>
-            <li><strong>Loop Variable Derivation:</strong> Each parallel iteration receives an independent rank-2 <strong><code>Image</code></strong> in <code>ColorSpace::Grayscale</code>, preserving the full H &times; W spatial resolution. This allows applying filters, equalizations, or thresholding to individual channels simultaneously.</li>
-            <li><strong>Payload Kind Preservation (<code>E009</code>):</strong> The sub-flow inside <code>each</code> must preserve the payload kind. You cannot convert the channel slice into a <code>Tensor</code> or <code>Audio</code> mid-loop without causing static error <code>E009</code>.</li>
-            <li><strong>Restacking:</strong> The transformed grayscale channel slices are reassembled along the channel axis back into the parent's original color space and layout. Because the slices are recombined into the compound <code>Image</code>, all iterations must produce compatible single-channel <code>Image</code> payloads.</li>
+            <li><strong>Loop Variable Derivation:</strong> Each parallel iteration receives an independent rank-2 <strong>Image</strong> in ColorSpace::Grayscale, preserving the full H &times; W spatial resolution. This allows applying filters, equalizations, or thresholding to individual channels simultaneously.</li>
+            <li><strong>Payload Kind Preservation (E009):</strong> The sub-flow inside each must preserve the payload kind. You cannot convert the channel slice into a Tensor or Audio mid-loop without causing static error E009.</li>
+            <li><strong>Restacking:</strong> The transformed grayscale channel slices are reassembled along the channel axis back into the parent's original color space and layout. Because the slices are recombined into the compound Image, all iterations must produce compatible single-channel Image payloads.</li>
           </ul>
         </div>
 
@@ -917,11 +917,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            <strong>How <code>Audio</code> Works with <code>each</code>:</strong>
+            <strong>How Audio Works with each:</strong>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Multi-Channel Audio (C &gt; 1):</strong> Slices along the <strong>channel axis</strong> (Axis 0 in <code>Planar</code>, Axis 1 in <code>Interleaved</code>). Each parallel worker receives an independent single-channel <strong><code>Audio</code></strong> (mono) payload with the parent's sample rate intact. Slices are processed concurrently and restacked along the channel axis back into the compound multi-channel <code>Audio</code>.</li>
-            <li><strong>Mono Audio (C = 1, rank-1 <code>[samples]</code>):</strong> Slices along the <strong>sample axis</strong>. Each iteration receives a single sample as a <strong><code>Scalar</code></strong> float. Slices are restacked along the sample axis back into mono compound audio.</li>
+            <li><strong>Multi-Channel Audio (C &gt; 1):</strong> Slices along the <strong>channel axis</strong> (Axis 0 in Planar, Axis 1 in Interleaved). Each parallel worker receives an independent single-channel <strong>Audio</strong> (mono) payload with the parent's sample rate intact. Slices are processed concurrently and restacked along the channel axis back into the compound multi-channel Audio.</li>
+            <li><strong>Mono Audio (C = 1, rank-1 [samples]):</strong> Slices along the <strong>sample axis</strong>. Each iteration receives a single sample as a <strong>Scalar</strong> float. Slices are restacked along the sample axis back into mono compound audio.</li>
           </ul>
         </div>
 
@@ -950,11 +950,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p" style="margin-top: 16px;">
-            <strong>Defining Shape:</strong> <code>Scalar</code> has no dimensions (rank 0). It is declared simply as <code>accept Scalar $name [= default]</code>.
+            <strong>Defining Shape:</strong> Scalar has no dimensions (rank 0). It is declared simply as accept Scalar $name [= default].
           </p>
 
           <p class="doc-p">
-            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
+            <strong>Behavior with each:</strong> Does not work with each.
           </p>
         </div>
 
@@ -983,11 +983,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p" style="margin-top: 16px;">
-            <strong>Defining Shape:</strong> <code>RawBytes</code> has no shape or dimension concepts. It is declared as <code>accept RawBytes $data</code>.
+            <strong>Defining Shape:</strong> RawBytes has no shape or dimension concepts. It is declared as accept RawBytes $data.
           </p>
 
           <p class="doc-p">
-            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
+            <strong>Behavior with each:</strong> Does not work with each.
           </p>
         </div>
 
@@ -1016,7 +1016,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p" style="margin-top: 16px;">
-            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
+            <strong>Behavior with each:</strong> Does not work with each.
           </p>
         </div>
 
@@ -1060,7 +1060,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p" style="margin-top: 16px;">
-            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
+            <strong>Behavior with each:</strong> Does not work with each.
           </p>
 
           <div class="doc-code-card">
@@ -1082,7 +1082,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>Non-Flowable Guarantee (<code>E007</code>):</strong> Configuration arguments cannot initiate a dataflow stream (e.g. <code>$target_w &gt;&gt; ...</code> raises <code>E007: cannot pipe from non-flowable argument type</code>). They are strictly passed to action calls (e.g. <code>resize(width=$target_w)</code>) and can be accessed as parameters inside <code>each</code> sub-flows.
+            <strong>Non-Flowable Guarantee (E007):</strong> Configuration arguments cannot initiate a dataflow stream (e.g. $target_w &gt;&gt; ... raises E007: cannot pipe from non-flowable argument type). They are strictly passed to action calls (e.g. resize(width=$target_w)) and can be accessed as parameters inside each sub-flows.
           </div>
         </div>
 
@@ -1090,13 +1090,13 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="types-each" class="doc-section">
           <h3 class="doc-h3">3.9. Deep Dive: Slicing &amp; Restacking with <code>each</code></h3>
           <p class="doc-p">
-            The <code>each</code> operator is Morflow's parallel map-reduce construct. It dynamically slices a multi-dimensional payload across a specific axis, dispatches each slice independently across a multi-threaded Rayon work-stealing pool, and deterministically restacks the transformed slices back together in original sequence order.
+            The each operator is Morflow's parallel map-reduce construct. It dynamically slices a multi-dimensional payload across a specific axis, dispatches each slice independently across a multi-threaded Rayon work-stealing pool, and deterministically restacks the transformed slices back together in original sequence order.
           </p>
 
           <div class="doc-callout" style="border-left: 4px solid var(--accent); background: rgba(59, 130, 246, 0.05); padding: 16px 20px; margin-bottom: 24px; border-radius: 6px;">
-            <strong style="font-size: 15px; color: var(--grey-900);">The Cardinal Rule of <code>each</code>: Compound Type Restacking</strong>
+            <strong style="font-size: 15px; color: var(--grey-900);">The Cardinal Rule of each: Compound Type Restacking</strong>
             <p class="doc-p" style="margin-top: 8px; margin-bottom: 0;">
-              The foundational invariant governing <code>each</code> is: <strong>the result is always stacked back to the exact same data type as the input</strong>. Because Morflow automatically reassembles the aggregated slices into the original compound container, <strong>the result of each sub-flow must be able to be combined back into the original compound type</strong>.
+              The foundational invariant governing each is: <strong>the result is always stacked back to the exact same data type as the input</strong>. Because Morflow automatically reassembles the aggregated slices into the original compound container, <strong>the result of each sub-flow must be able to be combined back into the original compound type</strong>.
             </p>
           </div>
 
@@ -1161,33 +1161,33 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 
           <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">Compound Restacking Contracts</h4>
           <p class="doc-p">
-            Morflow's execution engine enforces strict type and dimension symmetry when reassembling sub-flow results (<code>core_types::Payload::each_restack</code>):
+            Morflow's execution engine enforces strict type and dimension symmetry when reassembling sub-flow results (core_types::Payload::each_restack):
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li>
-              <strong>Compound Images (Channel Reassembly):</strong> When looping over a multi-channel <code>Image</code>, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel <code>Image</code> preserving spatial height and width (H &times; W). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original <code>ColorSpace</code> (e.g. RGB) and layout. If a sub-flow produces a <code>Tensor</code> or <code>Scalar</code>, or alters spatial dimensions incompatibly, the engine cannot reconstruct the compound <code>Image</code>, triggering static error <code>E009</code> at compile time.
+              <strong>Compound Images (Channel Reassembly):</strong> When looping over a multi-channel Image, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel Image preserving spatial height and width (H &times; W). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original ColorSpace (e.g. RGB) and layout. If a sub-flow produces a Tensor or Scalar, or alters spatial dimensions incompatibly, the engine cannot reconstruct the compound Image, triggering static error E009 at compile time.
             </li>
             <li>
-              <strong>Compound Audio (Multi-Channel Synchronization):</strong> Slicing a multi-channel <code>Audio</code> yields mono <code>Audio</code> streams. Each branch must produce a mono <code>Audio</code> with identical sample rates and layouts. Morflow stacks the processed mono streams along the channel axis back into the original multi-channel compound <code>Audio</code> container (transposing planar buffers into interleaved buffers if the parent audio used interleaved layout). When mono <code>Audio</code> is sliced per-sample, single <code>Scalar</code> float samples are processed and stacked back into mono <code>Audio</code>.
+              <strong>Compound Audio (Multi-Channel Synchronization):</strong> Slicing a multi-channel Audio yields mono Audio streams. Each branch must produce a mono Audio with identical sample rates and layouts. Morflow stacks the processed mono streams along the channel axis back into the original multi-channel compound Audio container (transposing planar buffers into interleaved buffers if the parent audio used interleaved layout). When mono Audio is sliced per-sample, single Scalar float samples are processed and stacked back into mono Audio.
             </li>
             <li>
-              <strong>Compound Tensors (Axis 0 Concatenation):</strong> Slicing a rank-N <code>Tensor</code> along Axis 0 produces rank-(N &minus; 1) slices. Every parallel branch must yield a rank-(N &minus; 1) <code>Tensor</code> with identical inner dimension sizes. The runtime stacks them back along Axis 0 to recreate the compound rank-N <code>Tensor</code>.
+              <strong>Compound Tensors (Axis 0 Concatenation):</strong> Slicing a rank-N Tensor along Axis 0 produces rank-(N &minus; 1) slices. Every parallel branch must yield a rank-(N &minus; 1) Tensor with identical inner dimension sizes. The runtime stacks them back along Axis 0 to recreate the compound rank-N Tensor.
             </li>
           </ul>
 
           <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">The Core Rules of <code>each</code></h4>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li>
-              <strong>1. The Compound Restacking Contract (<code>E009</code>):</strong> The sub-flow inside <code>each</code> must preserve the payload kind of the loop variable. Because the engine restacks outputs back into the compound container of the input, the result of each sub-flow must be combinable back into the original compound type. If an <code>Image</code> channel loop yields a <code>Tensor</code> or <code>Scalar</code>, or an <code>Audio</code> loop yields non-audio data, compilation halts with <code>E009: 'each' body changes the payload kind</code>.
+              <strong>1. The Compound Restacking Contract (E009):</strong> The sub-flow inside each must preserve the payload kind of the loop variable. Because the engine restacks outputs back into the compound container of the input, the result of each sub-flow must be combinable back into the original compound type. If an Image channel loop yields a Tensor or Scalar, or an Audio loop yields non-audio data, compilation halts with E009: 'each' body changes the payload kind.
             </li>
             <li>
-              <strong>2. Prohibition of <code>emit</code> Inside Loops:</strong> Slices execute asynchronously and out-of-order across CPU cores. To maintain deterministic synchronization with host applications, direct emission (<code>emit</code>) inside an <code>each</code> block is strictly prohibited. Outputs must be emitted downstream after the loop has restacked all slices.
+              <strong>2. Prohibition of emit Inside Loops:</strong> Slices execute asynchronously and out-of-order across CPU cores. To maintain deterministic synchronization with host applications, direct emission (emit) inside an each block is strictly prohibited. Outputs must be emitted downstream after the loop has restacked all slices.
             </li>
             <li>
-              <strong>3. Single Static Assignment (SSA) Safety:</strong> The loop variable (e.g. <code>$channel</code>) is immutable within its iteration scope. Intermediate variables tapped inside an <code>each</code> loop cannot conflict with external flows.
+              <strong>3. Single Static Assignment (SSA) Safety:</strong> The loop variable (e.g. $channel) is immutable within its iteration scope. Intermediate variables tapped inside an each loop cannot conflict with external flows.
             </li>
             <li>
-              <strong>4. External Parameter Access:</strong> Sub-flows inside <code>each</code> can freely reference external variables and configuration arguments declared in the outer scope (e.g. <code>$channel &gt;&gt; biquad_filter(freq=$cutoff)</code>).
+              <strong>4. External Parameter Access:</strong> Sub-flows inside each can freely reference external variables and configuration arguments declared in the outer scope (e.g. $channel &gt;&gt; biquad_filter(freq=$cutoff)).
             </li>
           </ul>
 
@@ -1250,7 +1250,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <p class="badge">Section 4</p>
           <h2 class="doc-h2">4. Pipeline Execution</h2>
           <p class="doc-p">
-            Execute compiled <code>.morf</code> dataflow graphs natively across languages with zero train-serve skew. Morflow provides idiomatic host SDKs for Python, JavaScript/Node.js, Java, and Rust, mapping host tensors, image arrays, and raw binary streams directly into the engine's execution graph.
+            Execute compiled .morf dataflow graphs natively across languages with zero train-serve skew. Morflow provides idiomatic host SDKs for Python, JavaScript/Node.js, Java, and Rust, mapping host tensors, image arrays, and raw binary streams directly into the engine's execution graph.
           </p>
         </div>
 
@@ -1258,7 +1258,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="exec-python" class="doc-section">
           <h3 class="doc-h3">4.1. Python</h3>
           <p class="doc-p">
-            The Python SDK (<code>morflow</code>) integrates directly with NumPy arrays, raw bytes, and file streams with zero-copy buffer sharing into the underlying engine. Payloads can be passed as typed wrappers (<code>morflow.Image</code>, <code>morflow.Audio</code>, <code>morflow.Tensor</code>), or plain NumPy arrays and bytes matching declared <code>accept</code> types.
+            The Python SDK (morflow) integrates directly with NumPy arrays, raw bytes, and file streams with zero-copy buffer sharing into the underlying engine. Payloads can be passed as typed wrappers (morflow.Image, morflow.Audio, morflow.Tensor), or plain NumPy arrays and bytes matching declared accept types.
           </p>
 
           <div class="doc-code-card">
@@ -1311,7 +1311,7 @@ output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes, <span
         <div id="exec-js" class="doc-section">
           <h3 class="doc-h3">4.2. JavaScript / Node.js</h3>
           <p class="doc-p">
-            The Node.js SDK provides asynchronous execution (via <code>pipeline.run()</code> or <code>pipeline.runArgs()</code> offloading work to a background worker pool) and synchronous execution (via <code>pipeline.runSync()</code> / <code>pipeline.runSyncArgs()</code>). Positional arguments matching declared <code>accept</code> statements can be passed directly as heterogeneous arguments (numbers, booleans, strings, Buffers, or <code>TensorInput</code>).
+            The Node.js SDK provides asynchronous execution (via pipeline.run() or pipeline.runArgs() offloading work to a background worker pool) and synchronous execution (via pipeline.runSync() / pipeline.runSyncArgs()). Positional arguments matching declared accept statements can be passed directly as heterogeneous arguments (numbers, booleans, strings, Buffers, or TensorInput).
           </p>
 
           <div class="doc-code-card">
@@ -1366,7 +1366,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         <div id="exec-java" class="doc-section">
           <h3 class="doc-h3">4.3. Java</h3>
           <p class="doc-p">
-            The Java SDK wraps native JNI bindings with type-safe classes, automatic memory cleanup, and direct tensor buffers for high-throughput enterprise JVM backends. Positional parameters are bound using <code>pipeline.runArgs(...)</code>.
+            The Java SDK wraps native JNI bindings with type-safe classes, automatic memory cleanup, and direct tensor buffers for high-throughput enterprise JVM backends. Positional parameters are bound using pipeline.runArgs(...).
           </p>
 
           <div class="doc-code-card">
@@ -1426,7 +1426,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         <div id="exec-rust" class="doc-section">
           <h3 class="doc-h3">4.4. Rust</h3>
           <p class="doc-p">
-            The native Rust engine crate (<code>morflow</code>) provides direct access to <code>Payload</code> variants (<code>Image</code>, <code>Audio</code>, <code>Tensor</code>, <code>Data</code>, <code>Scalar</code>) with compile-time type safety and zero runtime overhead.
+            The native Rust engine crate (morflow) provides direct access to Payload variants (Image, Audio, Tensor, Data, Scalar) with compile-time type safety and zero runtime overhead.
           </p>
 
           <div class="doc-code-card">
