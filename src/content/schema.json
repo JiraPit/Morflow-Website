@@ -6,6 +6,6 @@
     "url": "https://morflow.org",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Linux, macOS, Windows",
-    "description": "High-performance AI/ML data processing engine built for input/output processing and tensor transformations across images, audio, tensors and more with zero-copy, multi-threaded performance and zero train-serve skew."
+    "description": "High-performance AI/ML data processing engine built for input/output processing and tensor transformations across images, audio, tensors and more with shared tensor storage, multi-threaded CPU execution, and reusable native actions across training and serving."
   }
 ]

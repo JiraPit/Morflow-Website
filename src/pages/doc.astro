@@ -48,7 +48,7 @@ import PageHero from '../components/PageHero.astro';
           <li><a href="#types-image" class="docs-nav-link">3.3. Image (Image)</a></li>
           <li><a href="#types-audio" class="docs-nav-link">3.4. Audio (Audio)</a></li>
           <li><a href="#types-scalar" class="docs-nav-link">3.5. Scalar (Scalar)</a></li>
-          <li><a href="#types-rawbytes" class="docs-nav-link">3.6. RawBytes (RawBytes)</a></li>
+          <li><a href="#types-bytes" class="docs-nav-link">3.6. Bytes (Bytes)</a></li>
           <li><a href="#types-composite" class="docs-nav-link">3.7. Composite (Composite)</a></li>
           <li><a href="#types-arguments" class="docs-nav-link">3.8. Configuration Arguments (*Arg)</a></li>
           <li><a href="#types-each" class="docs-nav-link">3.9. Deep Dive: Slicing &amp; Restacking with 'each'</a></li>
@@ -115,12 +115,12 @@ pip install morflow</code></pre>
                 <tr>
                   <td><code>check</code></td>
                   <td><code>morflow check &lt;file.morf&gt; [-p &lt;dir&gt;]</code></td>
-                  <td>Validates syntax, verifies Single Static Assignment (SSA), inspects dynamic action FFI types, and performs a dry-run execution simulation.</td>
+                  <td>Validates syntax and Single Static Assignment (SSA), checks action dependencies and declared types, and infers shapes from action contracts.</td>
                 </tr>
                 <tr>
                   <td><code>prep</code></td>
                   <td><code>morflow prep &lt;file.morf&gt; [-p &lt;dir&gt;] [-f]</code></td>
-                  <td>Pre-downloads required actions for completely offline execution.</td>
+                  <td>Prepares the imported versions and verifies checksums for offline execution.</td>
                 </tr>
                 <tr>
                   <td><code>search</code></td>
@@ -140,7 +140,7 @@ pip install morflow</code></pre>
                 <tr>
                   <td><code>list</code></td>
                   <td><code>morflow list [-p &lt;dir&gt;]</code></td>
-                  <td>Lists all installed action binaries in the local cache.</td>
+                  <td>Lists installed action versions and the concrete release behind latest.</td>
                 </tr>
                 <tr>
                   <td><code>clean</code></td>
@@ -155,7 +155,7 @@ pip install morflow</code></pre>
         <div id="cli-check" class="doc-section">
           <h3 class="doc-h3">1.3. Pipeline Verification (<code>check</code>)</h3>
           <p class="doc-p">
-            The check command performs comprehensive static analysis, type checking, and shape inference on your .morf pipeline without requiring live input data. It guarantees that syntax, Single Static Assignment (SSA) rules, action binaries, flowable types, and tensor dimensions are 100% valid before deployment:
+            The check command performs static analysis, type checking, and shape inference on your .morf pipeline without requiring live input data. It checks syntax, Single Static Assignment (SSA) rules, action dependencies, declared payload types, and available shape information before deployment:
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li><strong>Type &amp; Parameter Validation:</strong> Verifies all declared parameter types, ensuring argument types (e.g. IntArg) are not piped as flow heads (preventing E007) and that actions receive matching inputs.</li>
@@ -198,6 +198,19 @@ morflow prep ./pipeline.morf --path ./actions_cache</code></pre>
           </div>
         </div>
 
+        <div id="cli-action-versions" class="doc-section">
+          <h3 class="doc-h3">Action Versions &amp; Verified Cache</h3>
+          <p class="doc-p">
+            Imports select an exact release, such as <code>image_essentials/0.2.0</code>, or a refreshable <code>latest</code> entry. Exact binaries include their version in the filename; latest binaries use the word <code>latest</code>. Both can coexist in the same cache.
+          </p>
+          <p class="doc-p">
+            Each <code>prep</code> or <code>install</code> resolves the newest stable release for latest imports, verifies published SHA-256 checksums, and replaces cached bytes when the checksum changes. A receipt beside each binary records its concrete version and verified checksum. Pipeline loading verifies these artifacts locally, and loaded pipelines retain their actions until reloaded.
+          </p>
+          <p class="doc-p">
+            File and string APIs use the same prepared cache. Import aliases select multiple versions of one pack, while <code>morflow list</code> shows installed versions and the release behind latest. Actions resolve through imports or fully qualified <code>pack/version/action</code> calls.
+          </p>
+        </div>
+
         <div id="cli-search-spec" class="doc-section">
           <h3 class="doc-h3">1.5. Search &amp; Spec</h3>
           <p class="doc-p">
@@ -234,7 +247,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                 <tr>
                   <td><code>MORFLOW_ACTIONS_PATH</code></td>
                   <td><code>~/.morflow/actions</code></td>
-                  <td>Directory where Morflow caches and resolves compiled dynamic action libraries (<code>.so</code>, <code>.dylib</code>, <code>.dll</code>).</td>
+                  <td>Directory where Morflow caches versioned action binaries, release catalogs, and checksum receipts (<code>.so</code>, <code>.dylib</code>, <code>.dll</code>).</td>
                 </tr>
                 <tr>
                   <td><code>MORFLOW_REPO</code></td>
@@ -302,7 +315,8 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 <span class="tok-keyword">import</span> audio_essentials/latest <span class="tok-keyword">as</span> audio
 
 <span class="tok-comment"># Item import (brings specific actions into local scope)</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span></code></pre>
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span></code></pre>
           </div>
         </div>
 
@@ -310,7 +324,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="syntax-step2-flow" class="doc-section">
           <h3 class="doc-h3">2.2. Inputs &amp; Constructing a Flow</h3>
           <p class="doc-p">
-            A <strong>Flow</strong> connects an input variable through a sequence of actions using the &gt;&gt; dataflow operator. Each action receives the output payload of the previous action with zero memory copying.
+            A <strong>Flow</strong> connects an input variable through a sequence of actions using the &gt;&gt; dataflow operator. Each action receives the output payload of the previous action. Tensor views share backing storage, enabling zero-copy slicing and axis permutations.
           </p>
 
           <p class="doc-p">
@@ -332,7 +346,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines enforce an explicit type system (Tensor, Image, Audio, Scalar, RawBytes, and *Arg). For a complete walkthrough of every data type, dimension declaration syntax, and component structures, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
+            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines enforce an explicit type system (Tensor, Image, Audio, Scalar, Bytes, and *Arg). For a complete walkthrough of every data type, dimension declaration syntax, and component structures, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 20px;">
@@ -358,11 +372,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="syntax-step3-emit" class="doc-section">
           <h3 class="doc-h3">2.3. Emitting Output &amp; Intermediate Emission (<code>emit</code>)</h3>
           <p class="doc-p">
-            Outputs are transferred back to the calling host application across many platforms and languages using the emit keyword. Importantly, <strong>emit is a non-terminating passthrough operation</strong> — it yields the computed payload at that point in execution while passing the data directly down the chain for subsequent operations.
+            The emit keyword collects outputs for the calling host application. <strong>emit is a passthrough operation</strong>: it captures the current payload as a pipeline output and lets subsequent actions continue processing the flow.
           </p>
 
           <p class="doc-p">
-            This enables <strong>intermediate emission</strong>, allowing a single continuous flow to dispatch checkpoints, previews, or multi-scale outputs without duplicating upstream work or branching into separate pipelines:
+            This enables <strong>intermediate emission</strong>, allowing a single continuous flow to collect checkpoints, previews, or multi-scale outputs without duplicating upstream work or branching into separate pipelines:
           </p>
 
           <div class="doc-code-card">
@@ -381,7 +395,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 <span class="tok-comment"># Form B: Named stream emission</span>
 <span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$audio_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$audio_in</span>
 <span class="tok-var">$audio_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">normalize</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"normalized_audio"</span>)
 
 <span class="tok-comment"># Form C: Intermediate emission with chained downstream processing</span>
@@ -400,7 +414,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>Host Return Type & Multi-Emission:</strong> When a flow contains multiple or named emissions (such as intermediate emissions), host SDKs receive a structured dictionary or map of typed outputs (e.g. dict[str, np.ndarray] in Python, Map&lt;String, MorflowTensor&gt; in Java, or MorflowOutput in Rust). For streaming invocations, intermediate emissions can also be consumed asynchronously as they are produced.
+            <strong>Host Return Type & Multi-Emission:</strong> Collected outputs are returned when pipeline execution completes. Python returns a single value for one output and a dictionary for multiple outputs. Node.js and Java provide methods for retrieving all named outputs, and Rust returns PipelineOutputs.
           </div>
         </div>
 
@@ -412,7 +426,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
 
           <p class="doc-p">
-            Morflow automatically compiles all flows into an acyclic dependency graph (DAG) and executes non-dependent branches concurrently across multi-threaded CPU cores with zero lock overhead:
+            Morflow automatically discovers dependencies between flows and schedules independent branches concurrently across CPU worker threads:
           </p>
 
           <div class="doc-code-card">
@@ -422,7 +436,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
  
-<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 
 <span class="tok-comment"># FLOW 1: Ingest input audio, convert to structured stream, and tap into $decoded</span>
 <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$decoded</span>
@@ -435,11 +449,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            In this pipeline, <strong>Flow 2 and Flow 3 run concurrently in parallel</strong> immediately after Flow 1 finishes. Because both downstream branches depend solely on the shared output of Flow 1 ($decoded) but have no dependency on each other, Morflow's runtime automatically schedules and evaluates them simultaneously across CPU worker threads with zero lock overhead.
+            In this pipeline, <strong>Flow 2 and Flow 3 run concurrently in parallel</strong> immediately after Flow 1 finishes. Because both downstream branches depend solely on the shared output of Flow 1 ($decoded) but have no dependency on each other, Morflow's runtime schedules both branches concurrently across CPU worker threads.
           </p>
 
           <p class="doc-p">
-            <strong>Static Single Assignment (SSA) Rule:</strong> A tapped variable identifier (e.g. $decoded) cannot be reassigned or mutated within the same scope. This mathematical guarantee ensures safe multi-threaded memory buffer sharing without copy overhead.
+            <strong>Static Single Assignment (SSA) Rule:</strong> Each tapped variable identifier (e.g. $decoded) is assigned once within its scope. This rule gives each tapped variable a single producer, helping the scheduler resolve dependencies while tensor views share backing storage across branches.
           </p>
         </div>
 
@@ -461,7 +475,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 
 <span class="tok-comment"># Iterates each channel concurrently in parallel, transforms, and stacks back together</span>
 <span class="tok-var">$input_audio</span>
@@ -477,7 +491,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>The Higher-Rank Restacking Rule:</strong> In Morflow, each always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original higher-rank type (e.g. multi-channel Audio &rarr; mono Audio slices &rarr; restacked multi-channel Audio). Changing the payload kind inside the loop (e.g. returning a Tensor or Scalar from an Image channel loop) violates static rule E009. Furthermore, direct emission (emit) inside an each block is strictly prohibited to guarantee deterministic stream synchronization. For an in-depth breakdown of slicing dimensions, type derivation, and restacking contracts for every higher-rank type, see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a>.
+            <strong>The Higher-Rank Restacking Rule:</strong> In Morflow, each always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original higher-rank type (e.g. multi-channel Audio &rarr; mono Audio slices &rarr; restacked multi-channel Audio). Changing the payload kind inside the loop (e.g. returning a Tensor or Scalar from an Image channel loop) violates static rule E009. Outputs from an each block are emitted after its parallel results have been restacked. For an in-depth breakdown of slicing dimensions, type derivation, and restacking contracts for every higher-rank type, see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 24px;">
@@ -491,7 +505,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$channels</span> = <span class="tok-num">2</span>
 
@@ -552,7 +566,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 
 <span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
 
 <span class="tok-comment"># Direct chained DSP processing with inline multi-channel loop</span>
@@ -579,7 +593,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <p class="badge">Section 3</p>
           <h2 class="doc-h2">3. Data Types &amp; Type System</h2>
           <p class="doc-p">
-            Morflow features an explicit, compile-time verified type system and shape algebra. Every input parameter accepted by a pipeline and every payload streaming through &gt;&gt; flows carries a verifiable type and rank constraint, enabling static validation and zero train-serve skew without runtime execution overhead.
+            Morflow provides an explicit type system and shape algebra. Input declarations describe payload kinds and optional rank and dimension constraints. The checker uses these declarations and action shape contracts to validate flows, and the runtime verifies supplied inputs against their declared types.
           </p>
         </div>
 
@@ -639,9 +653,9 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                   <td>Does not work with <code>each</code></td>
                 </tr>
                 <tr>
-                  <td><code>RawBytes</code></td>
+                  <td><code>Bytes</code></td>
                   <td>Flowable Payload</td>
-                  <td><code>RawBytes</code> (Opaque linear buffer)</td>
+                  <td><code>Bytes</code> (Opaque linear buffer)</td>
                   <td>Yes</td>
                   <td>Does not work with <code>each</code></td>
                 </tr>
@@ -958,9 +972,9 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
         </div>
 
-        <!-- 3.6: RAWBYTES -->
-        <div id="types-rawbytes" class="doc-section">
-          <h3 class="doc-h3">3.6. RawBytes (<code>RawBytes</code>)</h3>
+        <!-- 3.6: BYTES -->
+        <div id="types-bytes" class="doc-section">
+          <h3 class="doc-h3">3.6. Bytes (<code>Bytes</code>)</h3>
           
           <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
           <div class="doc-table-container">
@@ -983,7 +997,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p" style="margin-top: 16px;">
-            <strong>Defining Shape:</strong> RawBytes has no shape or dimension concepts. It is declared as accept RawBytes $data.
+            <strong>Defining Shape:</strong> Bytes has no shape or dimension concepts. It is declared as accept Bytes $data.
           </p>
 
           <p class="doc-p">
@@ -1090,7 +1104,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="types-each" class="doc-section">
           <h3 class="doc-h3">3.9. Deep Dive: Slicing &amp; Restacking with <code>each</code></h3>
           <p class="doc-p">
-            The each operator is Morflow's parallel map-reduce construct. It dynamically slices a multi-dimensional payload across a specific axis, dispatches each slice independently across a multi-threaded Rayon work-stealing pool, and deterministically restacks the transformed slices back together in original sequence order.
+            The each operator is Morflow's parallel map-and-restack construct. It dynamically slices a multi-dimensional payload across a specific axis, dispatches each slice independently across a multi-threaded Rayon work-stealing pool, and deterministically restacks the transformed slices back together in original sequence order.
           </p>
 
           <div class="doc-callout" style="border-left: 4px solid var(--accent); background: rgba(59, 130, 246, 0.05); padding: 16px 20px; margin-bottom: 24px; border-radius: 6px;">
@@ -1165,7 +1179,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li>
-              <strong>Higher-Rank Images (Channel Reassembly):</strong> When looping over a multi-channel Image, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel Image preserving spatial height and width (H &times; W). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original ColorSpace (e.g. RGB) and layout. If a sub-flow produces a Tensor or Scalar, or alters spatial dimensions incompatibly, the engine cannot reconstruct the higher-rank Image, triggering static error E009 at compile time.
+              <strong>Higher-Rank Images (Channel Reassembly):</strong> When looping over a multi-channel Image, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel Image preserving spatial height and width (H &times; W). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original ColorSpace (e.g. RGB) and layout. The checker validates payload-kind compatibility, and the runtime verifies channel shapes during reassembly.
             </li>
             <li>
               <strong>Higher-Rank Audio (Multi-Channel Synchronization):</strong> Slicing a multi-channel Audio yields mono Audio streams. Each branch must produce a mono Audio with identical sample rates and layouts. Morflow stacks the processed mono streams along the channel axis back into the original multi-channel higher-rank Audio container (transposing planar buffers into interleaved buffers if the parent audio used interleaved layout). When mono Audio is sliced per-sample, single Scalar float samples are processed and stacked back into mono Audio.
@@ -1181,7 +1195,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <strong>1. The Higher-Rank Restacking Contract (E009):</strong> The sub-flow inside each must preserve the payload kind of the loop variable. Because the engine restacks outputs back into the higher-rank container of the input, the result of each sub-flow must be combinable back into the original higher-rank type. If an Image channel loop yields a Tensor or Scalar, or an Audio loop yields non-audio data, compilation halts with E009: 'each' body changes the payload kind.
             </li>
             <li>
-              <strong>2. Prohibition of emit Inside Loops:</strong> Slices execute asynchronously and out-of-order across CPU cores. To maintain deterministic synchronization with host applications, direct emission (emit) inside an each block is strictly prohibited. Outputs must be emitted downstream after the loop has restacked all slices.
+              <strong>2. Emitting Loop Results:</strong> Slices execute concurrently across CPU worker threads. Their results are collected in iteration order, restacked, and emitted by the enclosing top-level flow.
             </li>
             <li>
               <strong>3. Single Static Assignment (SSA) Safety:</strong> The loop variable (e.g. $channel) is immutable within its iteration scope. Intermediate variables tapped inside an each loop cannot conflict with external flows.
@@ -1250,7 +1264,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           <p class="badge">Section 4</p>
           <h2 class="doc-h2">4. Pipeline Execution</h2>
           <p class="doc-p">
-            Execute compiled .morf dataflow graphs natively across languages with zero train-serve skew. Morflow provides idiomatic host SDKs for Python, JavaScript/Node.js, Java, and Rust, mapping host tensors, image arrays, and raw binary streams directly into the engine's execution graph.
+            Execute the same .morf pipelines and native actions across training and production serving. Morflow provides host SDKs for Python, JavaScript/Node.js, Java, and Rust, converting host tensors, image arrays, and raw bytes into engine payloads.
           </p>
         </div>
 
@@ -1258,7 +1272,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="exec-python" class="doc-section">
           <h3 class="doc-h3">4.1. Python</h3>
           <p class="doc-p">
-            The Python SDK (morflow) integrates directly with NumPy arrays, raw bytes, and file streams with zero-copy buffer sharing into the underlying engine. Payloads can be passed as typed wrappers (morflow.Image, morflow.Audio, morflow.Tensor), or plain NumPy arrays and bytes matching declared accept types.
+            The Python SDK (morflow) converts NumPy arrays and raw bytes into engine payloads and executes pipelines in Rust with the Python GIL released. Payloads can be passed as typed wrappers (morflow.Image, morflow.Audio, morflow.Tensor), or plain NumPy arrays and bytes matching declared accept types.
           </p>
 
           <div class="doc-code-card">
@@ -1300,7 +1314,7 @@ audio_pipe = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"aud
 <span class="tok-keyword">with</span> <span class="tok-fn">open</span>(<span class="tok-str">"input.wav"</span>, <span class="tok-str">"rb"</span>) <span class="tok-keyword">as</span> f:
     input_bytes = f.<span class="tok-fn">read</span>()
 
-<span class="tok-comment"># Pass raw bytes (bound to accept RawBytes) and custom sample rate IntArg</span>
+<span class="tok-comment"># Pass raw bytes (bound to accept Bytes) and custom sample rate IntArg</span>
 output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes, <span class="tok-num">44100</span>)
 <span class="tok-keyword">with</span> <span class="tok-fn">open</span>(<span class="tok-str">"output.wav"</span>, <span class="tok-str">"wb"</span>) <span class="tok-keyword">as</span> f:
     f.<span class="tok-fn">write</span>(output_wav_bytes)</code></pre>
@@ -1426,7 +1440,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         <div id="exec-rust" class="doc-section">
           <h3 class="doc-h3">4.4. Rust</h3>
           <p class="doc-p">
-            The native Rust engine crate (morflow) provides direct access to Payload variants (Image, Audio, Tensor, Data, Scalar) with compile-time type safety and zero runtime overhead.
+            The native Rust engine crate (morflow) provides direct access to Payload variants (Image, Audio, Tensor, Data, Scalar) for native pipeline integration.
           </p>
 
           <div class="doc-code-card">

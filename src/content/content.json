@@ -4,15 +4,15 @@
       "num": "01",
       "active": false,
       "image": "/assets/01.webp",
-      "title": "Eliminate AI Train-Serve Skew",
-      "desc": "In typical AI workflows, preprocessing code written in Python training notebooks is copy-pasted or rewritten in other languages for production services. This rewrite introduces subtle numerical discrepancies, library differences, and critical bugs (train-serve and cross-language skew). With Morflow, you write the pipeline once in a .morf file and execute the exact same deterministic operations across many platforms and languages in both training and production serving."
+      "title": "Keep Training and Serving in Sync",
+      "desc": "In typical AI workflows, preprocessing code written in Python training notebooks is copy-pasted or rewritten in other languages for production services. This rewrite introduces subtle numerical discrepancies, library differences, and critical bugs (train-serve and cross-language skew). With Morflow, you write the pipeline once in a .morf file and reuse the same native actions across supported platforms and languages in both training and production serving."
     },
     {
       "num": "02",
       "active": false,
       "image": "/assets/02.webp",
       "title": "High Performance Regardless of Host Language",
-      "desc": "Written in Rust, Morflow provides zero-copy memory operations, automatic flow parallelism, and multi-threaded CPU execution. When calling Morflow from Python or another host language, you get the full speed and multi-core scalability of native Rust."
+      "desc": "Written in Rust, Morflow provides shared tensor storage, zero-copy tensor views, automatic flow parallelism, and multi-threaded CPU execution. Pipelines called from Python or another host language execute in the native Rust runtime."
     },
     {
       "num": "03",
@@ -53,7 +53,7 @@
     },
     {
       "step": 1,
-      "label": "Run Identically Anyway",
+      "label": "One Pipeline Across Languages",
       "desc": "Load and run .morf pipelines seamlessly across multiple platforms and languages with native type conversion.",
       "mock": "/assets/mock-2.png",
       "srcset": "/assets/mock-2.png 1x, /assets/mock-2@2x.png 2x"
