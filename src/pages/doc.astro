@@ -636,49 +636,49 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                   <td>Flowable Payload</td>
                   <td><code>Scalar</code> (Rank-0 numerical value)</td>
                   <td>Yes</td>
-                  <td>No (Rank 0)</td>
+                  <td>Does not work with <code>each</code></td>
                 </tr>
                 <tr>
                   <td><code>RawBytes</code></td>
                   <td>Flowable Payload</td>
                   <td><code>RawBytes</code> (Opaque linear buffer)</td>
                   <td>Yes</td>
-                  <td>No (Decode first)</td>
+                  <td>Does not work with <code>each</code></td>
                 </tr>
                 <tr>
                   <td><code>Composite</code></td>
                   <td>Flowable Payload</td>
                   <td><code>Composite</code> (Tuple of payloads)</td>
                   <td>Yes</td>
-                  <td>No</td>
+                  <td>Does not work with <code>each</code></td>
                 </tr>
                 <tr>
                   <td><code>IntArg</code></td>
                   <td>Configuration Arg</td>
                   <td><code>IntArg</code> (Integer scalar parameter)</td>
                   <td>No (Action arg only)</td>
-                  <td>No</td>
+                  <td>Does not work with <code>each</code></td>
                 </tr>
                 <tr>
                   <td><code>FloatArg</code></td>
                   <td>Configuration Arg</td>
                   <td><code>FloatArg</code> (Float scalar parameter)</td>
                   <td>No (Action arg only)</td>
-                  <td>No</td>
+                  <td>Does not work with <code>each</code></td>
                 </tr>
                 <tr>
                   <td><code>StrArg</code></td>
                   <td>Configuration Arg</td>
                   <td><code>StrArg</code> (String scalar parameter)</td>
                   <td>No (Action arg only)</td>
-                  <td>No</td>
+                  <td>Does not work with <code>each</code></td>
                 </tr>
                 <tr>
                   <td><code>BoolArg</code></td>
                   <td>Configuration Arg</td>
                   <td><code>BoolArg</code> (Boolean scalar parameter)</td>
                   <td>No (Action arg only)</td>
-                  <td>No</td>
+                  <td>Does not work with <code>each</code></td>
                 </tr>
               </tbody>
             </table>
@@ -688,11 +688,43 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <!-- 3.2: TENSOR -->
         <div id="types-tensor" class="doc-section">
           <h3 class="doc-h3">3.2. Tensor (<code>Tensor</code>)</h3>
-          <p class="doc-p">
-            <strong>Components:</strong> A contiguous dense multi-dimensional buffer, a shape array <code>[D_0, D_1, ..., D_k]</code>, memory strides, and a numeric element data type (<code>f32</code>, <code>u8</code>, or <code>i32</code>).
-          </p>
+          
+          <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>buffer</code></td>
+                  <td>Dense Memory</td>
+                  <td>Contiguous multi-dimensional buffer holding element values</td>
+                </tr>
+                <tr>
+                  <td><code>shape</code></td>
+                  <td><code>[usize]</code></td>
+                  <td>Dimension array <code>[D_0, D_1, ..., D_k]</code> defining tensor geometry</td>
+                </tr>
+                <tr>
+                  <td><code>strides</code></td>
+                  <td><code>[usize]</code></td>
+                  <td>Memory indexing strides across dimensions</td>
+                </tr>
+                <tr>
+                  <td><code>dtype</code></td>
+                  <td><code>DType</code></td>
+                  <td>Numeric element data type: <code>f32</code>, <code>u8</code>, or <code>i32</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p class="doc-p">
+          <p class="doc-p" style="margin-top: 16px;">
             <strong>Defining Shapes &amp; Dimensions:</strong> You can constrain tensor inputs with precise shapes or wildcard dimensions:
           </p>
 
@@ -724,22 +756,59 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <li><strong>Iteration Axis:</strong> Always iterates along <strong>Axis 0</strong> (the leading dimension / batch axis).</li>
             <li><strong>Iteration Count:</strong> Exactly <code>shape[0]</code> parallel iterations are spawned.</li>
             <li><strong>Loop Variable Derivation:</strong>
-              <br />• If rank &ge; 2: Each iteration produces an independent <code>Tensor</code> with rank reduced by one (e.g. rank <em>N</em> &minus; 1). Slicing <code>Tensor[32, 128]</code> yields 32 parallel sub-flows each receiving a <code>Tensor[128]</code>.
+              <br />• If rank &ge; 2: Each iteration produces an independent <code>Tensor</code> with rank reduced by one (rank N &minus; 1). Slicing <code>Tensor[32, 128]</code> yields 32 parallel sub-flows each receiving a <code>Tensor[128]</code>.
               <br />• If rank 1: Iterating a 1D tensor slices single elements, binding each iteration to a <strong><code>Scalar</code></strong> (rank-0 numeric value).
               <br />• If rank 0: A rank-0 scalar tensor has no dimensions to slice and is rejected at compile time.
             </li>
-            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape. In accordance with the compound restacking rule, sub-flows must yield rank-(<em>N</em> &minus; 1) tensors so that slices can be reassembled back into the original compound <code>Tensor[rank=N]</code>.</li>
+            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape. In accordance with the compound restacking rule, sub-flows must yield rank-(N &minus; 1) tensors so that slices can be reassembled back into the original compound <code>Tensor[rank=N]</code>.</li>
           </ul>
         </div>
 
         <!-- 3.3: IMAGE -->
         <div id="types-image" class="doc-section">
           <h3 class="doc-h3">3.3. Image (<code>Image</code>)</h3>
-          <p class="doc-p">
-            <strong>Components:</strong> A multi-channel pixel buffer, spatial height (<em>H</em>) and width (<em>W</em>), color channel count (<em>C</em>), color space metadata (<code>ColorSpace</code>: <code>rgb</code>, <code>rgba</code>, <code>grayscale</code>, <code>bgr</code>, <code>bgra</code>), and memory layout (<code>hwc</code> or <code>chw</code>, default <code>hwc</code>).
-          </p>
+          
+          <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>pixel buffer</code></td>
+                  <td>Dense Memory</td>
+                  <td>Multi-channel contiguous raster pixel buffer</td>
+                </tr>
+                <tr>
+                  <td><code>dimensions</code></td>
+                  <td><code>(H, W)</code></td>
+                  <td>Spatial height H and width W in pixels</td>
+                </tr>
+                <tr>
+                  <td><code>channels</code></td>
+                  <td><code>usize</code> (C)</td>
+                  <td>Color channel count (e.g. 1 for Grayscale, 3 for RGB, 4 for RGBA)</td>
+                </tr>
+                <tr>
+                  <td><code>color_space</code></td>
+                  <td><code>ColorSpace</code></td>
+                  <td>Color space model: <code>rgb</code>, <code>rgba</code>, <code>grayscale</code>, <code>bgr</code>, or <code>bgra</code></td>
+                </tr>
+                <tr>
+                  <td><code>layout</code></td>
+                  <td><code>ImageLayout</code></td>
+                  <td>Memory ordering: <code>hwc</code> (channels-last, default) or <code>chw</code> (channels-first)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p class="doc-p">
+          <p class="doc-p" style="margin-top: 16px;">
             <strong>Defining Shapes &amp; Dimensions:</strong>
           </p>
 
@@ -765,12 +834,12 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <strong>How <code>Image</code> Works with <code>each</code> (Channel Slicing):</strong>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Iteration Axis:</strong> Crucially, <code>each</code> on an <code>Image</code> slices along the <strong>Color Channel Axis</strong> (<em>C</em>), <em>not</em> spatial rows or columns!
+            <li><strong>Iteration Axis:</strong> Crucially, <code>each</code> on an <code>Image</code> slices along the <strong>Color Channel Axis</strong> (C), <em>not</em> spatial rows or columns!
               <br />• In <code>hwc</code> layout: slices along <strong>Axis 2</strong>.
               <br />• In <code>chw</code> layout: slices along <strong>Axis 0</strong>.
             </li>
-            <li><strong>Iteration Count:</strong> Exactly <em>C</em> parallel workers (e.g. 3 for RGB, 4 for RGBA).</li>
-            <li><strong>Loop Variable Derivation:</strong> Each parallel iteration receives an independent rank-2 <strong><code>Image</code></strong> in <code>ColorSpace::Grayscale</code>, preserving the full <em>H</em> &times; <em>W</em> spatial resolution. This allows applying filters, equalizations, or thresholding to individual channels simultaneously.</li>
+            <li><strong>Iteration Count:</strong> Exactly C parallel workers (e.g. 3 for RGB, 4 for RGBA).</li>
+            <li><strong>Loop Variable Derivation:</strong> Each parallel iteration receives an independent rank-2 <strong><code>Image</code></strong> in <code>ColorSpace::Grayscale</code>, preserving the full H &times; W spatial resolution. This allows applying filters, equalizations, or thresholding to individual channels simultaneously.</li>
             <li><strong>Payload Kind Preservation (<code>E009</code>):</strong> The sub-flow inside <code>each</code> must preserve the payload kind. You cannot convert the channel slice into a <code>Tensor</code> or <code>Audio</code> mid-loop without causing static error <code>E009</code>.</li>
             <li><strong>Restacking:</strong> The transformed grayscale channel slices are reassembled along the channel axis back into the parent's original color space and layout. Because the slices are recombined into the compound <code>Image</code>, all iterations must produce compatible single-channel <code>Image</code> payloads.</li>
           </ul>
@@ -779,11 +848,53 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <!-- 3.4: AUDIO -->
         <div id="types-audio" class="doc-section">
           <h3 class="doc-h3">3.4. Audio (<code>Audio</code>)</h3>
-          <p class="doc-p">
-            <strong>Components:</strong> A PCM sample buffer, channel count (<em>C</em>), sample count (<em>S</em>), sample rate in Hz (e.g. 44100, 48000), channel layout (<code>AudioChannelLayout</code>: <code>Mono</code>, <code>Stereo</code>, <code>Surround51</code>, etc.), and memory layout (<code>Planar</code> where channels are Axis 0 <code>[channels, samples]</code>, or <code>Interleaved</code> where channels are Axis 1 <code>[samples, channels]</code>).
-          </p>
+          
+          <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>sample buffer</code></td>
+                  <td>Dense Memory</td>
+                  <td>Linear PCM floating-point audio sample buffer</td>
+                </tr>
+                <tr>
+                  <td><code>channels</code></td>
+                  <td><code>usize</code> (C)</td>
+                  <td>Number of independent audio channels (e.g. 1 for Mono, 2 for Stereo)</td>
+                </tr>
+                <tr>
+                  <td><code>samples</code></td>
+                  <td><code>usize</code> (S)</td>
+                  <td>Number of audio sample frames per channel</td>
+                </tr>
+                <tr>
+                  <td><code>sample_rate</code></td>
+                  <td><code>u32</code></td>
+                  <td>Sampling frequency in Hz (e.g. 44100, 48000)</td>
+                </tr>
+                <tr>
+                  <td><code>channel_layout</code></td>
+                  <td><code>AudioChannelLayout</code></td>
+                  <td>Channel configuration: <code>Mono</code>, <code>Stereo</code>, <code>Surround51</code>, etc.</td>
+                </tr>
+                <tr>
+                  <td><code>layout</code></td>
+                  <td><code>AudioLayout</code></td>
+                  <td>Arrangement: <code>Planar</code> [channels, samples] or <code>Interleaved</code> [samples, channels]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p class="doc-p">
+          <p class="doc-p" style="margin-top: 16px;">
             <strong>Defining Shapes &amp; Dimensions:</strong>
           </p>
 
@@ -809,67 +920,147 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <strong>How <code>Audio</code> Works with <code>each</code>:</strong>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Multi-Channel Audio (<em>C</em> &gt; 1):</strong> Slices along the <strong>channel axis</strong> (Axis 0 in <code>Planar</code>, Axis 1 in <code>Interleaved</code>). Each parallel worker receives an independent single-channel <strong><code>Audio</code></strong> (mono) payload with the parent's sample rate intact. Slices are processed concurrently and restacked along the channel axis back into the compound multi-channel <code>Audio</code>.</li>
-            <li><strong>Mono Audio (<em>C</em> = 1, rank-1 <code>[samples]</code>):</strong> Slices along the <strong>sample axis</strong>. Each iteration receives a single sample as a <strong><code>Scalar</code></strong> float. Slices are restacked along the sample axis back into mono compound audio.</li>
+            <li><strong>Multi-Channel Audio (C &gt; 1):</strong> Slices along the <strong>channel axis</strong> (Axis 0 in <code>Planar</code>, Axis 1 in <code>Interleaved</code>). Each parallel worker receives an independent single-channel <strong><code>Audio</code></strong> (mono) payload with the parent's sample rate intact. Slices are processed concurrently and restacked along the channel axis back into the compound multi-channel <code>Audio</code>.</li>
+            <li><strong>Mono Audio (C = 1, rank-1 <code>[samples]</code>):</strong> Slices along the <strong>sample axis</strong>. Each iteration receives a single sample as a <strong><code>Scalar</code></strong> float. Slices are restacked along the sample axis back into mono compound audio.</li>
           </ul>
         </div>
 
         <!-- 3.5: SCALAR -->
         <div id="types-scalar" class="doc-section">
           <h3 class="doc-h3">3.5. Scalar (<code>Scalar</code>)</h3>
-          <p class="doc-p">
-            <strong>Components:</strong> A rank-0 numerical float or integer value (represented internally as a 0-dimensional tensor containing exactly 1 element).
-          </p>
+          
+          <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>value</code></td>
+                  <td>Rank-0 Float / Int</td>
+                  <td>Single numeric scalar value (represented internally as a 0D tensor)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p class="doc-p">
+          <p class="doc-p" style="margin-top: 16px;">
             <strong>Defining Shape:</strong> <code>Scalar</code> has no dimensions (rank 0). It is declared simply as <code>accept Scalar $name [= default]</code>.
           </p>
 
           <p class="doc-p">
-            <strong>How <code>Scalar</code> Works with <code>each</code>:</strong>
+            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
           </p>
-          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Direct Iteration is Prohibited:</strong> A scalar has zero dimensions and cannot be the target of an <code>each</code> loop (<code>cannot loop over a scalar value; 'each' requires a rank &gt;= 1 payload</code>).</li>
-            <li><strong>The Unit of 1D Slicing:</strong> <code>Scalar</code> is the payload yielded when iterating a 1D <code>Tensor</code> or a mono <code>Audio</code> stream. Inside the loop, it flows through scalar-capable math actions (e.g. <code>relu</code>, <code>abs</code>, <code>clamp</code>, <code>sin</code>) and is restacked into the original 1D tensor.</li>
-          </ul>
         </div>
 
         <!-- 3.6: RAWBYTES -->
         <div id="types-rawbytes" class="doc-section">
           <h3 class="doc-h3">3.6. RawBytes (<code>RawBytes</code>)</h3>
-          <p class="doc-p">
-            <strong>Components:</strong> An opaque contiguous linear byte buffer (<code>RVec&lt;u8&gt;</code>). It represents unparsed binary file data (e.g. WAV audio files with headers, encoded PNG/JPEG image files, or serialized payloads).
-          </p>
+          
+          <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>bytes</code></td>
+                  <td><code>RVec&lt;u8&gt;</code></td>
+                  <td>Opaque contiguous linear byte buffer holding raw file or network stream data</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p class="doc-p">
+          <p class="doc-p" style="margin-top: 16px;">
             <strong>Defining Shape:</strong> <code>RawBytes</code> has no shape or dimension concepts. It is declared as <code>accept RawBytes $data</code>.
           </p>
 
           <p class="doc-p">
-            <strong>How <code>RawBytes</code> Works with <code>each</code>:</strong>
+            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
           </p>
-          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Direct Iteration is Prohibited:</strong> You cannot loop over raw bytes (<code>Cannot execute 'each' on a raw-bytes payload; decode it into Tensor, Image, or Audio first</code>).</li>
-            <li><strong>Decode First:</strong> Pipe the raw bytes through an ingestion action (such as <code>to_audio</code> or <code>to_tensor</code>) before invoking <code>each</code> on the decoded stream.</li>
-          </ul>
         </div>
 
         <!-- 3.7: COMPOSITE -->
         <div id="types-composite" class="doc-section">
           <h3 class="doc-h3">3.7. Composite (<code>Composite</code>)</h3>
-          <p class="doc-p">
-            <strong>Components:</strong> A compound heterogeneous tuple combining multiple distinct payloads (e.g. paired audio and image streams, or feature tensors paired with metadata).
-          </p>
-          <p class="doc-p">
-            <strong>Behavior with <code>each</code>:</strong> Composite payloads cannot be sliced directly by <code>each</code>.
+          
+          <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>payloads</code></td>
+                  <td>Tuple of Payloads</td>
+                  <td>Heterogeneous collection combining multiple distinct flowable payloads</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="doc-p" style="margin-top: 16px;">
+            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
           </p>
         </div>
 
         <!-- 3.8: CONFIGURATION ARGUMENTS -->
         <div id="types-arguments" class="doc-section">
           <h3 class="doc-h3">3.8. Configuration Arguments (<code>IntArg</code>, <code>FloatArg</code>, <code>StrArg</code>, <code>BoolArg</code>)</h3>
-          <p class="doc-p">
-            <strong>Components:</strong> Strongly-typed primitive scalar arguments passed from host runtimes to configure action settings.
+          
+          <h4 class="doc-h3" style="font-size: 15px; margin-top: 16px; margin-bottom: 8px;">Components</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Argument Type</th>
+                  <th>Native Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>IntArg</code></td>
+                  <td>64-bit integer</td>
+                  <td>Integer parameters (resolutions, axis indices, sample rates)</td>
+                </tr>
+                <tr>
+                  <td><code>FloatArg</code></td>
+                  <td>64-bit float</td>
+                  <td>Floating-point parameters (thresholds, gain, cutoff frequencies, sigma)</td>
+                </tr>
+                <tr>
+                  <td><code>StrArg</code></td>
+                  <td>UTF-8 string</td>
+                  <td>String parameters (interpolation modes, filter names, file paths)</td>
+                </tr>
+                <tr>
+                  <td><code>BoolArg</code></td>
+                  <td>Boolean</td>
+                  <td>Flag parameters (normalization toggles, channel invert flags)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="doc-p" style="margin-top: 16px;">
+            <strong>Behavior with <code>each</code>:</strong> Does not work with <code>each</code>.
           </p>
 
           <div class="doc-code-card">
@@ -923,7 +1114,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               </thead>
               <tbody>
                 <tr>
-                  <td><code>Tensor[rank=N]</code> (<em>N</em> &ge; 2)</td>
+                  <td><code>Tensor[rank=N]</code> (N &ge; 2)</td>
                   <td>Axis 0 (Batch / Leading)</td>
                   <td><code>Tensor[rank=N-1]</code></td>
                   <td><code>Tensor[rank=N-1]</code></td>
@@ -951,7 +1142,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                   <td><code>Image[C, H, W]</code></td>
                 </tr>
                 <tr>
-                  <td><code>Audio[C, S]</code> (<em>C</em> &gt; 1, Planar)</td>
+                  <td><code>Audio[C, S]</code> (C &gt; 1, Planar)</td>
                   <td>Axis 0 (Channel Axis)</td>
                   <td><code>Audio[1, S]</code> (Mono Audio)</td>
                   <td><code>Audio[1, S]</code> (Mono Audio)</td>
@@ -974,13 +1165,13 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li>
-              <strong>Compound Images (Channel Reassembly):</strong> When looping over a multi-channel <code>Image</code>, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel <code>Image</code> preserving spatial height and width (<em>H</em> &times; <em>W</em>). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original <code>ColorSpace</code> (e.g. RGB) and layout. If a sub-flow produces a <code>Tensor</code> or <code>Scalar</code>, or alters spatial dimensions incompatibly, the engine cannot reconstruct the compound <code>Image</code>, triggering static error <code>E009</code> at compile time.
+              <strong>Compound Images (Channel Reassembly):</strong> When looping over a multi-channel <code>Image</code>, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel <code>Image</code> preserving spatial height and width (H &times; W). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original <code>ColorSpace</code> (e.g. RGB) and layout. If a sub-flow produces a <code>Tensor</code> or <code>Scalar</code>, or alters spatial dimensions incompatibly, the engine cannot reconstruct the compound <code>Image</code>, triggering static error <code>E009</code> at compile time.
             </li>
             <li>
               <strong>Compound Audio (Multi-Channel Synchronization):</strong> Slicing a multi-channel <code>Audio</code> yields mono <code>Audio</code> streams. Each branch must produce a mono <code>Audio</code> with identical sample rates and layouts. Morflow stacks the processed mono streams along the channel axis back into the original multi-channel compound <code>Audio</code> container (transposing planar buffers into interleaved buffers if the parent audio used interleaved layout). When mono <code>Audio</code> is sliced per-sample, single <code>Scalar</code> float samples are processed and stacked back into mono <code>Audio</code>.
             </li>
             <li>
-              <strong>Compound Tensors (Axis 0 Concatenation):</strong> Slicing a rank-<em>N</em> <code>Tensor</code> along Axis 0 produces rank-(<em>N</em> &minus; 1) slices. Every parallel branch must yield a rank-(<em>N</em> &minus; 1) <code>Tensor</code> with identical inner dimension sizes. The runtime stacks them back along Axis 0 to recreate the compound rank-<em>N</em> <code>Tensor</code>.
+              <strong>Compound Tensors (Axis 0 Concatenation):</strong> Slicing a rank-N <code>Tensor</code> along Axis 0 produces rank-(N &minus; 1) slices. Every parallel branch must yield a rank-(N &minus; 1) <code>Tensor</code> with identical inner dimension sizes. The runtime stacks them back along Axis 0 to recreate the compound rank-N <code>Tensor</code>.
             </li>
           </ul>
 
