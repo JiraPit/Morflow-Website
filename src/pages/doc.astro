@@ -32,7 +32,7 @@ import PageHero from '../components/PageHero.astro';
         <a href="#syntax" class="docs-nav-title">2. .morf Syntax Guide</a>
         <ul class="docs-nav-list">
           <li><a href="#syntax-step1-action" class="docs-nav-link">2.1. Anatomy of an Action</a></li>
-          <li><a href="#syntax-step2-flow" class="docs-nav-link">2.2. Typed Parameters &amp; Constructing a Flow</a></li>
+          <li><a href="#syntax-step2-flow" class="docs-nav-link">2.2. Inputs &amp; Constructing a Flow</a></li>
           <li><a href="#syntax-step3-emit" class="docs-nav-link">2.3. Emitting Output &amp; Intermediate Emission (emit)</a></li>
           <li><a href="#syntax-step4-multiflow" class="docs-nav-link">2.4. Multiple Flows in One File</a></li>
           <li><a href="#syntax-step5-control" class="docs-nav-link">2.5. Advanced Control Flow (Loops &amp; Conditionals)</a></li>
@@ -41,12 +41,27 @@ import PageHero from '../components/PageHero.astro';
       </div>
 
       <div class="docs-nav-group">
-        <a href="#exec" class="docs-nav-title">3. Pipeline Execution</a>
+        <a href="#types" class="docs-nav-title">3. Data Types &amp; Type System</a>
         <ul class="docs-nav-list">
-          <li><a href="#exec-python" class="docs-nav-link">3.1. Python</a></li>
-          <li><a href="#exec-js" class="docs-nav-link">3.2. JavaScript / Node.js</a></li>
-          <li><a href="#exec-java" class="docs-nav-link">3.3. Java</a></li>
-          <li><a href="#exec-rust" class="docs-nav-link">3.4. Rust</a></li>
+          <li><a href="#types-overview" class="docs-nav-link">3.1. Type Hierarchy &amp; Architecture</a></li>
+          <li><a href="#types-tensor" class="docs-nav-link">3.2. Tensor (Tensor)</a></li>
+          <li><a href="#types-image" class="docs-nav-link">3.3. Image (Image)</a></li>
+          <li><a href="#types-audio" class="docs-nav-link">3.4. Audio (Audio)</a></li>
+          <li><a href="#types-scalar" class="docs-nav-link">3.5. Scalar (Scalar)</a></li>
+          <li><a href="#types-rawbytes" class="docs-nav-link">3.6. RawBytes (RawBytes)</a></li>
+          <li><a href="#types-composite" class="docs-nav-link">3.7. Composite (Composite)</a></li>
+          <li><a href="#types-arguments" class="docs-nav-link">3.8. Configuration Arguments (*Arg)</a></li>
+          <li><a href="#types-each" class="docs-nav-link">3.9. Deep Dive: Slicing &amp; Restacking with 'each'</a></li>
+        </ul>
+      </div>
+
+      <div class="docs-nav-group">
+        <a href="#exec" class="docs-nav-title">4. Pipeline Execution</a>
+        <ul class="docs-nav-list">
+          <li><a href="#exec-python" class="docs-nav-link">4.1. Python</a></li>
+          <li><a href="#exec-js" class="docs-nav-link">4.2. JavaScript / Node.js</a></li>
+          <li><a href="#exec-java" class="docs-nav-link">4.3. Java</a></li>
+          <li><a href="#exec-rust" class="docs-nav-link">4.4. Rust</a></li>
         </ul>
       </div>
     </aside>
@@ -291,108 +306,33 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
         </div>
 
-        <!-- STEP 2: CONSTRUCTING A FLOW & TYPED PARAMETERS -->
+        <!-- STEP 2: CONSTRUCTING A FLOW -->
         <div id="syntax-step2-flow" class="doc-section">
-          <h3 class="doc-h3">2.2. Typed Parameters &amp; Constructing a Flow</h3>
+          <h3 class="doc-h3">2.2. Inputs &amp; Constructing a Flow</h3>
           <p class="doc-p">
             A <strong>Flow</strong> connects an input variable through a sequence of actions using the <code>&gt;&gt;</code> dataflow operator. Each action receives the output payload of the previous action with zero memory copying.
           </p>
 
           <p class="doc-p">
-            Morflow uses a <strong>typed parameter system</strong>. Every input and configuration variable accepted by a pipeline must declare its type using the <code>accept</code> keyword at the top of the file:
+            Inputs and configurable parameters are declared using <code>accept</code> at the top of the file:
           </p>
 
           <div class="doc-code-card">
             <div class="doc-code-header">
-              <span>Typed Parameter Syntax</span>
+              <span>Declaring Pipeline Inputs</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># Syntax: accept &lt;Type&gt; $variable_name [= &lt;default_value&gt;]</span>
-
-<span class="tok-comment"># 1. Flowable Payloads (can be piped down a &gt;&gt; flow)</span>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Declare flowable input payload</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
-<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$audio_raw</span>
-<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[rank=2]</span> <span class="tok-var">$embeddings</span>
 
-<span class="tok-comment"># 2. Configuration Arguments (passed to action parameters; cannot be flow heads)</span>
+<span class="tok-comment"># Declare configuration arguments with defaults</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
-<span class="tok-keyword">accept</span> <span class="tok-type">FloatArg</span> <span class="tok-var">$blur_sigma</span> = <span class="tok-num">1.2</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">BoolArg</span> <span class="tok-var">$normalize</span> = <span class="tok-keyword">true</span></code></pre>
           </div>
 
-          <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">Type System Reference</h4>
-          <div class="doc-table-container">
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Kind</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>RawBytes</code></td>
-                  <td>Flowable</td>
-                  <td>Opaque byte buffer (e.g. raw WAV/PNG files or encoded binary streams). Flows into decoding actions like <code>to_audio</code> or <code>to_tensor</code>.</td>
-                </tr>
-                <tr>
-                  <td><code>Scalar</code></td>
-                  <td>Flowable</td>
-                  <td>Rank-0 numeric scalar value (float or integer). Can flow through math and neural network actions (<code>relu</code>, <code>abs</code>, etc.).</td>
-                </tr>
-                <tr>
-                  <td><code>Tensor</code></td>
-                  <td>Flowable</td>
-                  <td>Multi-dimensional dense array. Supports optional shape and rank annotations:
-                    <br />• <code>Tensor</code>: Dynamic rank and shape.
-                    <br />• <code>Tensor[rank=N]</code>: Fixed rank <em>N</em> with dynamic dimensions (e.g. <code>Tensor[rank=2]</code>).
-                    <br />• <code>Tensor[*, *]</code>: 2D matrix with wildcard dimensions.
-                    <br />• <code>Tensor[2, 3]</code>: Fixed static shape tensor.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>Image</code></td>
-                  <td>Flowable</td>
-                  <td>Multi-channel image payload storing height, width, and color channels (supports shape annotations like <code>Image[*, *, 3]</code>).</td>
-                </tr>
-                <tr>
-                  <td><code>Audio</code></td>
-                  <td>Flowable</td>
-                  <td>Audio signal payload storing channel count, sample count, and sampling rate (e.g. <code>Audio[*, *]</code>).</td>
-                </tr>
-                <tr>
-                  <td><code>Composite</code></td>
-                  <td>Flowable</td>
-                  <td>Compound tuple of multiple payloads.</td>
-                </tr>
-                <tr>
-                  <td><code>IntArg</code></td>
-                  <td>Argument</td>
-                  <td>Integer argument passed to configure action parameters (e.g. dimensions, sample rates, axis indices).</td>
-                </tr>
-                <tr>
-                  <td><code>FloatArg</code></td>
-                  <td>Argument</td>
-                  <td>Floating-point argument passed to configure action parameters (e.g. contrast, gain factor, sigma).</td>
-                </tr>
-                <tr>
-                  <td><code>StrArg</code></td>
-                  <td>Argument</td>
-                  <td>String argument (e.g. filter types, color space formats).</td>
-                </tr>
-                <tr>
-                  <td><code>BoolArg</code></td>
-                  <td>Argument</td>
-                  <td>Boolean flag (e.g. normalize, channels_first).</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
           <div class="doc-callout">
-            <strong>Argument vs Flowable Restriction:</strong> Argument types (<code>IntArg</code>, <code>FloatArg</code>, <code>StrArg</code>, <code>BoolArg</code>) cannot be used as the head of a pipeline flow (e.g. <code>$target_width &gt;&gt; ...</code> raises compile-time error <code>E007: cannot pipe from non-flowable argument type</code>). They are strictly passed as configuration parameters inside action invocations (e.g. <code>resize(width=$target_width)</code>).
+            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines use an explicit typed parameter model (<code>Tensor</code>, <code>Image</code>, <code>Audio</code>, <code>Scalar</code>, <code>RawBytes</code>, and <code>*Arg</code>). For a complete walkthrough of every data type, shape declaration syntax, and how types behave under parallel slicing, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 20px;">
@@ -409,7 +349,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">layout</span>=<span class="tok-str">"hwc"</span>, <span class="tok-param">normalize</span>=<span class="tok-var">$normalize</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-var">$target_width</span>, <span class="tok-param">height</span>=<span class="tok-var">$target_height</span>, <span class="tok-param">filter</span>=<span class="tok-str">"bilinear"</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.15</span>, <span class="tok-param">saturation</span>=<span class="tok-num">1.05</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">gaussian_blur</span>(<span class="tok-param">sigma</span>=<span class="tok-var">$blur_sigma</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">gaussian_blur</span>(<span class="tok-param">sigma</span>=<span class="tok-num">1.2</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgba"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"u8"</span>)</code></pre>
           </div>
         </div>
@@ -633,19 +573,443 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         </div>
       </section>
 
-      <!-- SECTION 3: PIPELINE EXECUTION -->
-      <section id="exec" class="doc-section">
+      <!-- SECTION 3: DATA TYPES & TYPE SYSTEM -->
+      <section id="types" class="doc-section">
         <div class="doc-section-header">
           <p class="badge">Section 3</p>
-          <h2 class="doc-h2">3. Pipeline Execution</h2>
+          <h2 class="doc-h2">3. Data Types &amp; Type System</h2>
+          <p class="doc-p">
+            Morflow features an explicit, compile-time verified type system and shape algebra. Every input parameter accepted by a pipeline and every payload streaming through <code>&gt;&gt;</code> flows carries a verifiable type and rank constraint, enabling static validation and zero train-serve skew without runtime execution overhead.
+          </p>
+        </div>
+
+        <!-- 3.1: TYPE HIERARCHY -->
+        <div id="types-overview" class="doc-section">
+          <h3 class="doc-h3">3.1. Type Hierarchy &amp; Architecture</h3>
+          <p class="doc-p">
+            Types in Morflow are fundamentally divided into two distinct classes:
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li>
+              <strong>Flowable Payloads:</strong> High-performance multi-dimensional arrays, signals, images, or byte buffers that stream through <code>&gt;&gt;</code> dataflow chains, participate in parallel <code>each</code> loops, and can be yielded to the host via <code>emit</code>.
+            </li>
+            <li>
+              <strong>Configuration Arguments (<code>*Arg</code>):</strong> Parameter values passed from host applications to configure action arguments (such as image resolutions, filter cutoffs, or sample rates). Arguments <em>cannot</em> be piped as the head of a flow (preventing compile error <code>E007</code>).
+            </li>
+          </ul>
+
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Classification</th>
+                  <th>Default / Shape Syntax</th>
+                  <th>Can Stream (<code>&gt;&gt;</code>)</th>
+                  <th>Iterated by <code>each</code></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Tensor</code></td>
+                  <td>Flowable Payload</td>
+                  <td><code>Tensor</code>, <code>Tensor[rank=N]</code>, <code>Tensor[*, *]</code></td>
+                  <td>Yes</td>
+                  <td>Yes (Axis 0 / Batch)</td>
+                </tr>
+                <tr>
+                  <td><code>Image</code></td>
+                  <td>Flowable Payload</td>
+                  <td><code>Image</code>, <code>Image[*, *, C]</code>, <code>Image[H, W, C]</code></td>
+                  <td>Yes</td>
+                  <td>Yes (Channel Axis)</td>
+                </tr>
+                <tr>
+                  <td><code>Audio</code></td>
+                  <td>Flowable Payload</td>
+                  <td><code>Audio</code>, <code>Audio[*, *]</code>, <code>Audio[C, *]</code></td>
+                  <td>Yes</td>
+                  <td>Yes (Channel or Sample)</td>
+                </tr>
+                <tr>
+                  <td><code>Scalar</code></td>
+                  <td>Flowable Payload</td>
+                  <td><code>Scalar</code> (Rank-0 numerical value)</td>
+                  <td>Yes</td>
+                  <td>No (Rank 0)</td>
+                </tr>
+                <tr>
+                  <td><code>RawBytes</code></td>
+                  <td>Flowable Payload</td>
+                  <td><code>RawBytes</code> (Opaque linear buffer)</td>
+                  <td>Yes</td>
+                  <td>No (Decode first)</td>
+                </tr>
+                <tr>
+                  <td><code>Composite</code></td>
+                  <td>Flowable Payload</td>
+                  <td><code>Composite</code> (Tuple of payloads)</td>
+                  <td>Yes</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <td><code>IntArg</code></td>
+                  <td>Configuration Arg</td>
+                  <td><code>IntArg</code> (Integer scalar parameter)</td>
+                  <td>No (Action arg only)</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <td><code>FloatArg</code></td>
+                  <td>Configuration Arg</td>
+                  <td><code>FloatArg</code> (Float scalar parameter)</td>
+                  <td>No (Action arg only)</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <td><code>StrArg</code></td>
+                  <td>Configuration Arg</td>
+                  <td><code>StrArg</code> (String scalar parameter)</td>
+                  <td>No (Action arg only)</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <td><code>BoolArg</code></td>
+                  <td>Configuration Arg</td>
+                  <td><code>BoolArg</code> (Boolean scalar parameter)</td>
+                  <td>No (Action arg only)</td>
+                  <td>No</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3.2: TENSOR -->
+        <div id="types-tensor" class="doc-section">
+          <h3 class="doc-h3">3.2. Tensor (<code>Tensor</code>)</h3>
+          <p class="doc-p">
+            <strong>Components:</strong> A contiguous dense multi-dimensional buffer, a shape array <code>[D_0, D_1, ..., D_k]</code>, memory strides, and a numeric element data type (<code>f32</code>, <code>u8</code>, or <code>i32</code>).
+          </p>
+
+          <p class="doc-p">
+            <strong>Defining Shapes &amp; Dimensions:</strong> You can constrain tensor inputs with precise shapes or wildcard dimensions:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Tensor Shape Annotations</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. Unconstrained: Any rank and shape accepted</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor</span> <span class="tok-var">$data</span>
+
+<span class="tok-comment"># 2. Fixed Rank: Enforces exactly rank 2 (matrix), dynamic dimensions</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[rank=2]</span> <span class="tok-var">$matrix</span>
+
+<span class="tok-comment"># 3. Dynamic Wildcard Dimensions: 2D tensor where both dimensions are dynamic</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[*, *]</span> <span class="tok-var">$table</span>
+
+<span class="tok-comment"># 4. Partial Fixed Dimensions: Dynamic batch size with fixed 512-dim embedding vector</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[*, 512]</span> <span class="tok-var">$embeddings</span>
+
+<span class="tok-comment"># 5. Static Fixed Shape: Exact 3x224x224 tensor dimensions</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[3, 224, 224]</span> <span class="tok-var">$batch</span></code></pre>
+          </div>
+
+          <p class="doc-p">
+            <strong>How <code>Tensor</code> Works with <code>each</code>:</strong>
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Iteration Axis:</strong> Always iterates along <strong>Axis 0</strong> (the leading dimension / batch axis).</li>
+            <li><strong>Iteration Count:</strong> Exactly <code>shape[0]</code> parallel iterations are spawned.</li>
+            <li><strong>Loop Variable Derivation:</strong>
+              <br />• If rank $\ge 2$: Each iteration produces an independent <code>Tensor</code> with rank reduced by one (<code>Tensor[rank=N-1]</code>). Slicing <code>Tensor[32, 128]</code> yields 32 parallel sub-flows each receiving a <code>Tensor[128]</code>.
+              <br />• If rank 1: Iterating a 1D tensor slices single elements, binding each iteration to a <strong><code>Scalar</code></strong> (rank-0 numeric value).
+              <br />• If rank 0: A rank-0 scalar tensor has no dimensions to slice and is rejected at compile time.
+            </li>
+            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape.</li>
+          </ul>
+        </div>
+
+        <!-- 3.3: IMAGE -->
+        <div id="types-image" class="doc-section">
+          <h3 class="doc-h3">3.3. Image (<code>Image</code>)</h3>
+          <p class="doc-p">
+            <strong>Components:</strong> A multi-channel pixel buffer, spatial height ($H$) and width ($W$), color channel count ($C$), color space metadata (<code>ColorSpace</code>: <code>rgb</code>, <code>rgba</code>, <code>grayscale</code>, <code>bgr</code>, <code>bgra</code>), and memory layout (<code>hwc</code> or <code>chw</code>, default <code>hwc</code>).
+          </p>
+
+          <p class="doc-p">
+            <strong>Defining Shapes &amp; Dimensions:</strong>
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Image Shape Declarations</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. Unconstrained: Any resolution and channel count</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
+
+<span class="tok-comment"># 2. Dynamic resolution with fixed 3-channel RGB/BGR</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image[*, *, 3]</span> <span class="tok-var">$rgb_in</span>
+
+<span class="tok-comment"># 3. Grayscale image with 1 channel</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image[*, *, 1]</span> <span class="tok-var">$gray_in</span>
+
+<span class="tok-comment"># 4. Fixed static resolution and channel count</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image[1080, 1920, 3]</span> <span class="tok-var">$frame</span></code></pre>
+          </div>
+
+          <p class="doc-p">
+            <strong>How <code>Image</code> Works with <code>each</code> (Channel Slicing):</strong>
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Iteration Axis:</strong> Crucially, <code>each</code> on an <code>Image</code> slices along the <strong>Color Channel Axis</strong> ($C$), <em>not</em> spatial rows or columns!
+              <br />• In <code>hwc</code> layout: slices along <strong>Axis 2</strong>.
+              <br />• In <code>chw</code> layout: slices along <strong>Axis 0</strong>.
+            </li>
+            <li><strong>Iteration Count:</strong> Exactly $C$ parallel workers (e.g. 3 for RGB, 4 for RGBA).</li>
+            <li><strong>Loop Variable Derivation:</strong> Each parallel iteration receives an independent rank-2 <strong><code>Image</code></strong> in <code>ColorSpace::Grayscale</code>, preserving the full $H \times W$ spatial resolution. This allows applying filters, equalizations, or thresholding to individual channels simultaneously.</li>
+            <li><strong>Payload Kind Preservation (<code>E009</code>):</strong> The sub-flow inside <code>each</code> must preserve the payload kind. You cannot convert the channel slice into a <code>Tensor</code> or <code>Audio</code> mid-loop without causing static error <code>E009</code>.</li>
+            <li><strong>Restacking:</strong> The transformed grayscale channel slices are reassembled along the channel axis back into the parent's original color space and layout.</li>
+          </ul>
+        </div>
+
+        <!-- 3.4: AUDIO -->
+        <div id="types-audio" class="doc-section">
+          <h3 class="doc-h3">3.4. Audio (<code>Audio</code>)</h3>
+          <p class="doc-p">
+            <strong>Components:</strong> A PCM sample buffer, channel count ($C$), sample count ($S$), sample rate in Hz (e.g. 44100, 48000), channel layout (<code>AudioChannelLayout</code>: <code>Mono</code>, <code>Stereo</code>, <code>Surround51</code>, etc.), and memory layout (<code>Planar</code> where channels are Axis 0 <code>[channels, samples]</code>, or <code>Interleaved</code> where channels are Axis 1 <code>[samples, channels]</code>).
+          </p>
+
+          <p class="doc-p">
+            <strong>Defining Shapes &amp; Dimensions:</strong>
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Audio Declarations</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. Unconstrained: Any channel count and duration</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Audio</span> <span class="tok-var">$audio_in</span>
+
+<span class="tok-comment"># 2. Dynamic 2D audio signal (channels x samples)</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Audio[*, *]</span> <span class="tok-var">$stream</span>
+
+<span class="tok-comment"># 3. Stereo audio (2 channels) with dynamic sample length</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Audio[2, *]</span> <span class="tok-var">$stereo</span>
+
+<span class="tok-comment"># 4. Mono audio signal</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Audio[1, *]</span> <span class="tok-var">$mono</span></code></pre>
+          </div>
+
+          <p class="doc-p">
+            <strong>How <code>Audio</code> Works with <code>each</code>:</strong>
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Multi-Channel Audio ($C &gt; 1$):</strong> Slices along the <strong>channel axis</strong> (Axis 0 in <code>Planar</code>, Axis 1 in <code>Interleaved</code>). Each parallel worker receives an independent single-channel <strong><code>Audio</code></strong> (mono) payload with the parent's sample rate intact. Slices are processed concurrently and restacked along the channel axis.</li>
+            <li><strong>Mono Audio ($C = 1$, rank-1 <code>[samples]</code>):</strong> Slices along the <strong>sample axis</strong>. Each iteration receives a single sample as a <strong><code>Scalar</code></strong> float. Slices are restacked along the sample axis back into mono audio.</li>
+          </ul>
+        </div>
+
+        <!-- 3.5: SCALAR -->
+        <div id="types-scalar" class="doc-section">
+          <h3 class="doc-h3">3.5. Scalar (<code>Scalar</code>)</h3>
+          <p class="doc-p">
+            <strong>Components:</strong> A rank-0 numerical float or integer value (represented internally as a 0-dimensional tensor containing exactly 1 element).
+          </p>
+
+          <p class="doc-p">
+            <strong>Defining Shape:</strong> <code>Scalar</code> has no dimensions (rank 0). It is declared simply as <code>accept Scalar $name [= default]</code>.
+          </p>
+
+          <p class="doc-p">
+            <strong>How <code>Scalar</code> Works with <code>each</code>:</strong>
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Direct Iteration is Prohibited:</strong> A scalar has zero dimensions and cannot be the target of an <code>each</code> loop (<code>cannot loop over a scalar value; 'each' requires a rank &gt;= 1 payload</code>).</li>
+            <li><strong>The Unit of 1D Slicing:</strong> <code>Scalar</code> is the payload yielded when iterating a 1D <code>Tensor</code> or a mono <code>Audio</code> stream. Inside the loop, it flows through scalar-capable math actions (e.g. <code>relu</code>, <code>abs</code>, <code>clamp</code>, <code>sin</code>) and is restacked into the original 1D tensor.</li>
+          </ul>
+        </div>
+
+        <!-- 3.6: RAWBYTES -->
+        <div id="types-rawbytes" class="doc-section">
+          <h3 class="doc-h3">3.6. RawBytes (<code>RawBytes</code>)</h3>
+          <p class="doc-p">
+            <strong>Components:</strong> An opaque contiguous linear byte buffer (<code>RVec&lt;u8&gt;</code>). It represents unparsed binary file data (e.g. WAV audio files with headers, encoded PNG/JPEG image files, or serialized payloads).
+          </p>
+
+          <p class="doc-p">
+            <strong>Defining Shape:</strong> <code>RawBytes</code> has no shape or dimension concepts. It is declared as <code>accept RawBytes $data</code>.
+          </p>
+
+          <p class="doc-p">
+            <strong>How <code>RawBytes</code> Works with <code>each</code>:</strong>
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Direct Iteration is Prohibited:</strong> You cannot loop over raw bytes (<code>Cannot execute 'each' on a raw-bytes payload; decode it into Tensor, Image, or Audio first</code>).</li>
+            <li><strong>Decode First:</strong> Pipe the raw bytes through an ingestion action (such as <code>to_audio</code> or <code>to_tensor</code>) before invoking <code>each</code> on the decoded stream.</li>
+          </ul>
+        </div>
+
+        <!-- 3.7: COMPOSITE -->
+        <div id="types-composite" class="doc-section">
+          <h3 class="doc-h3">3.7. Composite (<code>Composite</code>)</h3>
+          <p class="doc-p">
+            <strong>Components:</strong> A compound heterogeneous tuple combining multiple distinct payloads (e.g. paired audio and image streams, or feature tensors paired with metadata).
+          </p>
+          <p class="doc-p">
+            <strong>Behavior with <code>each</code>:</strong> Composite payloads cannot be sliced directly by <code>each</code>.
+          </p>
+        </div>
+
+        <!-- 3.8: CONFIGURATION ARGUMENTS -->
+        <div id="types-arguments" class="doc-section">
+          <h3 class="doc-h3">3.8. Configuration Arguments (<code>IntArg</code>, <code>FloatArg</code>, <code>StrArg</code>, <code>BoolArg</code>)</h3>
+          <p class="doc-p">
+            <strong>Components:</strong> Strongly-typed primitive scalar arguments passed from host runtimes to configure action settings.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Configuration Argument Types</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Integer parameter (dimensions, sample rates, axis indices)</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_w</span> = <span class="tok-num">512</span>
+
+<span class="tok-comment"># Floating-point parameter (contrast, gain, threshold, sigma)</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">FloatArg</span> <span class="tok-var">$contrast</span> = <span class="tok-num">1.15</span>
+
+<span class="tok-comment"># String parameter (color space formats, interpolation modes)</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">StrArg</span> <span class="tok-var">$filter</span> = <span class="tok-str">"bilinear"</span>
+
+<span class="tok-comment"># Boolean flag (normalization, channel swapping)</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">BoolArg</span> <span class="tok-var">$normalize</span> = <span class="tok-keyword">true</span></code></pre>
+          </div>
+
+          <div class="doc-callout">
+            <strong>Non-Flowable Guarantee (<code>E007</code>):</strong> Configuration arguments cannot initiate a dataflow stream (e.g. <code>$target_w &gt;&gt; ...</code> raises <code>E007: cannot pipe from non-flowable argument type</code>). They are strictly passed to action calls (e.g. <code>resize(width=$target_w)</code>) and can be accessed as parameters inside <code>each</code> sub-flows.
+          </div>
+        </div>
+
+        <!-- 3.9: DEEP DIVE EACH -->
+        <div id="types-each" class="doc-section">
+          <h3 class="doc-h3">3.9. Deep Dive: Slicing &amp; Restacking with <code>each</code></h3>
+          <p class="doc-p">
+            The <code>each</code> operator is Morflow's parallel map-reduce construct. It dynamically slices a multi-dimensional payload across a specific axis, dispatches each slice independently across a multi-threaded Rayon work-stealing pool, and deterministically restacks the transformed slices back together in original sequence order.
+          </p>
+
+          <h4 class="doc-h3" style="font-size: 16px; margin-top: 20px; margin-bottom: 12px;">Slicing &amp; Restacking Semantics by Type</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Incoming Payload</th>
+                  <th>Iteration Axis</th>
+                  <th>Loop Variable (<code>$var</code>) Type</th>
+                  <th>Restacked Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Tensor[rank=N]</code> ($N \ge 2$)</td>
+                  <td>Axis 0 (Batch / Leading)</td>
+                  <td><code>Tensor[rank=N-1]</code></td>
+                  <td><code>Tensor[rank=N]</code></td>
+                </tr>
+                <tr>
+                  <td><code>Tensor[rank=1]</code> (1D Vector)</td>
+                  <td>Axis 0 (Elements)</td>
+                  <td><code>Scalar</code></td>
+                  <td><code>Tensor[rank=1]</code></td>
+                </tr>
+                <tr>
+                  <td><code>Image[H, W, C]</code> (HWC layout)</td>
+                  <td>Axis 2 (Channel Axis)</td>
+                  <td><code>Image[H, W, 1]</code> (Grayscale)</td>
+                  <td><code>Image[H, W, C]</code></td>
+                </tr>
+                <tr>
+                  <td><code>Image[C, H, W]</code> (CHW layout)</td>
+                  <td>Axis 0 (Channel Axis)</td>
+                  <td><code>Image[1, H, W]</code> (Grayscale)</td>
+                  <td><code>Image[C, H, W]</code></td>
+                </tr>
+                <tr>
+                  <td><code>Audio[C, S]</code> ($C &gt; 1$, Planar)</td>
+                  <td>Axis 0 (Channel Axis)</td>
+                  <td><code>Audio[1, S]</code> (Mono Audio)</td>
+                  <td><code>Audio[C, S]</code></td>
+                </tr>
+                <tr>
+                  <td><code>Audio[1, S]</code> (Mono Audio)</td>
+                  <td>Axis 0 (Sample Axis)</td>
+                  <td><code>Scalar</code> (Float sample)</td>
+                  <td><code>Audio[1, S]</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">The Core Rules of <code>each</code></h4>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li>
+              <strong>1. Payload Kind Invariant (<code>E009</code>):</strong> The sub-flow inside <code>each</code> must preserve the payload kind of the loop variable. If you iterate an <code>Image</code>, each parallel iteration receives a grayscale <code>Image</code> and must produce an <code>Image</code>. If a step inside the loop produces a <code>Tensor</code> or <code>Audio</code>, <code>morflow check</code> reports compile error <code>E009: 'each' body changes the payload kind</code>.
+            </li>
+            <li>
+              <strong>2. Prohibition of <code>emit</code> Inside Loops:</strong> Slices execute asynchronously and out-of-order across CPU cores. To maintain deterministic synchronization with host applications, direct emission (<code>emit</code>) inside an <code>each</code> block is strictly prohibited. Outputs must be emitted downstream after the loop has restacked all slices.
+            </li>
+            <li>
+              <strong>3. Single Static Assignment (SSA) Safety:</strong> The loop variable (e.g. <code>$channel</code>) is immutable within its iteration scope. Intermediate variables tapped inside an <code>each</code> loop cannot conflict with external flows.
+            </li>
+            <li>
+              <strong>4. External Parameter Access:</strong> Sub-flows inside <code>each</code> can freely reference external variables and configuration arguments declared in the outer scope (e.g. <code>$channel &gt;&gt; biquad_filter(freq=$cutoff)</code>).
+            </li>
+          </ul>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Parallel Multi-Channel Audio Loop</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Audio</span> <span class="tok-var">$stereo_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">FloatArg</span> <span class="tok-var">$cutoff_freq</span> = <span class="tok-num">120.0</span>
+
+<span class="tok-comment"># Stereo audio ($stereo_audio has 2 channels)</span>
+<span class="tok-comment"># 'each' slices the channel axis, running 2 parallel workers on Rayon</span>
+<span class="tok-var">$stereo_audio</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span> (<span class="tok-var">$channel</span>) &#123;
+        <span class="tok-comment"># $channel is a mono Audio payload</span>
+        <span class="tok-var">$channel</span>
+            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"highpass"</span>, <span class="tok-param">freq</span>=<span class="tok-var">$cutoff_freq</span>)
+            <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">compressor</span>(<span class="tok-param">threshold_db</span>=<span class="tok-num">-12.0</span>, <span class="tok-param">ratio</span>=<span class="tok-num">3.0</span>)
+    &#125;
+    <span class="tok-comment"># Processed channels are restacked into stereo Audio</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">stereo_widen</span>(<span class="tok-param">width</span>=<span class="tok-num">1.2</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span>
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: PIPELINE EXECUTION -->
+      <section id="exec" class="doc-section">
+        <div class="doc-section-header">
+          <p class="badge">Section 4</p>
+          <h2 class="doc-h2">4. Pipeline Execution</h2>
           <p class="doc-p">
             Execute compiled <code>.morf</code> dataflow graphs natively across languages with zero train-serve skew. Morflow provides idiomatic host SDKs for Python, JavaScript/Node.js, Java, and Rust, mapping host tensors, image arrays, and raw binary streams directly into the engine's execution graph.
           </p>
         </div>
 
-        <!-- 3.1: PYTHON -->
+        <!-- 4.1: PYTHON -->
         <div id="exec-python" class="doc-section">
-          <h3 class="doc-h3">3.1. Python</h3>
+          <h3 class="doc-h3">4.1. Python</h3>
           <p class="doc-p">
             The Python SDK (<code>morflow</code>) integrates directly with NumPy arrays, raw bytes, and file streams with zero-copy buffer sharing into the underlying engine. Payloads can be passed as typed wrappers (<code>morflow.Image</code>, <code>morflow.Audio</code>, <code>morflow.Tensor</code>), or plain NumPy arrays and bytes matching declared <code>accept</code> types.
           </p>
@@ -696,9 +1060,9 @@ output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes, <span
           </div>
         </div>
 
-        <!-- 3.2: JAVASCRIPT / NODE.JS -->
+        <!-- 4.2: JAVASCRIPT / NODE.JS -->
         <div id="exec-js" class="doc-section">
-          <h3 class="doc-h3">3.2. JavaScript / Node.js</h3>
+          <h3 class="doc-h3">4.2. JavaScript / Node.js</h3>
           <p class="doc-p">
             The Node.js SDK provides asynchronous execution (via <code>pipeline.run()</code> or <code>pipeline.runArgs()</code> offloading work to a background worker pool) and synchronous execution (via <code>pipeline.runSync()</code> / <code>pipeline.runSyncArgs()</code>). Positional arguments matching declared <code>accept</code> statements can be passed directly as heterogeneous arguments (numbers, booleans, strings, Buffers, or <code>TensorInput</code>).
           </p>
@@ -751,9 +1115,9 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           </div>
         </div>
 
-        <!-- 3.3: JAVA -->
+        <!-- 4.3: JAVA -->
         <div id="exec-java" class="doc-section">
-          <h3 class="doc-h3">3.3. Java</h3>
+          <h3 class="doc-h3">4.3. Java</h3>
           <p class="doc-p">
             The Java SDK wraps native JNI bindings with type-safe classes, automatic memory cleanup, and direct tensor buffers for high-throughput enterprise JVM backends. Positional parameters are bound using <code>pipeline.runArgs(...)</code>.
           </p>
@@ -811,9 +1175,9 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           </div>
         </div>
 
-        <!-- 3.4: RUST -->
+        <!-- 4.4: RUST -->
         <div id="exec-rust" class="doc-section">
-          <h3 class="doc-h3">3.4. Rust</h3>
+          <h3 class="doc-h3">4.4. Rust</h3>
           <p class="doc-p">
             The native Rust engine crate (<code>morflow</code>) provides direct access to <code>Payload</code> variants (<code>Image</code>, <code>Audio</code>, <code>Tensor</code>, <code>Data</code>, <code>Scalar</code>) with compile-time type safety and zero runtime overhead.
           </p>
