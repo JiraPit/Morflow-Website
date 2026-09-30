@@ -718,7 +718,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                 <tr>
                   <td><code>dtype</code></td>
                   <td><code>DType</code></td>
-                  <td>Numeric element data type: <code>f32</code>, <code>u8</code>, or <code>i32</code></td>
+                  <td>Explicit numeric types: <code>f32</code>, <code>u8</code>, <code>i32</code> (core ABI also supports <code>i8</code>, <code>i16</code>, <code>i64</code>, <code>u32</code>, <code>u64</code>, <code>f64</code>)</td>
                 </tr>
               </tbody>
             </table>
@@ -797,12 +797,12 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                 <tr>
                   <td><code>color_space</code></td>
                   <td><code>ColorSpace</code></td>
-                  <td>Color space model: <code>rgb</code>, <code>rgba</code>, <code>grayscale</code>, <code>bgr</code>, or <code>bgra</code></td>
+                  <td>Explicit layout variants: <code>rgb</code>, <code>rgba</code>, <code>bgr</code>, <code>bgra</code>, <code>grayscale</code> (core enum additionally defines <code>grayscale_alpha</code>, <code>ycbcr</code>, <code>hsv</code>, <code>lab</code>, <code>cmyk</code>)</td>
                 </tr>
                 <tr>
                   <td><code>layout</code></td>
                   <td><code>ImageLayout</code></td>
-                  <td>Memory ordering: <code>hwc</code> (channels-last, default) or <code>chw</code> (channels-first)</td>
+                  <td>Exact memory arrangement: <code>hwc</code> (channels-last, default) or <code>chw</code> (channels-first)</td>
                 </tr>
               </tbody>
             </table>
@@ -883,12 +883,12 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
                 <tr>
                   <td><code>channel_layout</code></td>
                   <td><code>AudioChannelLayout</code></td>
-                  <td>Channel configuration: <code>Mono</code>, <code>Stereo</code>, <code>Surround51</code>, etc.</td>
+                  <td>Explicit layout variants: <code>Mono</code> (1 ch), <code>Stereo</code> (2 ch), <code>Stereo2_1</code> (3 ch), <code>Quad</code> (4 ch), <code>Surround5_1</code> (6 ch), <code>Surround7_1</code> (8 ch), <code>AmbisonicOrder1</code> (4 ch), <code>AmbisonicOrder2</code> (9 ch), <code>AmbisonicOrder3</code> (16 ch), <code>Custom</code></td>
                 </tr>
                 <tr>
                   <td><code>layout</code></td>
                   <td><code>AudioLayout</code></td>
-                  <td>Arrangement: <code>Planar</code> [channels, samples] or <code>Interleaved</code> [samples, channels]</td>
+                  <td>Exact memory arrangement: <code>Planar</code> [channels, samples] or <code>Interleaved</code> [samples, channels]</td>
                 </tr>
               </tbody>
             </table>
