@@ -67,14 +67,15 @@ const features = await group<Feature>('features');
           </div>
           <pre class="code-card__pre"><code><span class="tok-comment"># Declarative image transformation flow</span>
 <span class="tok-keyword">import</span> base/latest
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
 
-<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
 
 <span class="tok-var">$img_in</span>
-  <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">normalize</span>=<span class="tok-num">true</span>)
+  <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">normalize</span>=<span class="tok-keyword">true</span>)
   <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-var">$target_width</span>, <span class="tok-param">height</span>=<span class="tok-var">$target_height</span>)
   <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.15</span>, <span class="tok-param">saturation</span>=<span class="tok-num">1.05</span>)
   <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgba"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"u8"</span>)
@@ -156,7 +157,7 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
           </div>
           <pre class="code-card__pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">accept</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
 
 <span class="tok-comment"># FLOW 1 — ingest and decode</span>
 <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$decoded</span>
@@ -191,11 +192,12 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
           </div>
           <pre class="code-card__pre"><code><span class="tok-comment"># Compose actions across image processing &amp; audio DSP</span>
 <span class="tok-keyword">import</span> base/latest
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
 <span class="tok-keyword">from</span> audio_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_audio</span>, <span class="tok-fn">biquad_filter</span>, <span class="tok-fn">to_wav</span>
 
-<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$audio_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$audio_in</span>
 
 <span class="tok-comment"># Vision and Audio streams running together</span>
 <span class="tok-var">$img_in</span>   <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">1280</span>, <span class="tok-param">height</span>=<span class="tok-num">720</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"image"</span>)
@@ -352,5 +354,6 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
   .tok-str { color: #4ade80; }
   .tok-num { color: #c084fc; font-weight: 500; }
   .tok-op { color: #ff8a65; font-weight: 600; }
+  .tok-type { color: #fb923c; font-weight: 600; }
   .tok-comment { color: #8e8880; font-style: italic; }
 </style>

@@ -14,15 +14,16 @@
       <span class="showcase-tag">Pipeline DSL</span>
     </div>
     <pre class="code-container"><code><span class="tok-comment"># Declare Action Pack imports</span>
-<span class="tok-keyword">import</span> base.latest
-<span class="tok-keyword">from</span> image_essentials.latest <span class="tok-keyword">import</span> (
+<span class="tok-keyword">import</span> base/latest
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> to_tensor
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> (
     resize, color_adjust, gaussian_blur, to_image
 )
 
-<span class="tok-comment"># Accept inputs with defaults</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_w</span> = <span class="tok-num">512</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_h</span> = <span class="tok-num">512</span>
+<span class="tok-comment"># Accept inputs with typed declarations and defaults</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_w</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_h</span> = <span class="tok-num">512</span>
 
 <span class="tok-comment"># Flow transformations via &gt;&gt;</span>
 <span class="tok-var">$img_in</span>

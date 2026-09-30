@@ -32,7 +32,7 @@ import PageHero from '../components/PageHero.astro';
         <a href="#syntax" class="docs-nav-title">2. .morf Syntax Guide</a>
         <ul class="docs-nav-list">
           <li><a href="#syntax-step1-action" class="docs-nav-link">2.1. Anatomy of an Action</a></li>
-          <li><a href="#syntax-step2-flow" class="docs-nav-link">2.2. Constructing a Flow</a></li>
+          <li><a href="#syntax-step2-flow" class="docs-nav-link">2.2. Typed Parameters &amp; Constructing a Flow</a></li>
           <li><a href="#syntax-step3-emit" class="docs-nav-link">2.3. Emitting Output &amp; Intermediate Emission (emit)</a></li>
           <li><a href="#syntax-step4-multiflow" class="docs-nav-link">2.4. Multiple Flows in One File</a></li>
           <li><a href="#syntax-step5-control" class="docs-nav-link">2.5. Advanced Control Flow (Loops &amp; Conditionals)</a></li>
@@ -140,15 +140,20 @@ pip install morflow</code></pre>
         <div id="cli-check" class="doc-section">
           <h3 class="doc-h3">1.3. Pipeline Verification (<code>check</code>)</h3>
           <p class="doc-p">
-            The <code>check</code> command performs a comprehensive static analysis and dry-run simulation of your <code>.morf</code> pipeline without requiring live input data. It guarantees that syntax, Single Static Assignment (SSA) rules, action binaries, and data type transitions are 100% valid before deployment:
+            The <code>check</code> command performs comprehensive static analysis, type checking, and shape inference on your <code>.morf</code> pipeline without requiring live input data. It guarantees that syntax, Single Static Assignment (SSA) rules, action binaries, flowable types, and tensor dimensions are 100% valid before deployment:
           </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Type &amp; Parameter Validation:</strong> Verifies all declared parameter types, ensuring argument types (e.g. <code>IntArg</code>) are not piped as flow heads (preventing <code>E007</code>) and that actions receive matching inputs.</li>
+            <li><strong>Shape Inference ABI:</strong> Evaluates action shape contracts (<code>get_output_shape</code>) across the dataflow graph to verify rank compatibility, wildcard dimensions (e.g. <code>Tensor[*, *]</code>), and channel derivations.</li>
+            <li><strong>Reducer Axis Bounds Checking:</strong> Statically proves that reduction operations (e.g. <code>sum</code>, <code>mean</code>, <code>max</code>, <code>min</code>, <code>norm</code>, <code>argmax</code>) do not specify out-of-bounds axes against pinned tensor ranks (preventing <code>E010</code>).</li>
+          </ul>
 
           <div class="doc-code-card">
             <div class="doc-code-header">
-              <span>Pipeline Static Analysis &amp; Dry-Run</span>
+              <span>Pipeline Static Analysis &amp; Shape Verification</span>
               <span>Bash</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># Verify pipeline syntax, action binaries, and type compatibility</span>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Verify pipeline syntax, action binaries, type safety, and tensor shapes</span>
 morflow check ./pipeline.morf
 
 <span class="tok-comment"># Check with a custom action cache directory</span>
@@ -286,32 +291,112 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
         </div>
 
-        <!-- STEP 2: CONSTRUCTING A FLOW -->
+        <!-- STEP 2: CONSTRUCTING A FLOW & TYPED PARAMETERS -->
         <div id="syntax-step2-flow" class="doc-section">
-          <h3 class="doc-h3">2.2. Constructing a Flow</h3>
+          <h3 class="doc-h3">2.2. Typed Parameters &amp; Constructing a Flow</h3>
           <p class="doc-p">
             A <strong>Flow</strong> connects an input variable through a sequence of actions using the <code>&gt;&gt;</code> dataflow operator. Each action receives the output payload of the previous action with zero memory copying.
           </p>
 
           <p class="doc-p">
-            Inputs and parameters are declared using <code>accept</code> at the top of the file:
+            Morflow uses a <strong>typed parameter system</strong>. Every input and configuration variable accepted by a pipeline must declare its type using the <code>accept</code> keyword at the top of the file:
           </p>
 
           <div class="doc-code-card">
             <div class="doc-code-header">
-              <span>Declaring Inputs and Parameters</span>
+              <span>Typed Parameter Syntax</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># Required input passed from host runtime</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># Syntax: accept &lt;Type&gt; $variable_name [= &lt;default_value&gt;]</span>
 
-<span class="tok-comment"># Configurable parameters with default values</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span></code></pre>
+<span class="tok-comment"># 1. Flowable Payloads (can be piped down a &gt;&gt; flow)</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$audio_raw</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[rank=2]</span> <span class="tok-var">$embeddings</span>
+
+<span class="tok-comment"># 2. Configuration Arguments (passed to action parameters; cannot be flow heads)</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">FloatArg</span> <span class="tok-var">$blur_sigma</span> = <span class="tok-num">1.2</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">BoolArg</span> <span class="tok-var">$normalize</span> = <span class="tok-keyword">true</span></code></pre>
           </div>
 
-          <p class="doc-p">
-            Once inputs are declared, chain actions into a continuous dataflow stream:
+          <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">Type System Reference</h4>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Kind</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>RawBytes</code></td>
+                  <td>Flowable</td>
+                  <td>Opaque byte buffer (e.g. raw WAV/PNG files or encoded binary streams). Flows into decoding actions like <code>to_audio</code> or <code>to_tensor</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>Scalar</code></td>
+                  <td>Flowable</td>
+                  <td>Rank-0 numeric scalar value (float or integer). Can flow through math and neural network actions (<code>relu</code>, <code>abs</code>, etc.).</td>
+                </tr>
+                <tr>
+                  <td><code>Tensor</code></td>
+                  <td>Flowable</td>
+                  <td>Multi-dimensional dense array. Supports optional shape and rank annotations:
+                    <br />• <code>Tensor</code>: Dynamic rank and shape.
+                    <br />• <code>Tensor[rank=N]</code>: Fixed rank <em>N</em> with dynamic dimensions (e.g. <code>Tensor[rank=2]</code>).
+                    <br />• <code>Tensor[*, *]</code>: 2D matrix with wildcard dimensions.
+                    <br />• <code>Tensor[2, 3]</code>: Fixed static shape tensor.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>Image</code></td>
+                  <td>Flowable</td>
+                  <td>Multi-channel image payload storing height, width, and color channels (supports shape annotations like <code>Image[*, *, 3]</code>).</td>
+                </tr>
+                <tr>
+                  <td><code>Audio</code></td>
+                  <td>Flowable</td>
+                  <td>Audio signal payload storing channel count, sample count, and sampling rate (e.g. <code>Audio[*, *]</code>).</td>
+                </tr>
+                <tr>
+                  <td><code>Composite</code></td>
+                  <td>Flowable</td>
+                  <td>Compound tuple of multiple payloads.</td>
+                </tr>
+                <tr>
+                  <td><code>IntArg</code></td>
+                  <td>Argument</td>
+                  <td>Integer argument passed to configure action parameters (e.g. dimensions, sample rates, axis indices).</td>
+                </tr>
+                <tr>
+                  <td><code>FloatArg</code></td>
+                  <td>Argument</td>
+                  <td>Floating-point argument passed to configure action parameters (e.g. contrast, gain factor, sigma).</td>
+                </tr>
+                <tr>
+                  <td><code>StrArg</code></td>
+                  <td>Argument</td>
+                  <td>String argument (e.g. filter types, color space formats).</td>
+                </tr>
+                <tr>
+                  <td><code>BoolArg</code></td>
+                  <td>Argument</td>
+                  <td>Boolean flag (e.g. normalize, channels_first).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-callout">
+            <strong>Argument vs Flowable Restriction:</strong> Argument types (<code>IntArg</code>, <code>FloatArg</code>, <code>StrArg</code>, <code>BoolArg</code>) cannot be used as the head of a pipeline flow (e.g. <code>$target_width &gt;&gt; ...</code> raises compile-time error <code>E007: cannot pipe from non-flowable argument type</code>). They are strictly passed as configuration parameters inside action invocations (e.g. <code>resize(width=$target_width)</code>).
+          </div>
+
+          <p class="doc-p" style="margin-top: 20px;">
+            Once inputs and parameters are declared, chain actions into a continuous dataflow stream:
           </p>
 
           <div class="doc-code-card">
@@ -319,12 +404,12 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>A Sequential Flow Chain</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># The flow starts with the input variable $img_in and passes data step-by-step</span>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># The flow starts with the flowable input $img_in and passes data step-by-step</span>
 <span class="tok-var">$img_in</span>
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">layout</span>=<span class="tok-str">"hwc"</span>, <span class="tok-param">normalize</span>=<span class="tok-keyword">true</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"f32"</span>, <span class="tok-param">layout</span>=<span class="tok-str">"hwc"</span>, <span class="tok-param">normalize</span>=<span class="tok-var">$normalize</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-var">$target_width</span>, <span class="tok-param">height</span>=<span class="tok-var">$target_height</span>, <span class="tok-param">filter</span>=<span class="tok-str">"bilinear"</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">color_adjust</span>(<span class="tok-param">contrast</span>=<span class="tok-num">1.15</span>, <span class="tok-param">saturation</span>=<span class="tok-num">1.05</span>)
-    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">gaussian_blur</span>(<span class="tok-param">sigma</span>=<span class="tok-num">1.2</span>)
+    <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">gaussian_blur</span>(<span class="tok-param">sigma</span>=<span class="tok-var">$blur_sigma</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgba"</span>, <span class="tok-param">dtype</span>=<span class="tok-str">"u8"</span>)</code></pre>
           </div>
         </div>
@@ -346,12 +431,25 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Form A: Single primary emission</span>
+<span class="tok-keyword">import</span> base/latest
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 <span class="tok-var">$img_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">512</span>, <span class="tok-param">height</span>=<span class="tok-num">512</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>
 
 <span class="tok-comment"># Form B: Named stream emission</span>
+<span class="tok-keyword">import</span> audio_essentials/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$audio_in</span>
 <span class="tok-var">$audio_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">normalize</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"normalized_audio"</span>)
 
 <span class="tok-comment"># Form C: Intermediate emission with chained downstream processing</span>
+<span class="tok-keyword">import</span> base/latest
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 <span class="tok-var">$img_in</span>
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span>(<span class="tok-param">color</span>=<span class="tok-str">"rgb"</span>, <span class="tok-param">normalize</span>=<span class="tok-keyword">true</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">1024</span>, <span class="tok-param">height</span>=<span class="tok-num">1024</span>)
@@ -384,7 +482,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
  
-<span class="tok-keyword">accept</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
 
 <span class="tok-comment"># FLOW 1: Ingest input audio, convert to structured stream, and tap into $decoded</span>
 <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$decoded</span>
@@ -421,7 +519,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Parallel Map Loop (each)</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># Iterates each channel concurrently in parallel, transforms, and stacks back together</span>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
+
+<span class="tok-comment"># Iterates each channel concurrently in parallel, transforms, and stacks back together</span>
 <span class="tok-var">$input_audio</span>
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span>(<span class="tok-param">sample_rate</span>=<span class="tok-num">44100</span>)
     <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span> (<span class="tok-var">$channel</span>) &#123;
@@ -447,7 +549,13 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Conditionals &amp; Dynamic Routing</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-comment"># 1. If / Else branching</span>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$channels</span> = <span class="tok-num">2</span>
+
+<span class="tok-comment"># 1. If / Else branching</span>
 <span class="tok-keyword">if</span> (<span class="tok-var">$sample_rate</span> != <span class="tok-num">48000</span>) &#123;
     <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resample</span>(<span class="tok-param">to_rate</span>=<span class="tok-num">48000</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$prepared</span>
 &#125; <span class="tok-keyword">else</span> &#123;
@@ -478,11 +586,12 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Morflow Image Processing Pipeline (.morf)</span>
 
 <span class="tok-keyword">import</span> base/latest
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>, <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span>
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
+<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span>
 
-<span class="tok-keyword">accept</span> <span class="tok-var">$img_in</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_height</span> = <span class="tok-num">512</span>
 
 <span class="tok-comment"># Direct chained dataflow from host image input to emitted output</span>
 <span class="tok-var">$img_in</span>
@@ -503,8 +612,8 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 
 <span class="tok-keyword">import</span> audio_essentials/latest
 
-<span class="tok-keyword">accept</span> <span class="tok-var">$input_audio</span>
-<span class="tok-keyword">accept</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">RawBytes</span> <span class="tok-var">$input_audio</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
 
 <span class="tok-comment"># Direct chained DSP processing with inline multi-channel loop</span>
 <span class="tok-var">$input_audio</span>
@@ -538,7 +647,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         <div id="exec-python" class="doc-section">
           <h3 class="doc-h3">3.1. Python</h3>
           <p class="doc-p">
-            The Python SDK (<code>morflow</code>) integrates directly with NumPy arrays, raw bytes, and file streams with zero-copy buffer sharing into the underlying engine.
+            The Python SDK (<code>morflow</code>) integrates directly with NumPy arrays, raw bytes, and file streams with zero-copy buffer sharing into the underlying engine. Payloads can be passed as typed wrappers (<code>morflow.Image</code>, <code>morflow.Audio</code>, <code>morflow.Tensor</code>), or plain NumPy arrays and bytes matching declared <code>accept</code> types.
           </p>
 
           <div class="doc-code-card">
@@ -551,7 +660,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 
           <div class="doc-code-card">
             <div class="doc-code-header">
-              <span>Image &amp; Audio Processing in Python</span>
+              <span>Typed Execution &amp; Positional Arguments in Python</span>
               <span>python</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> numpy <span class="tok-keyword">as</span> np
@@ -561,12 +670,13 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 <span class="tok-comment"># 1. Load pipeline from file</span>
 pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"image_pipeline.morf"</span>)
 
-<span class="tok-comment"># 2. Pass NumPy arrays directly [H, W, C]</span>
+<span class="tok-comment"># 2. Pass NumPy array wrapped as morflow.Image</span>
 img = Image.<span class="tok-fn">open</span>(<span class="tok-str">"input.png"</span>).<span class="tok-fn">convert</span>(<span class="tok-str">"RGB"</span>)
 np_img = np.<span class="tok-fn">array</span>(img, dtype=np.uint8)
 
-<span class="tok-comment"># 3. Execute pipeline synchronously with native speed</span>
-result_np = pipeline.<span class="tok-fn">run</span>(np_img)
+<span class="tok-comment"># 3. Execute with positional arguments (payload, target_w, target_h)</span>
+<span class="tok-comment"># Declared defaults (512, 512) apply if arguments are omitted: pipeline.run(payload)</span>
+result_np = pipeline.<span class="tok-fn">run</span>(morflow.<span class="tok-fn">Image</span>(np_img, color=<span class="tok-str">"rgb"</span>), <span class="tok-num">512</span>, <span class="tok-num">512</span>)
 
 <span class="tok-comment"># 4. Save result</span>
 out_img = Image.<span class="tok-fn">fromarray</span>(result_np)
@@ -579,8 +689,8 @@ audio_pipe = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"aud
 <span class="tok-keyword">with</span> <span class="tok-fn">open</span>(<span class="tok-str">"input.wav"</span>, <span class="tok-str">"rb"</span>) <span class="tok-keyword">as</span> f:
     input_bytes = f.<span class="tok-fn">read</span>()
 
-<span class="tok-comment"># Single output returns bytes; multi-stream returns dict[str, bytes]</span>
-output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes)
+<span class="tok-comment"># Pass raw bytes (bound to accept RawBytes) and custom sample rate IntArg</span>
+output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes, <span class="tok-num">44100</span>)
 <span class="tok-keyword">with</span> <span class="tok-fn">open</span>(<span class="tok-str">"output.wav"</span>, <span class="tok-str">"wb"</span>) <span class="tok-keyword">as</span> f:
     f.<span class="tok-fn">write</span>(output_wav_bytes)</code></pre>
           </div>
@@ -590,7 +700,7 @@ output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes)
         <div id="exec-js" class="doc-section">
           <h3 class="doc-h3">3.2. JavaScript / Node.js</h3>
           <p class="doc-p">
-            The Node.js SDK provides both asynchronous execution (via <code>pipeline.run()</code> to offload work to a background worker pool without blocking the V8 event loop) and synchronous execution (via <code>pipeline.runSync()</code>).
+            The Node.js SDK provides asynchronous execution (via <code>pipeline.run()</code> or <code>pipeline.runArgs()</code> offloading work to a background worker pool) and synchronous execution (via <code>pipeline.runSync()</code> / <code>pipeline.runSyncArgs()</code>). Positional arguments matching declared <code>accept</code> statements can be passed directly as heterogeneous arguments (numbers, booleans, strings, Buffers, or <code>TensorInput</code>).
           </p>
 
           <div class="doc-code-card">
@@ -603,7 +713,7 @@ output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes)
 
           <div class="doc-code-card">
             <div class="doc-code-header">
-              <span>Async Pipeline Execution in Node.js</span>
+              <span>Async Pipeline Execution with Arguments in Node.js</span>
               <span>javascript</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> fs <span class="tok-keyword">from</span> <span class="tok-str">'node:fs'</span>;
@@ -612,29 +722,31 @@ output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes)
 <span class="tok-comment">// 1. Load pipeline from file</span>
 <span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'image_pipeline.morf'</span>);
 
-<span class="tok-comment">// 2. Construct TensorInput with shape and buffer</span>
+<span class="tok-comment">// 2. Construct TensorInput with explicit payloadType</span>
 <span class="tok-keyword">const</span> inputBuffer = fs.<span class="tok-fn">readFileSync</span>(<span class="tok-str">'input_raw_rgb.bin'</span>);
 <span class="tok-keyword">const</span> tensorInput = &#123;
   data: inputBuffer,
   shape: [<span class="tok-num">1080</span>, <span class="tok-num">1920</span>, <span class="tok-num">3</span>],
-  dtype: <span class="tok-str">'u8'</span>
+  dtype: <span class="tok-str">'u8'</span>,
+  payloadType: <span class="tok-str">'image'</span>,
+  colorSpace: <span class="tok-str">'rgb'</span>
 &#125;;
 
-<span class="tok-comment">// 3. Run asynchronously off the main thread</span>
-<span class="tok-keyword">const</span> outputTensor = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>(tensorInput);
+<span class="tok-comment">// 3. Run asynchronously on worker pool with positional arguments (runArgs)</span>
+<span class="tok-keyword">const</span> outputTensor = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">runArgs</span>(tensorInput, <span class="tok-num">512</span>, <span class="tok-num">512</span>);
 
 console.<span class="tok-fn">log</span>(<span class="tok-str">`Shape: $&#123;outputTensor.shape&#125;, Dtype: $&#123;outputTensor.dtype&#125;`</span>);
 <span class="tok-keyword">const</span> outBuffer = outputTensor.<span class="tok-fn">toBuffer</span>();
 fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output_raw_rgba.bin'</span>, outBuffer);
 
 <span class="tok-comment">// ----------------------------------------------------</span>
-<span class="tok-comment">// Audio DSP Execution (Direct Buffer I/O)</span>
+<span class="tok-comment">// Audio DSP Execution (Direct Buffer &amp; Argument I/O)</span>
 <span class="tok-comment">// ----------------------------------------------------</span>
 <span class="tok-keyword">const</span> audioPipe = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'audio_pipeline.morf'</span>);
 <span class="tok-keyword">const</span> wavBuffer = fs.<span class="tok-fn">readFileSync</span>(<span class="tok-str">'input.wav'</span>);
 
-<span class="tok-comment">// Execute asynchronously</span>
-<span class="tok-keyword">const</span> outWav = <span class="tok-keyword">await</span> audioPipe.<span class="tok-fn">run</span>(wavBuffer);
+<span class="tok-comment">// Execute asynchronously with buffer and sample rate argument</span>
+<span class="tok-keyword">const</span> outWav = <span class="tok-keyword">await</span> audioPipe.<span class="tok-fn">runArgs</span>(wavBuffer, <span class="tok-num">44100</span>);
 fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'</span>, outWav.<span class="tok-fn">toBuffer</span>());</code></pre>
           </div>
         </div>
@@ -643,7 +755,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         <div id="exec-java" class="doc-section">
           <h3 class="doc-h3">3.3. Java</h3>
           <p class="doc-p">
-            The Java SDK wraps native JNI bindings with type-safe classes, automatic memory cleanup, and direct tensor buffers for high-throughput enterprise JVM backends.
+            The Java SDK wraps native JNI bindings with type-safe classes, automatic memory cleanup, and direct tensor buffers for high-throughput enterprise JVM backends. Positional parameters are bound using <code>pipeline.runArgs(...)</code>.
           </p>
 
           <div class="doc-code-card">
@@ -654,7 +766,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
             <pre class="doc-code-pre"><code>&lt;dependency&gt;
     &lt;groupId&gt;org.morflow&lt;/groupId&gt;
     &lt;artifactId&gt;morflow&lt;/artifactId&gt;
-    &lt;version&gt;0.1.0&lt;/version&gt;
+    &lt;version&gt;0.2.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
           </div>
 
@@ -680,19 +792,20 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
                 <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">1080</span>, <span class="tok-num">1920</span>, <span class="tok-num">3</span>&#125;
             );
 
-            <span class="tok-comment">// 3. Execute pipeline</span>
-            <span class="tok-keyword">try</span> (MorflowTensor outputTensor = pipeline.<span class="tok-fn">run</span>(inputTensor)) &#123;
+            <span class="tok-comment">// 3. Execute pipeline with positional arguments (runArgs)</span>
+            <span class="tok-keyword">try</span> (MorflowTensor outputTensor = pipeline.<span class="tok-fn">runArgs</span>(inputTensor, <span class="tok-num">512</span>, <span class="tok-num">512</span>)) &#123;
                 <span class="tok-keyword">int</span>[] outShape = outputTensor.<span class="tok-fn">getShape</span>();
                 <span class="tok-keyword">byte</span>[] outBytes = outputTensor.<span class="tok-fn">toByteArray</span>();
                 Files.<span class="tok-fn">write</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"output.raw"</span>), outBytes);
             &#125;
         &#125;
 
-        <span class="tok-comment">// Audio WAV execution</span>
-        Pipeline audioPipe = Morflow.<span class="tok-fn">load</span>(<span class="tok-str">"audio_pipeline.morf"</span>);
-        <span class="tok-keyword">byte</span>[] inputWav = Files.<span class="tok-fn">readAllBytes</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"input.wav"</span>));
-        MorflowTensor audioOut = audioPipe.<span class="tok-fn">run</span>(inputWav);
-        Files.<span class="tok-fn">write</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"output.wav"</span>), audioOut.<span class="tok-fn">toByteArray</span>());
+        <span class="tok-comment">// Audio WAV execution with raw byte array and sample rate argument</span>
+        <span class="tok-keyword">try</span> (Pipeline audioPipe = Morflow.<span class="tok-fn">load</span>(<span class="tok-str">"audio_pipeline.morf"</span>)) &#123;
+            <span class="tok-keyword">byte</span>[] inputWav = Files.<span class="tok-fn">readAllBytes</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"input.wav"</span>));
+            MorflowTensor audioOut = audioPipe.<span class="tok-fn">runArgs</span>(inputWav, <span class="tok-num">44100</span>);
+            Files.<span class="tok-fn">write</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"output.wav"</span>), audioOut.<span class="tok-fn">toByteArray</span>());
+        &#125;
     &#125;
 &#125;</code></pre>
           </div>
@@ -702,7 +815,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         <div id="exec-rust" class="doc-section">
           <h3 class="doc-h3">3.4. Rust</h3>
           <p class="doc-p">
-            The native Rust engine crate (<code>morflow</code>) provides direct access to <code>Payload</code> variants (<code>Image</code>, <code>Audio</code>, <code>Tensor</code>, <code>Data</code>) with compile-time type safety and zero runtime overhead.
+            The native Rust engine crate (<code>morflow</code>) provides direct access to <code>Payload</code> variants (<code>Image</code>, <code>Audio</code>, <code>Tensor</code>, <code>Data</code>, <code>Scalar</code>) with compile-time type safety and zero runtime overhead.
           </p>
 
           <div class="doc-code-card">
@@ -718,7 +831,8 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
               <span>Native Pipeline Execution in Rust</span>
               <span>rust</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> morflow::&#123;ColorSpace, Image, Morflow, Payload, RVec&#125;;
+            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> core_types::&#123;ColorSpace, Image, Payload, RVec&#125;;
+<span class="tok-keyword">use</span> morflow::Morflow;
 <span class="tok-keyword">use</span> std::fs;
 
 <span class="tok-keyword">fn</span> <span class="tok-fn">main</span>() -&gt; Result&lt;(), Box&lt;<span class="tok-keyword">dyn</span> std::error::Error&gt;&gt; &#123;
@@ -734,7 +848,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         ColorSpace::Rgb,
     ).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
 
-    <span class="tok-comment">// 3. Execute Morflow pipeline</span>
+    <span class="tok-comment">// 3. Execute Morflow pipeline with declared payload</span>
     <span class="tok-keyword">let</span> outputs = pipeline.<span class="tok-fn">run</span>(Payload::Image(input))?;
 
     <span class="tok-comment">// 4. Extract emitted payload and save output</span>
