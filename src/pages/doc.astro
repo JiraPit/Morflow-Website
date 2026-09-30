@@ -451,7 +451,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
 
           <p class="doc-p">
-            <strong>Parallel Map Loop (each):</strong> The each block applies a transformation sub-flow across elements of a compound collection, batch, or multi-channel audio/image payload (see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a> for type-specific slicing rules). <strong>Each iteration is executed concurrently in parallel</strong> across multi-threaded CPU workers. <strong>The general rule for each is that the result is always stacked back to the same data type as the input</strong>, so the result of each sub-flow must be able to be combined back to the original compound type. Once all parallel iterations complete, their resulting outputs are automatically stacked back together in sequence order and passed directly to the next action in the stream.
+            <strong>Parallel Map Loop (each):</strong> The each block applies a transformation sub-flow across elements of a higher-rank collection, batch, or multi-channel audio/image payload (see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a> for type-specific slicing rules). <strong>Each iteration is executed concurrently in parallel</strong> across multi-threaded CPU workers. <strong>The general rule for each is that the result is always stacked back to the same data type as the input</strong>, so the result of each sub-flow must be able to be combined back to the original higher-rank type. Once all parallel iterations complete, their resulting outputs are automatically stacked back together in sequence order and passed directly to the next action in the stream.
           </p>
 
           <div class="doc-code-card">
@@ -477,7 +477,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>The Compound Restacking Rule:</strong> In Morflow, each always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original compound type (e.g. multi-channel Audio &rarr; mono Audio slices &rarr; restacked multi-channel Audio). Changing the payload kind inside the loop (e.g. returning a Tensor or Scalar from an Image channel loop) violates static rule E009. Furthermore, direct emission (emit) inside an each block is strictly prohibited to guarantee deterministic stream synchronization. For an in-depth breakdown of slicing dimensions, type derivation, and restacking contracts for every compound type, see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a>.
+            <strong>The Higher-Rank Restacking Rule:</strong> In Morflow, each always stacks results back to the exact same data type as the loop input. Thus, the result of each parallel sub-flow must be able to be combined back into the original higher-rank type (e.g. multi-channel Audio &rarr; mono Audio slices &rarr; restacked multi-channel Audio). Changing the payload kind inside the loop (e.g. returning a Tensor or Scalar from an Image channel loop) violates static rule E009. Furthermore, direct emission (emit) inside an each block is strictly prohibited to guarantee deterministic stream synchronization. For an in-depth breakdown of slicing dimensions, type derivation, and restacking contracts for every higher-rank type, see <a href="#types-each" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.9: Deep Dive: Slicing &amp; Restacking with each</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 24px;">
@@ -760,7 +760,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <br />• If rank 1: Iterating a 1D tensor slices single elements, binding each iteration to a <strong>Scalar</strong> (rank-0 numeric value).
               <br />• If rank 0: A rank-0 scalar tensor has no dimensions to slice and is rejected at compile time.
             </li>
-            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape. In accordance with the compound restacking rule, sub-flows must yield rank-(N &minus; 1) tensors so that slices can be reassembled back into the original compound Tensor[rank=N].</li>
+            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape. In accordance with the higher-rank restacking rule, sub-flows must yield rank-(N &minus; 1) tensors so that slices can be reassembled back into the original higher-rank Tensor[rank=N].</li>
           </ul>
         </div>
 
@@ -841,7 +841,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <li><strong>Iteration Count:</strong> Exactly C parallel workers (e.g. 3 for RGB, 4 for RGBA).</li>
             <li><strong>Loop Variable Derivation:</strong> Each parallel iteration receives an independent rank-2 <strong>Image</strong> in ColorSpace::Grayscale, preserving the full H &times; W spatial resolution. This allows applying filters, equalizations, or thresholding to individual channels simultaneously.</li>
             <li><strong>Payload Kind Preservation (E009):</strong> The sub-flow inside each must preserve the payload kind. You cannot convert the channel slice into a Tensor or Audio mid-loop without causing static error E009.</li>
-            <li><strong>Restacking:</strong> The transformed grayscale channel slices are reassembled along the channel axis back into the parent's original color space and layout. Because the slices are recombined into the compound Image, all iterations must produce compatible single-channel Image payloads.</li>
+            <li><strong>Restacking:</strong> The transformed grayscale channel slices are reassembled along the channel axis back into the parent's original color space and layout. Because the slices are recombined into the higher-rank Image, all iterations must produce compatible single-channel Image payloads.</li>
           </ul>
         </div>
 
@@ -920,8 +920,8 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <strong>How Audio Works with each:</strong>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Multi-Channel Audio (C &gt; 1):</strong> Slices along the <strong>channel axis</strong> (Axis 0 in Planar, Axis 1 in Interleaved). Each parallel worker receives an independent single-channel <strong>Audio</strong> (mono) payload with the parent's sample rate intact. Slices are processed concurrently and restacked along the channel axis back into the compound multi-channel Audio.</li>
-            <li><strong>Mono Audio (C = 1, rank-1 [samples]):</strong> Slices along the <strong>sample axis</strong>. Each iteration receives a single sample as a <strong>Scalar</strong> float. Slices are restacked along the sample axis back into mono compound audio.</li>
+            <li><strong>Multi-Channel Audio (C &gt; 1):</strong> Slices along the <strong>channel axis</strong> (Axis 0 in Planar, Axis 1 in Interleaved). Each parallel worker receives an independent single-channel <strong>Audio</strong> (mono) payload with the parent's sample rate intact. Slices are processed concurrently and restacked along the channel axis back into the higher-rank multi-channel Audio.</li>
+            <li><strong>Mono Audio (C = 1, rank-1 [samples]):</strong> Slices along the <strong>sample axis</strong>. Each iteration receives a single sample as a <strong>Scalar</strong> float. Slices are restacked along the sample axis back into the higher-rank mono audio container.</li>
           </ul>
         </div>
 
@@ -1094,9 +1094,9 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
 
           <div class="doc-callout" style="border-left: 4px solid var(--accent); background: rgba(59, 130, 246, 0.05); padding: 16px 20px; margin-bottom: 24px; border-radius: 6px;">
-            <strong style="font-size: 15px; color: var(--grey-900);">The Cardinal Rule of each: Compound Type Restacking</strong>
+            <strong style="font-size: 15px; color: var(--grey-900);">The Cardinal Rule of each: Higher-Rank Type Restacking</strong>
             <p class="doc-p" style="margin-top: 8px; margin-bottom: 0;">
-              The foundational invariant governing each is: <strong>the result is always stacked back to the exact same data type as the input</strong>. Because Morflow automatically reassembles the aggregated slices into the original compound container, <strong>the result of each sub-flow must be able to be combined back into the original compound type</strong>.
+              The foundational invariant governing each is: <strong>the result is always stacked back to the exact same data type as the input</strong>. Because Morflow automatically reassembles the aggregated slices into the original higher-rank container, <strong>the result of each sub-flow must be able to be combined back into the original higher-rank type</strong>.
             </p>
           </div>
 
@@ -1105,7 +1105,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <table class="doc-table">
               <thead>
                 <tr>
-                  <th>Incoming Compound Payload</th>
+                  <th>Incoming Higher-Rank Payload</th>
                   <th>Iteration Axis</th>
                   <th>Sub-Flow Slice (<code>$var</code>)</th>
                   <th>Required Sub-Flow Output</th>
@@ -1159,26 +1159,26 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </table>
           </div>
 
-          <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">Compound Restacking Contracts</h4>
+          <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">Higher-Rank Restacking Contracts</h4>
           <p class="doc-p">
             Morflow's execution engine enforces strict type and dimension symmetry when reassembling sub-flow results (core_types::Payload::each_restack):
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li>
-              <strong>Compound Images (Channel Reassembly):</strong> When looping over a multi-channel Image, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel Image preserving spatial height and width (H &times; W). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original ColorSpace (e.g. RGB) and layout. If a sub-flow produces a Tensor or Scalar, or alters spatial dimensions incompatibly, the engine cannot reconstruct the compound Image, triggering static error E009 at compile time.
+              <strong>Higher-Rank Images (Channel Reassembly):</strong> When looping over a multi-channel Image, each parallel iteration receives a single grayscale channel. The sub-flow must output a single-channel Image preserving spatial height and width (H &times; W). When all channel sub-flows conclude, the engine stacks them along the channel axis (Axis 2 in HWC, Axis 0 in CHW) and restores the original ColorSpace (e.g. RGB) and layout. If a sub-flow produces a Tensor or Scalar, or alters spatial dimensions incompatibly, the engine cannot reconstruct the higher-rank Image, triggering static error E009 at compile time.
             </li>
             <li>
-              <strong>Compound Audio (Multi-Channel Synchronization):</strong> Slicing a multi-channel Audio yields mono Audio streams. Each branch must produce a mono Audio with identical sample rates and layouts. Morflow stacks the processed mono streams along the channel axis back into the original multi-channel compound Audio container (transposing planar buffers into interleaved buffers if the parent audio used interleaved layout). When mono Audio is sliced per-sample, single Scalar float samples are processed and stacked back into mono Audio.
+              <strong>Higher-Rank Audio (Multi-Channel Synchronization):</strong> Slicing a multi-channel Audio yields mono Audio streams. Each branch must produce a mono Audio with identical sample rates and layouts. Morflow stacks the processed mono streams along the channel axis back into the original multi-channel higher-rank Audio container (transposing planar buffers into interleaved buffers if the parent audio used interleaved layout). When mono Audio is sliced per-sample, single Scalar float samples are processed and stacked back into mono Audio.
             </li>
             <li>
-              <strong>Compound Tensors (Axis 0 Concatenation):</strong> Slicing a rank-N Tensor along Axis 0 produces rank-(N &minus; 1) slices. Every parallel branch must yield a rank-(N &minus; 1) Tensor with identical inner dimension sizes. The runtime stacks them back along Axis 0 to recreate the compound rank-N Tensor.
+              <strong>Higher-Rank Tensors (Axis 0 Concatenation):</strong> Slicing a rank-N Tensor along Axis 0 produces rank-(N &minus; 1) slices. Every parallel branch must yield a rank-(N &minus; 1) Tensor with identical inner dimension sizes. The runtime stacks them back along Axis 0 to recreate the higher-rank rank-N Tensor.
             </li>
           </ul>
 
           <h4 class="doc-h3" style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">The Core Rules of <code>each</code></h4>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li>
-              <strong>1. The Compound Restacking Contract (E009):</strong> The sub-flow inside each must preserve the payload kind of the loop variable. Because the engine restacks outputs back into the compound container of the input, the result of each sub-flow must be combinable back into the original compound type. If an Image channel loop yields a Tensor or Scalar, or an Audio loop yields non-audio data, compilation halts with E009: 'each' body changes the payload kind.
+              <strong>1. The Higher-Rank Restacking Contract (E009):</strong> The sub-flow inside each must preserve the payload kind of the loop variable. Because the engine restacks outputs back into the higher-rank container of the input, the result of each sub-flow must be combinable back into the original higher-rank type. If an Image channel loop yields a Tensor or Scalar, or an Audio loop yields non-audio data, compilation halts with E009: 'each' body changes the payload kind.
             </li>
             <li>
               <strong>2. Prohibition of emit Inside Loops:</strong> Slices execute asynchronously and out-of-order across CPU cores. To maintain deterministic synchronization with host applications, direct emission (emit) inside an each block is strictly prohibited. Outputs must be emitted downstream after the loop has restacked all slices.
@@ -1198,7 +1198,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># ❌ COMPILE ERROR E009: Sub-flow changes payload kind</span>
 <span class="tok-comment"># The loop input is an Image, so each sub-flow must produce an Image.</span>
-<span class="tok-comment"># Here, 'relu' returns a Tensor, which cannot be restacked back into the compound Image!</span>
+<span class="tok-comment"># Here, 'relu' returns a Tensor, which cannot be restacked back into the higher-rank Image!</span>
 <span class="tok-var">$rgb_image</span>
     <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span> (<span class="tok-var">$channel</span>) &#123;
         <span class="tok-var">$channel</span>
