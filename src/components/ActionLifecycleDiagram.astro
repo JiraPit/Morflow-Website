@@ -8,15 +8,15 @@ const nodes = isStatic ? [
   {x:225,y:175,w:155,h:70,lines:['shapecheck'],accent:true},
   {x:425,y:145,w:130,h:130,lines:['Result?'],diamond:true},
   {x:635,y:30,w:190,h:80,lines:['Mark Verified'],accent:true},
-  {x:635,y:170,w:190,h:80,lines:['Mark Runtime check','Record unresolved reasons']},
+  {x:635,y:170,w:190,h:80,lines:['Mark Runtime check','Record unresolved','reasons']},
   {x:635,y:320,w:190,h:80,lines:['Static check fails','Report error'],error:true},
   {x:905,y:105,w:190,h:110,lines:['Use predicted output','to check next action']},
 ] : [
   {x:10,y:140,w:115,h:80,lines:['Actual input']},
   {x:165,y:140,w:125,h:80,lines:['shapecheck'],accent:true},
   {x:330,y:120,w:120,h:120,lines:['Result?'],diamond:true},
-  {x:505,y:140,w:135,h:80,lines:['process','Payload + prepared data'],accent:true},
-  {x:705,y:140,w:135,h:80,lines:['Verify output','Type + predicted shape']},
+  {x:505,y:140,w:135,h:80,lines:['process','Payload +','prepared data'],accent:true},
+  {x:705,y:140,w:135,h:80,lines:['Verify output','Type +','predicted shape']},
   {x:880,y:120,w:120,h:120,lines:['Matches?'],diamond:true},
   {x:1050,y:140,w:125,h:80,lines:['Next action']},
   {x:290,y:335,w:200,h:80,lines:['Return error','Process is not called'],error:true},
@@ -50,7 +50,7 @@ const edges = isStatic ? [
       {edges.map(edge => <g><path d={edge.d} class="connector" marker-end={`url(#${marker})`} />{edge.label && <text x={edge.x} y={edge.y} class="edge-label">{edge.label}</text>}</g>)}
       {nodes.map(node => <g class:list={['node',{accent:node.accent,error:node.error}]}>
         {node.diamond ? <polygon points={`${node.x+node.w/2},${node.y} ${node.x+node.w},${node.y+node.h/2} ${node.x+node.w/2},${node.y+node.h} ${node.x},${node.y+node.h/2}`} /> : <rect x={node.x} y={node.y} width={node.w} height={node.h} rx="7" />}
-        <text x={node.x+node.w/2} y={node.y+node.h/2-(node.lines.length-1)*11+5}>{node.lines.map((line,i)=><tspan x={node.x+node.w/2} dy={i===0?0:22} class:list={{secondary:i>0}}>{line}</tspan>)}</text>
+        <text x={node.x+node.w/2} y={node.y+node.h/2-(node.lines.length-1)*11+5}>{node.lines.map((line,i)=><tspan x={node.x+node.w/2} dy={i===0?0:22}>{line}</tspan>)}</text>
       </g>)}
     </svg>
   </div>
@@ -67,7 +67,6 @@ svg { display:block; width:100%; min-width:850px; font-family:var(--font-ui); }
 .action-diagram :global(.node.accent rect) { fill:color-mix(in srgb,var(--brand-500) 10%,var(--white)); stroke:var(--brand-500); stroke-width:2; }
 .action-diagram :global(.node.error rect) { stroke:var(--brand-500); stroke-dasharray:5 3; }
 .action-diagram :global(text) { fill:var(--grey-900); text-anchor:middle; font-size:15px; font-weight:600; }
-.action-diagram :global(.secondary) { font-size:12px; font-weight:400; }
 .action-diagram :global(.connector) { fill:none; stroke:var(--brand-500); stroke-width:2; stroke-linejoin:round; }
 .action-diagram :global(.arrowhead) { fill:var(--brand-500); }
 .action-diagram :global(.edge-label) { fill:var(--brand-500); font-size:13px; paint-order:stroke; stroke:var(--white); stroke-width:5px; stroke-linejoin:round; }
