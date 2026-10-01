@@ -1,4 +1,4 @@
-import { getEntry } from 'astro:content';
+import content from '../content/content.json';
 
 export function withBase(path: string): string {
   if (!path) return path;
@@ -58,9 +58,12 @@ export interface FooterColumn {
 
 /** Typed accessor for one content group. Throws if the group is missing. */
 export async function group<T>(id: string): Promise<T[]> {
-  const entry = await getEntry('content', id);
-  if (!entry) throw new Error(`content group "${id}" not found in src/content/content.json`);
-  const items = entry.data.items as any[];
+  const items = Object.prototype.hasOwnProperty.call(content, id)
+    ? (content as Record<string, any[]>)[id]
+    : undefined;
+  if (!Array.isArray(items)) {
+    throw new Error(`content group "${id}" not found in src/content/content.json`);
+  }
   return items.map((item) => {
     const res = { ...item };
     if (res.image) res.image = withBase(res.image);

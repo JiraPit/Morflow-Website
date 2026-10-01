@@ -137,13 +137,34 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
         </div>
       </div>
 
-      <!-- 2: Auto-Parallel Scheduling -->
+      <!-- 2: Type Safe & Shape Safe -->
+      <div class="mock" id="mock-2" role="tabpanel" aria-labelledby="feature-2" data-step="2" hidden>
+        <div class="lang-stack">
+          <div class="code-card">
+            <div class="code-card__header"><span class="code-card__title">shaped_pipeline.morf</span></div>
+            <pre class="code-card__pre"><code><span class="tok-keyword">accept</span> <span class="tok-type">Tensor[2,3]</span> <span class="tok-var">$fixed</span>
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[*,3]</span> <span class="tok-var">$dynamic</span>
+<span class="tok-var">$fixed</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">reshape</span>(<span class="tok-str">"3,2"</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"fixed"</span>)
+<span class="tok-var">$dynamic</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">reshape</span>(<span class="tok-str">"3,2"</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"dynamic"</span>)</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card__header"><span class="code-card__title">Shape check</span></div>
+            <pre class="code-card__pre"><code>$ <span class="tok-fn">morflow</span> check shaped_pipeline.morf
+<span class="tok-str">Shape safety: 50.0% (1/2 actions verified)</span>
+Flow 1: <span class="tok-str">Verified</span> — Tensor[2,3] → Tensor[3,2]
+Flow 2: <span class="tok-type">Runtime check</span> — Tensor[*,3] → Tensor[3,2]
+<span class="tok-comment"># The wildcard length is resolved at runtime.</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3: Auto-Parallel Scheduling -->
       <div
         class="mock"
-        id="mock-2"
+        id="mock-3"
         role="tabpanel"
-        aria-labelledby="feature-2"
-        data-step="2"
+        aria-labelledby="feature-3"
+        data-step="3"
         hidden
       >
         <div class="code-card">
@@ -172,13 +193,13 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
         </div>
       </div>
 
-      <!-- 3: Large Library of Actions -->
+      <!-- 4: Large Library of Actions -->
       <div
         class="mock"
-        id="mock-3"
+        id="mock-4"
         role="tabpanel"
-        aria-labelledby="feature-3"
-        data-step="3"
+        aria-labelledby="feature-4"
+        data-step="4"
         hidden
       >
         <div class="code-card">
@@ -202,26 +223,6 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
 <span class="tok-comment"># Vision and Audio streams running together</span>
 <span class="tok-var">$img_in</span>   <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">1280</span>, <span class="tok-param">height</span>=<span class="tok-num">720</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_image</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"image"</span>)
 <span class="tok-var">$audio_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"lowpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">1200.0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"audio"</span>)</code></pre>
-        </div>
-      </div>
-      <div class="mock" id="mock-4" role="tabpanel" aria-labelledby="feature-4" data-step="4">
-        <div class="lang-stack">
-          <div class="code-card">
-            <div class="code-card__header"><span class="code-card__title">shaped_pipeline.morf</span></div>
-            <pre class="code-card__pre"><code><span class="tok-keyword">from</span> tensor_essentials/latest <span class="tok-keyword">import</span> reshape
-<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[2, 3]</span> <span class="tok-var">$matrix</span>
-
-<span class="tok-comment"># Six elements, with dimensions known ahead of time</span>
-<span class="tok-var">$matrix</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">reshape</span>(<span class="tok-str">"3,2"</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
-          </div>
-          <div class="code-card">
-            <div class="code-card__header"><span class="code-card__title">Shape check</span></div>
-            <pre class="code-card__pre"><code>$ morflow check shaped_pipeline.morf
-<span class="tok-str">Shape safety: 100.0% (1/1 action calls Ready)</span>
-Flow 1/step 2: reshape — Ready
-Tensor[2, 3] → Tensor[3, 2]
-<span class="tok-comment"># Full shape coverage for the declared input</span></code></pre>
-          </div>
         </div>
       </div>
     </div>
@@ -255,6 +256,16 @@ Tensor[2, 3] → Tensor[3, 2]
     color: var(--grey-800);
     max-width: 820px;
     text-align: left;
+  }
+
+  .stage {
+    align-self: flex-start;
+    height: auto;
+  }
+
+  .mock {
+    box-sizing: border-box;
+    min-width: 0;
   }
 
   /* Code Card Container */

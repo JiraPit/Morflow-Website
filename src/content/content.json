@@ -60,24 +60,24 @@
     },
     {
       "step": 2,
+      "label": "Type Safe & Shape Safe",
+      "desc": "Catch type mismatches and incompatible tensor shapes before your pipeline runs. Declare input dimensions to verify shape compatibility ahead of time, or use * for dynamic sizes. morflow check reports the percentage of verified actions and pinpoints those that need runtime information.",
+      "mock": "",
+      "srcset": ""
+    },
+    {
+      "step": 3,
       "label": "Auto-Parallel Scheduling",
       "desc": "Independent branch flows and each ($channel) loops dynamically unroll across multi-threaded CPU workers.",
       "mock": "/assets/mock-1.png",
       "srcset": "/assets/mock-1.png 1x, /assets/mock-1@2x.png 2x"
     },
     {
-      "step": 3,
+      "step": 4,
       "label": "Large Library of Actions",
       "desc": "A rich ecosystem of native actions for audio DSP, computer vision, image filters, and machine learning models.",
       "mock": "/assets/mock-3.png",
       "srcset": "/assets/mock-3.png 1x, /assets/mock-3@2x.png 2x"
-    },
-    {
-      "step": 4,
-      "label": "Type Safe & Shape Safe",
-      "desc": "Statically check types and shapes before execution. Opt in to concrete dimensions for stronger guarantees, keep dynamic shapes for flexibility, and see the shape safety percentage and every unresolved action with morflow check.",
-      "mock": "",
-      "srcset": ""
     }
   ],
   "footerColumns": [
