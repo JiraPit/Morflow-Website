@@ -68,7 +68,7 @@ const features = await group<Feature>('features');
           <pre class="code-card__pre"><code><span class="tok-comment"># Declarative image transformation flow</span>
 <span class="tok-keyword">import</span> base/latest
 <span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
+<span class="tok-keyword">from</span> image_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
@@ -176,7 +176,7 @@ Flow 2: <span class="tok-type">Runtime check</span> — Tensor[*,3] → Tensor[3
             </div>
             <span class="code-card__title">audio_split_pipeline.morf</span>
           </div>
-          <pre class="code-card__pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+          <pre class="code-card__pre"><code><span class="tok-keyword">import</span> audio_basics/latest
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 
@@ -214,8 +214,8 @@ Flow 2: <span class="tok-type">Runtime check</span> — Tensor[*,3] → Tensor[3
           <pre class="code-card__pre"><code><span class="tok-comment"># Compose actions across image processing &amp; audio DSP</span>
 <span class="tok-keyword">import</span> base/latest
 <span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
-<span class="tok-keyword">from</span> audio_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_audio</span>, <span class="tok-fn">biquad_filter</span>, <span class="tok-fn">to_wav</span>
+<span class="tok-keyword">from</span> image_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">to_image</span>
+<span class="tok-keyword">from</span> audio_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_audio</span>, <span class="tok-fn">biquad_filter</span>, <span class="tok-fn">to_wav</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$audio_in</span>

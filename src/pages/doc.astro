@@ -217,7 +217,7 @@ morflow prep ./pipeline.morf --path ./actions_cache</code></pre>
         <div id="cli-action-versions" class="doc-section">
           <h3 class="doc-h3">Action Versions &amp; Verified Cache</h3>
           <p class="doc-p">
-            Imports select an exact release, such as <code>image_essentials/0.2.0</code>, or a refreshable <code>latest</code> entry. Exact binaries include their version in the filename; latest binaries use the word <code>latest</code>. Both can coexist in the same cache.
+            Imports select an exact release, such as <code>image_basics/0.2.0</code>, or a refreshable <code>latest</code> entry. Exact binaries include their version in the filename; latest binaries use the word <code>latest</code>. Both can coexist in the same cache.
           </p>
           <p class="doc-p">
             Each <code>prep</code> or <code>install</code> resolves the newest stable release for latest imports, verifies published SHA-256 checksums, and replaces cached bytes when the checksum changes. A receipt beside each binary records its concrete version and verified checksum. Pipeline loading verifies these artifacts locally, and loaded pipelines retain their actions until reloaded.
@@ -243,8 +243,8 @@ morflow search color
 morflow search biquad
 
 <span class="tok-comment"># Inspect argument schemas and SPEC.md docs</span>
-morflow spec image_essentials/latest/color_adjust
-morflow spec audio_essentials/latest/biquad_filter</code></pre>
+morflow spec image_basics/latest/color_adjust
+morflow spec audio_basics/latest/biquad_filter</code></pre>
           </div>
         </div>
 
@@ -328,11 +328,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Package-level import (brings actions into scope or under an alias)</span>
 <span class="tok-keyword">import</span> base/latest
-<span class="tok-keyword">import</span> audio_essentials/latest <span class="tok-keyword">as</span> audio
+<span class="tok-keyword">import</span> audio_basics/latest <span class="tok-keyword">as</span> audio
 
 <span class="tok-comment"># Item import (brings specific actions into local scope)</span>
 <span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span></code></pre>
+<span class="tok-keyword">from</span> image_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span></code></pre>
           </div>
         </div>
 
@@ -403,13 +403,13 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Form A: Single primary emission</span>
 <span class="tok-keyword">import</span> base/latest
 <span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
+<span class="tok-keyword">from</span> image_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 <span class="tok-var">$img_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_tensor</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-param">width</span>=<span class="tok-num">512</span>, <span class="tok-param">height</span>=<span class="tok-num">512</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>
 
 <span class="tok-comment"># Form B: Named stream emission</span>
-<span class="tok-keyword">import</span> audio_essentials/latest
+<span class="tok-keyword">import</span> audio_basics/latest
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$audio_in</span>
 <span class="tok-var">$audio_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">normalize</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"normalized_audio"</span>)
@@ -417,7 +417,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 <span class="tok-comment"># Form C: Intermediate emission with chained downstream processing</span>
 <span class="tok-keyword">import</span> base/latest
 <span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>
+<span class="tok-keyword">from</span> image_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 <span class="tok-var">$img_in</span>
@@ -450,7 +450,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Multi-Flow Audio Split Pipeline</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_basics/latest
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 
@@ -489,7 +489,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Parallel Map Loop (each)</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_basics/latest
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 
@@ -519,7 +519,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Conditionals &amp; Dynamic Routing</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_basics/latest
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
@@ -557,7 +557,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
 
 <span class="tok-keyword">import</span> base/latest
 <span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> <span class="tok-fn">to_tensor</span>
-<span class="tok-keyword">from</span> image_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span>
+<span class="tok-keyword">from</span> image_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>, <span class="tok-fn">color_adjust</span>, <span class="tok-fn">gaussian_blur</span>, <span class="tok-fn">to_image</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Image</span> <span class="tok-var">$img_in</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$target_width</span> = <span class="tok-num">512</span>
@@ -580,7 +580,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-comment"># Morflow Audio DSP Pipeline (.morf)</span>
 
-<span class="tok-keyword">import</span> audio_essentials/latest
+<span class="tok-keyword">import</span> audio_basics/latest
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
@@ -1246,7 +1246,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
               <span>Parallel Multi-Channel Audio Loop</span>
               <span>morf</span>
             </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_essentials/latest
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_basics/latest
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Audio</span> <span class="tok-var">$stereo_audio</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">FloatArg</span> <span class="tok-var">$cutoff_freq</span> = <span class="tok-num">120.0</span>
@@ -1292,7 +1292,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </table></div>
           <p class="doc-p">Run <code>morflow check pipeline.morf</code> to see how much of your pipeline’s shape compatibility can be verified before execution. If 8 of 10 actions are verified, the report shows <strong>80% shape safety</strong>. It also shows the input and output shapes for each action and explains what is still needed for any action marked Runtime check.</p>
           <p class="doc-p">Actions in every flow, branch, and loop are included. Each action written in the pipeline counts once, even if a loop runs it many times. <code>emit</code> does not count. If there are no processing actions, the percentage is N/A.</p>
-          <div class="doc-code-card"><div class="doc-code-header"><span>Concrete versus dynamic shapes</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">from</span> tensor_essentials/latest <span class="tok-keyword">import</span> <span class="tok-fn">reshape</span>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Concrete versus dynamic shapes</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">from</span> tensor_basics/latest <span class="tok-keyword">import</span> <span class="tok-fn">reshape</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Tensor[2,3]</span> <span class="tok-var">$fixed</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Tensor[*,3]</span> <span class="tok-var">$dynamic</span>
 <span class="tok-var">$fixed</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">reshape</span>(<span class="tok-str">"3,2"</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"fixed"</span>)
