@@ -41,7 +41,7 @@ import PageHero from '../components/PageHero.astro';
       </div>
 
       <div class="docs-nav-group">
-        <a href="#types" class="docs-nav-title">3. Data Types &amp; Type System</a>
+        <a href="#types" class="docs-nav-title">3. Data Types and Shape</a>
         <ul class="docs-nav-list">
           <li><a href="#types-overview" class="docs-nav-link">3.1. Type Hierarchy &amp; Architecture</a></li>
           <li><a href="#types-tensor" class="docs-nav-link">3.2. Tensor (Tensor)</a></li>
@@ -52,6 +52,7 @@ import PageHero from '../components/PageHero.astro';
           <li><a href="#types-composite" class="docs-nav-link">3.7. Composite (Composite)</a></li>
           <li><a href="#types-arguments" class="docs-nav-link">3.8. Configuration Arguments (*Arg)</a></li>
           <li><a href="#types-each" class="docs-nav-link">3.9. Deep Dive: Slicing &amp; Restacking with 'each'</a></li>
+          <li><a href="#types-shapechecking" class="docs-nav-link">3.10. Shapes &amp; Shape Checking</a></li>
         </ul>
       </div>
 
@@ -62,6 +63,14 @@ import PageHero from '../components/PageHero.astro';
           <li><a href="#exec-js" class="docs-nav-link">4.2. JavaScript / Node.js</a></li>
           <li><a href="#exec-java" class="docs-nav-link">4.3. Java</a></li>
           <li><a href="#exec-rust" class="docs-nav-link">4.4. Rust</a></li>
+        </ul>
+      </div>
+      <div class="docs-nav-group">
+        <a href="#custom-action" class="docs-nav-title">5. Custom Action</a>
+        <ul class="docs-nav-list">
+          <li><a href="#custom-action-build" class="docs-nav-link">5.1. Build an Action</a></li>
+          <li><a href="#custom-action-lifecycle" class="docs-nav-link">5.2. Engine Lifecycle</a></li>
+          <li><a href="#custom-action-package" class="docs-nav-link">5.3. Package &amp; Import</a></li>
         </ul>
       </div>
     </aside>
@@ -159,7 +168,7 @@ pip install morflow</code></pre>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
             <li><strong>Type &amp; Parameter Validation:</strong> Verifies all declared parameter types, ensuring argument types (e.g. IntArg) are not piped as flow heads (preventing E007) and that actions receive matching inputs.</li>
-            <li><strong>Shape Inference ABI:</strong> Evaluates action shape contracts (get_output_shape) across the dataflow graph to verify rank compatibility, wildcard dimensions (e.g. Tensor[*, *]), and channel derivations.</li>
+            <li><strong>Shape Checking:</strong> Evaluates mandatory action shape contracts (<code>shapecheck</code>) across the dataflow graph to verify rank compatibility, partially known dimensions (e.g. Tensor[*, *, 3]), and channel derivations. Native contracts distinguish known dimension lengths, including zero, from unknown lengths. The engine also calls <code>shapecheck</code> with concrete dimensions before execution, passes its prepared data to the action, and verifies the output shape.</li>
             <li><strong>Reducer Axis Bounds Checking:</strong> Statically proves that reduction operations (e.g. sum, mean, max, min, norm, argmax) do not specify out-of-bounds axes against pinned tensor ranks (preventing E010).</li>
           </ul>
 
@@ -175,6 +184,8 @@ morflow check ./pipeline.morf
 morflow check ./pipeline.morf --path ./actions_cache</code></pre>
           </div>
         </div>
+
+        <p class="doc-p">The check report shows a shape safety percentage and a Ready, Deferred, or Invalid result for every native action call in all flows and branches. See <a href="#types-shapechecking">Shapes &amp; Shape Checking</a> for the calculation and concrete versus dynamic examples.</p>
 
         <div id="cli-prep" class="doc-section">
           <h3 class="doc-h3">1.4. Offline Prep (<code>prep</code>)</h3>
@@ -328,7 +339,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </p>
 
           <p class="doc-p">
-            Inputs and configurable parameters are declared using accept at the top of the file (see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a> for all supported flowable payload and configuration argument types):
+            Inputs and configurable parameters are declared using accept at the top of the file (see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types and Shape</a> for all supported flowable payload and configuration argument types):
           </p>
 
           <div class="doc-code-card">
@@ -346,7 +357,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
           </div>
 
           <div class="doc-callout">
-            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines enforce an explicit type system (Tensor, Image, Audio, Scalar, Bytes, and *Arg). For a complete walkthrough of every data type, dimension declaration syntax, and component structures, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types &amp; Type System</a>.
+            <strong>Data Types &amp; Dimensions:</strong> Morflow pipelines enforce an explicit type system (Tensor, Image, Audio, Scalar, Bytes, and *Arg). For a complete walkthrough of every data type, dimension declaration syntax, and component structures, see <a href="#types" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3: Data Types and Shape</a>.
           </div>
 
           <p class="doc-p" style="margin-top: 20px;">
@@ -587,11 +598,11 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
         </div>
       </section>
 
-      <!-- SECTION 3: DATA TYPES & TYPE SYSTEM -->
+      <!-- SECTION 3: DATA TYPES AND SHAPE -->
       <section id="types" class="doc-section">
         <div class="doc-section-header">
           <p class="badge">Section 3</p>
-          <h2 class="doc-h2">3. Data Types &amp; Type System</h2>
+          <h2 class="doc-h2">3. Data Types and Shape</h2>
           <p class="doc-p">
             Morflow provides an explicit type system and shape algebra. Input declarations describe payload kinds and optional rank and dimension constraints. The checker uses these declarations and action shape contracts to validate flows, and the runtime verifies supplied inputs against their declared types.
           </p>
@@ -1256,6 +1267,32 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
     <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
           </div>
         </div>
+        <div id="types-shapechecking" class="doc-section">
+          <h3 class="doc-h3">3.10. Shapes &amp; Shape Checking</h3>
+          <p class="doc-p">Shape declarations are opt-in. <code>Tensor</code> leaves rank and dimensions open; <code>Tensor[rank=2]</code> fixes rank; <code>Tensor[*,3]</code> fixes rank and the second dimension; <code>Tensor[2,3]</code> fixes both dimensions. A wildcard is an unknown length, while <code>0</code> is a real empty dimension. Internally, these are <code>Dimension::Unknown</code> and <code>Dimension::Known(usize)</code>.</p>
+          <p class="doc-p">During static checking and pipeline loading, each action's mandatory <code>shapecheck</code> reasons about declared types, ranks, dimensions, and arguments. Predicted shapes pass to the next action. Dynamic lengths retain known rank wherever the operation permits it: <code>each</code> over <code>Tensor[*,3]</code> receives <code>Tensor[3]</code> rows.</p>
+          <p class="doc-p">Composite shapes are ordered lists of shapes, including nested lists. For example, <code>Composite[Tensor[2,3], Tensor[3,4]]</code> supplies matmul's left and right operands in that order. <code>$parts[0]</code> selects the first component and preserves its shape. QR describes both Q and R, so downstream selections can be checked independently.</p>
+          <div class="doc-table-container"><table class="doc-table">
+            <thead><tr><th>shapecheck result</th><th>Meaning</th><th>CLI behavior</th></tr></thead>
+            <tbody>
+              <tr><td><code>Ready</code></td><td>The shape contract is satisfied for this declared input and these arguments.</td><td>Counts toward shape safety coverage.</td></tr>
+              <tr><td><code>Deferred</code></td><td>Concrete dimensions, metadata, or argument values are needed. The callback retains any known output dimensions.</td><td>Shows the action's location and unresolved information.</td></tr>
+              <tr><td><code>Invalid</code></td><td>The known types, dimensions, or dimensional arguments are incompatible.</td><td>Fails checking.</td></tr>
+            </tbody>
+          </table></div>
+          <p class="doc-p"><code>morflow check pipeline.morf</code> reports <strong>Shape safety = Ready action calls / all native action calls × 100</strong>. Every call site in every flow, conditional arm, route arm, and nested loop body counts once. Runtime iteration counts do not change the percentage; built-in <code>emit</code> and <code>resurface</code> are excluded. A pipeline without native action calls shows N/A. The report lists each action's input, output, status, and unresolved reason.</p>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Concrete versus dynamic shapes</span><span>morf</span></div><pre class="doc-code-pre"><code>from tensor_essentials/latest import reshape
+accept Tensor[2,3] $fixed
+accept Tensor[*,3] $dynamic
+$fixed &gt;&gt; reshape("3,2") &gt;&gt; emit("fixed")
+$dynamic &gt;&gt; reshape("3,2") &gt;&gt; emit("dynamic")
+
+# Shape safety: 50.0% (1/2 action calls Ready)
+# Flow 1: Ready — six input elements match six output elements.
+# Flow 2: Deferred — the wildcard length is resolved at runtime.</code></pre></div>
+          <p class="doc-p">Dynamic shapes are valid declarations and provide flexibility. Deferred calls are unresolved ahead of time; the CLI identifies where additional information is needed. Host arguments remain dynamic even when they declare defaults, because callers can override those values.</p>
+          <p class="doc-p">Before every execution, the engine calls the same <code>shapecheck</code> with actual dimensions and metadata. Only Ready proceeds to <code>process</code>, with prepared data passed internally; the engine verifies the returned output shape and Composite order. A 100% report guarantees the declared shape contracts. Numerical conditions such as matrix invertibility and encoded-file validity are checked when values are processed.</p>
+        </div>
       </section>
 
       <!-- SECTION 4: PIPELINE EXECUTION -->
@@ -1505,6 +1542,85 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
     Ok(())
 &#125;</code></pre>
           </div>
+        </div>
+      </section>
+      <section id="custom-action" class="doc-section">
+        <div class="doc-section-header"><p class="badge">Section 5</p><h2 class="doc-h2">5. Custom Action</h2>
+          <p class="doc-p">Develop a native action as a Rust shared library with an explicit input type, output type, shape contract, and processing callback. Morflow handles shape checking and passes invocation-local prepared data to execution.</p>
+        </div>
+        <div id="custom-action-build" class="doc-section"><h3 class="doc-h3">5.1. Build an Action</h3>
+          <p class="doc-p">Create <code>actions/custom_pack/custom_kernel</code> with a Cargo manifest and <code>src/lib.rs</code>. For a local Morflow checkout, the manifest can reference its shared core types:</p>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Cargo.toml</span><span>toml</span></div><pre class="doc-code-pre"><code>[package]
+name = "custom_kernel"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+core_types = &#123; path = "../../../core_types" &#125;</code></pre></div>
+          <p class="doc-p">This complete pass-through action accepts a Tensor and preserves its dimensions. Replace the dimensional helper and processing body together when implementing your transformation:</p>
+          <div class="doc-code-card"><div class="doc-code-header"><span>src/lib.rs</span><span>rust</span></div><pre class="doc-code-pre"><code>// actions/custom_pack/custom_kernel/src/lib.rs
+use core_types::&#123;ActionArgs, DataType, InputDescriptor, Payload, PreparedData,
+                 Shape, ShapeCheckResult, ShapeResult, StableAbi&#125;;
+use core_types::shapecheck::&#123;self, ActionAbiLayout, PreparedArgs&#125;;
+
+#[no_mangle]
+pub extern &quot;C&quot; fn get_action_abi_version() -&gt; u32 &#123;
+    shapecheck::ACTION_ABI_VERSION
+&#125;
+
+#[no_mangle]
+pub extern &quot;C&quot; fn get_action_abi_layout()
+    -&gt; *const core_types::abi_stable::type_layout::TypeLayout &#123;
+    &lt;ActionAbiLayout as StableAbi&gt;::LAYOUT
+&#125;
+
+#[no_mangle]
+pub extern &quot;C&quot; fn get_input_type() -&gt; DataType &#123; DataType::Tensor &#125;
+#[no_mangle]
+pub extern &quot;C&quot; fn get_output_type() -&gt; DataType &#123; DataType::Tensor &#125;
+
+fn dimensions(input: Shape, _: PreparedArgs) -&gt; ShapeResult &#123;
+    ShapeResult::Ok(input)
+&#125;
+
+#[no_mangle]
+pub extern &quot;C&quot; fn shapecheck(input: InputDescriptor, args: ActionArgs) -&gt; ShapeCheckResult &#123;
+    shapecheck::analyze(input, args, &quot;custom_kernel&quot;, get_input_type(),
+                        get_output_type(), Some(dimensions), None)
+&#125;
+
+#[no_mangle]
+pub extern &quot;C&quot; fn process(payload: Payload, _prepared: PreparedData) -&gt; Payload &#123;
+    // Pass-through example; replace with a transformation of the same shape.
+    payload
+&#125;
+</code></pre></div>
+          <p class="doc-p">Keep rank, dimension, axis, and dimensional argument compatibility in <code>shapecheck</code>. It receives an <code>InputDescriptor</code> containing the ordered <code>ValueShape</code> tree and typed metadata, without tensor numeric contents. <code>shapecheck::analyze</code> helps share pure dimensional rules between partial static inputs and concrete runtime inputs.</p>
+          <p class="doc-p">For Composite actions, validate component counts and kinds, then access <code>input.value.get(0)</code> and <code>input.value.get(1)</code> in their declared order. Metadata follows the same ordered tree. Output contracts can return nested Composite shapes.</p>
+          <p class="doc-p">A custom callback can return Ready with <code>PreparedData</code> containing cached <code>PreparedArgs</code>, the predicted output tree, and named <code>PreparedValue</code> fields. Processing can consume <code>prepared.output_dims()</code> and normalized fields instead of repeating dimensional calculations. Numerical value checks and decoder validation belong in processing.</p>
+        </div>
+        <div id="custom-action-lifecycle" class="doc-section"><h3 class="doc-h3">5.2. When the Engine Calls Each Function</h3>
+          <div class="doc-table-container"><table class="doc-table"><thead><tr><th>Function</th><th>When called</th><th>Responsibility</th></tr></thead><tbody>
+            <tr><td><code>get_action_abi_version</code><br/><code>get_action_abi_layout</code></td><td>When the native library is loaded, before invoking its type or processing callbacks.</td><td>Identify the compatible shared ABI version and full layout. The loader rejects incompatible libraries.</td></tr>
+            <tr><td><code>get_input_type</code><br/><code>get_output_type</code></td><td>After ABI verification, when the action is loaded.</td><td>Declare accepted and produced payload kinds.</td></tr>
+            <tr><td><code>shapecheck(input, args)</code></td><td>During CLI checking and pipeline loading with declared shapes; again before every execution with actual dimensions and metadata.</td><td>Reject invalid contracts, preserve partial output shapes when Deferred, or return Ready with prepared execution data.</td></tr>
+            <tr><td><code>process(payload, prepared)</code></td><td>At runtime, only after a Ready result.</td><td>Transform the payload using the prepared data. Return the promised output kind and shape, or a processing error.</td></tr>
+          </tbody></table></div>
+          <p class="doc-p">Static prepared data is discarded. Every runtime invocation receives its own fresh plan, including parallel loop iterations. The engine passes this second processing argument automatically; pipeline authors call an action normally. Invalid or Deferred runtime results stop that invocation before processing. After processing, the engine checks the actual output against the predicted type, dimensions, and ordered Composite structure.</p>
+        </div>
+        <div id="custom-action-package" class="doc-section"><h3 class="doc-h3">5.3. Package &amp; Import</h3>
+          <p class="doc-p">Add the crate to the local workspace's members, build it, and package the shared library with its Cargo version and verified checksum receipt. This Linux example uses the repository's packaging tool:</p>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Local action installation</span><span>shell</span></div><pre class="doc-code-pre"><code>cargo build --release -p custom_kernel
+python3 scripts/package_action.py actions/custom_pack/custom_kernel/Cargo.toml \
+  target/release/libcustom_kernel.so --cache ./actions_cache
+export MORFLOW_ACTIONS_PATH="$PWD/actions_cache"</code></pre></div>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Use your custom action</span><span>morf</span></div><pre class="doc-code-pre"><code>from custom_pack/0.1.0 import custom_kernel
+accept Tensor[2,3] $input
+$input &gt;&gt; custom_kernel &gt;&gt; emit</code></pre></div>
+          <p class="doc-p">Use the platform's <code>.so</code>, <code>.dylib</code>, or <code>.dll</code> build. Packaging creates an exact-version filename, receipt, and offline action catalog. Publish ABI changes under a new action version and update imports or refresh latest. Exact imports always retain the requested version.</p>
         </div>
       </section>
     </article>

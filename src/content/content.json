@@ -71,6 +71,13 @@
       "desc": "A rich ecosystem of native actions for audio DSP, computer vision, image filters, and machine learning models.",
       "mock": "/assets/mock-3.png",
       "srcset": "/assets/mock-3.png 1x, /assets/mock-3@2x.png 2x"
+    },
+    {
+      "step": 4,
+      "label": "Type Safe & Shape Safe",
+      "desc": "Statically check types and shapes before execution. Opt in to concrete dimensions for stronger guarantees, keep dynamic shapes for flexibility, and see the shape safety percentage and every unresolved action with morflow check.",
+      "mock": "",
+      "srcset": ""
     }
   ],
   "footerColumns": [

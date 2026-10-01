@@ -204,6 +204,26 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
 <span class="tok-var">$audio_in</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">biquad_filter</span>(<span class="tok-param">type</span>=<span class="tok-str">"lowpass"</span>, <span class="tok-param">freq</span>=<span class="tok-num">1200.0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"audio"</span>)</code></pre>
         </div>
       </div>
+      <div class="mock" id="mock-4" role="tabpanel" aria-labelledby="feature-4" data-step="4">
+        <div class="lang-stack">
+          <div class="code-card">
+            <div class="code-card__header"><span class="code-card__title">shaped_pipeline.morf</span></div>
+            <pre class="code-card__pre"><code><span class="tok-keyword">from</span> tensor_essentials/latest <span class="tok-keyword">import</span> reshape
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[2, 3]</span> <span class="tok-var">$matrix</span>
+
+<span class="tok-comment"># Six elements, with dimensions known ahead of time</span>
+<span class="tok-var">$matrix</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">reshape</span>(<span class="tok-str">"3,2"</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card__header"><span class="code-card__title">Shape check</span></div>
+            <pre class="code-card__pre"><code>$ morflow check shaped_pipeline.morf
+<span class="tok-str">Shape safety: 100.0% (1/1 action calls Ready)</span>
+Flow 1/step 2: reshape — Ready
+Tensor[2, 3] → Tensor[3, 2]
+<span class="tok-comment"># Full shape coverage for the declared input</span></code></pre>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
