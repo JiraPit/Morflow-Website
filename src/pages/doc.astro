@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
+import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
 ---
 <Base
   title="Documentation — Morflow Data Processing Engine"
@@ -1279,7 +1280,7 @@ morflow spec audio_essentials/latest/biquad_filter</code></pre>
             </tbody>
           </table></div>
           <p class="doc-p">Use <code>*</code> for a dimension whose size can change between runs. A size of <code>0</code> means that dimension is empty.</p>
-          <p class="doc-p">When you check or load a pipeline, Morflow follows the shape through each action and checks whether the next action can accept it. The more dimensions you specify, the more Morflow can verify ahead of time. Flexible dimensions still carry useful information: with <code>Tensor[*,3]</code>, Morflow knows that every row passed to <code>each</code> contains 3 elements.</p>
+          <p class="doc-p">When you run <code>morflow check</code>, Morflow follows the shape through each action and checks whether the next action can accept it. The more dimensions you specify, the more Morflow can verify ahead of time. Flexible dimensions still carry useful information: with <code>Tensor[*,3]</code>, Morflow knows that every row passed to <code>each</code> contains 3 elements.</p>
           <p class="doc-p">The same checking applies to Image and Audio dimensions. For a Composite, Morflow tracks each payload separately and in order. For example, <code>Composite[Tensor[2,3], Tensor[3,4]]</code> gives <code>matmul</code> a 2×3 left matrix and a 3×4 right matrix. Selecting <code>$parts[0]</code> gives you the first matrix, with its 2×3 shape.</p>
           <div class="doc-table-container"><table class="doc-table">
             <thead><tr><th>Check result</th><th>Meaning</th><th>CLI behavior</th></tr></thead>
@@ -1601,12 +1602,14 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <p class="doc-p">The engine requires all four exports: <code>get_input_type</code>, <code>get_output_type</code>, <code>shapecheck</code>, and <code>process</code>. Keep the shown signatures and <code>#[no_mangle]</code> attributes. To accept several payload kinds, combine their <code>DataType</code> values with <code>|</code>.</p>
         </div>
         <div id="custom-action-lifecycle" class="doc-section"><h3 class="doc-h3">5.2. How the Engine Runs an Action</h3>
+          <ActionLifecycleDiagram phase="static" />
+          <ActionLifecycleDiagram phase="runtime" />
           <div class="doc-table-container"><table class="doc-table"><thead><tr><th>Function</th><th>When called</th><th>Responsibility</th></tr></thead><tbody>
             <tr><td><code>get_input_type</code><br/><code>get_output_type</code></td><td>When the action is loaded.</td><td>Declare accepted and produced payload kinds.</td></tr>
-            <tr><td><code>shapecheck(input, args)</code></td><td>During CLI checking and pipeline loading with declared shapes; again before every execution with actual dimensions and metadata.</td><td>Check the input type, shape, and arguments. Describe the output shape and provide any data needed by processing.</td></tr>
+            <tr><td><code>shapecheck(input, args)</code></td><td>During CLI checking with declared shapes; again before every execution with actual dimensions and metadata.</td><td>Check the input type, shape, and arguments. Describe the output shape and provide any data needed by processing.</td></tr>
             <tr><td><code>process(payload, prepared)</code></td><td>At runtime, only after a Ready result.</td><td>Read and transform the payload. Return the output promised by shapecheck, or <code>Payload::Error</code> with a useful message.</td></tr>
           </tbody></table></div>
-          <p class="doc-p">During <code>morflow check</code> and pipeline loading, <code>shapecheck</code> receives the declared shapes and available arguments. It predicts the output so Morflow can check the next action. <code>process</code> is not called at this stage.</p>
+          <p class="doc-p">During <code>morflow check</code>, <code>shapecheck</code> receives the declared shapes and available arguments. It predicts the output so Morflow can check the next action. <code>process</code> is not called at this stage.</p>
           <p class="doc-p">When the pipeline runs, Morflow calls <code>shapecheck</code> again with the actual input dimensions, metadata, and resolved arguments. A <code>Ready</code> result allows <code>process</code> to run. An <code>Invalid</code> or <code>Deferred</code> result stops that call and reports an error. After processing, Morflow checks that the returned payload matches the predicted type, shape, and Composite structure.</p>
           <p class="doc-p">The engine passes <code>prepared</code> automatically. Pipeline authors still write a normal call such as <code>custom_action</code> or <code>custom_action(axis=1)</code>. Prepared data from static checking is discarded; each runtime call gets fresh data, including calls inside parallel loops.</p>
         </div>
