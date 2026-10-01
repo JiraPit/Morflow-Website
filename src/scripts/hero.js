@@ -22,7 +22,14 @@ export function init(reduced) {
   const lerp = (a, b, t) => a + (b - a) * t;
   const smooth = (t) => t * t * (3 - 2 * t);
 
+  const mobile = window.matchMedia('(max-width: 810px)');
   const update = () => {
+    if (mobile.matches) {
+      panel.classList.remove('is-expanding');
+      for (const property of ['--w', '--h', '--y', '--radius']) panel.style.removeProperty(property);
+      img.style.removeProperty('--img-scale');
+      return;
+    }
     const y = Math.max(0, window.scrollY);
     const p = smooth(Math.min(1, y / TRAVEL));
 

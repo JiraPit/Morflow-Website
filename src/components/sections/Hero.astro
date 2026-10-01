@@ -68,4 +68,37 @@ import { withBase } from '../../lib/content';
     font-style: italic;
     color: rgba(255, 255, 255, 0.9);
   }
+  @media (max-width: 810px) {
+    .hero {
+      height: auto;
+      padding-top: 100px;
+      padding-bottom: 20px;
+    }
+    .hero .hero__panel {
+      position: relative;
+      top: auto;
+      left: -16px;
+      width: calc(100% + 32px);
+      max-width: none;
+      height: auto;
+      min-height: 586px;
+      translate: none;
+      border-radius: 0;
+      will-change: auto;
+    }
+    .hero .hero__content {
+      position: relative;
+      min-height: 586px;
+      box-sizing: border-box;
+      padding: 36px 24px;
+    }
+    .hero .hero__img {
+      transform: none;
+      will-change: auto;
+    }
+    .hero__lede {
+      font-size: 15px;
+      line-height: 1.6;
+    }
+  }
 </style>
