@@ -76,6 +76,7 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
           <li><a href="#custom-action-composite" class="docs-nav-link">5.5. Handle Composite Inputs and Outputs</a></li>
           <li><a href="#custom-action-package" class="docs-nav-link">5.6. Build, Package &amp; Import</a></li>
           <li><a href="#custom-action-testing" class="docs-nav-link">5.7. Test the Action</a></li>
+          <li><a href="#custom-action-plugins" class="docs-nav-link">5.8. Runtime Plugins</a></li>
         </ul>
       </div>
     </aside>
@@ -128,13 +129,13 @@ pip install morflow</code></pre>
               <tbody>
                 <tr>
                   <td><code>check</code></td>
-                  <td><code>morflow check &lt;file.morf&gt; [-p &lt;dir&gt;]</code></td>
+                  <td><code>morflow check &lt;file.morf&gt; [-p &lt;dir&gt;] [--plugins-path &lt;dir&gt;]</code></td>
                   <td>Validates syntax and Single Static Assignment (SSA), checks action dependencies and declared types, and infers shapes from action contracts.</td>
                 </tr>
                 <tr>
                   <td><code>prep</code></td>
-                  <td><code>morflow prep &lt;file.morf&gt; [-p &lt;dir&gt;] [-f]</code></td>
-                  <td>Prepares the imported versions and verifies checksums for offline execution.</td>
+                  <td><code>morflow prep &lt;file.morf&gt; [-p &lt;dir&gt;] [--plugins-path &lt;dir&gt;] [-f]</code></td>
+                  <td>Prepares imported actions and declared plugins, and verifies checksums for offline execution.</td>
                 </tr>
                 <tr>
                   <td><code>search</code></td>
@@ -160,6 +161,26 @@ pip install morflow</code></pre>
                   <td><code>clean</code></td>
                   <td><code>morflow clean [-p &lt;dir&gt;]</code></td>
                   <td>Removes cached action binaries from the action path.</td>
+                </tr>
+                <tr>
+                  <td><code>plugins list</code></td>
+                  <td><code>morflow plugins list [--path &lt;dir&gt;]</code></td>
+                  <td>Lists verified installed plugins, including requested and concrete versions.</td>
+                </tr>
+                <tr>
+                  <td><code>search-plugin</code></td>
+                  <td><code>morflow search-plugin &lt;query&gt; [-l &lt;limit&gt;]</code></td>
+                  <td>Searches the shipped plugin catalog by name and returns paths with explicit latest versions. Works offline.</td>
+                </tr>
+                <tr>
+                  <td><code>install-plugin</code></td>
+                  <td><code>morflow install-plugin &lt;name&gt;/&lt;version&gt; [-p &lt;dir&gt;] [-f]</code></td>
+                  <td>Installs an exact plugin version or an explicitly requested latest release.</td>
+                </tr>
+                <tr>
+                  <td><code>plugins clean</code></td>
+                  <td><code>morflow plugins clean [--path &lt;dir&gt;]</code></td>
+                  <td>Removes prepared plugin entries. Loaded pipelines retain their selected plugins.</td>
                 </tr>
               </tbody>
             </table>
@@ -264,6 +285,11 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
                   <td><code>MORFLOW_ACTIONS_PATH</code></td>
                   <td><code>~/.morflow/actions</code></td>
                   <td>Directory where Morflow caches versioned action binaries, release catalogs, and checksum receipts (<code>.so</code>, <code>.dylib</code>, <code>.dll</code>).</td>
+                </tr>
+                <tr>
+                  <td><code>MORFLOW_PLUGINS_PATH</code></td>
+                  <td><code>~/.morflow/plugins</code></td>
+                  <td>Sets the verified plugin cache directory. Local builds are also discovered in <code>target/release/plugins</code>.</td>
                 </tr>
                 <tr>
                   <td><code>MORFLOW_REPO</code></td>
@@ -1633,7 +1659,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
             <tr><td><code>prepared.args</code></td><td>Read positional or named arguments and reuse cached numeric parsing through <code>parse</code> and <code>usize_list</code>.</td></tr>
             <tr><td><code>prepared.fields</code></td><td>Store action-specific results of checking, such as a normalized axis. Fields are named <code>PreparedValue</code> values; read them with <code>field</code>, <code>unsigned</code>, or <code>float</code>.</td></tr>
           </tbody></table></div>
-          <p class="doc-p">A custom shape check returns <code>Ready</code> with a <code>PreparedData</code> containing the output prediction, <code>PreparedArgs::from(args)</code>, and any named fields. Use the same output prediction in both the result and the prepared data. <code>PreparedValue</code> supports integers, floating-point values, booleans, text, lists, and nested named fields.</p>
+          <p class="doc-p">A custom shape check returns <code>Ready</code> with a <code>PreparedData</code> containing the output prediction, <code>PreparedArgs::from(args)</code>, and any named fields. Initialize its <code>runtime</code> field with <code>None.into()</code>; the engine supplies the runtime context before processing. Use the same output prediction in both the result and the prepared data. <code>PreparedValue</code> supports integers, floating-point values, booleans, text, lists, and nested named fields.</p>
           <p class="doc-p">For an action with an axis argument, resolve negative indices and check bounds once in <code>shapecheck</code>, store the normalized axis in a field, and use that field in <code>process</code>. The pipeline author does not have to supply or manage this data.</p>
           <p class="doc-p">Checks that depend on actual contents still belong in processing: decoding a file, checking a numerical domain, or detecting a singular matrix. Return <code>Payload::Error("useful explanation".into())</code> if processing fails. Shape verification describes the call’s type and shape compatibility; it does not promise that every possible data value will succeed.</p>
         </div>
@@ -1652,7 +1678,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <div class="doc-code-card"><div class="doc-code-header"><span>Use your custom action</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">from</span> custom_pack/<span class="tok-num">0.1</span>.<span class="tok-num">0</span> <span class="tok-keyword">import</span> <span class="tok-fn">custom_action</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">Tensor[2,3]</span> <span class="tok-var">$input</span>
 <span class="tok-var">$input</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">custom_action</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre></div>
-          <p class="doc-p">On macOS, use <code>target/release/libcustom_action.dylib</code>; on Windows, use <code>target/release/custom_action.dll</code> and set <code>MORFLOW_ACTIONS_PATH</code> using your shell’s environment-variable syntax. Packaging creates the versioned binary, checksum receipt, and offline action catalog. If you add a <code>SPEC.md</code> beside Cargo.toml, it is packaged with the action too.</p>
+          <p class="doc-p">On macOS, use <code>target/release/libcustom_action.dylib</code>; on Windows, use <code>target/release/custom_action.dll</code> and set <code>MORFLOW_ACTIONS_PATH</code> using your shell’s environment-variable syntax. Packaging creates the versioned binary, checksum receipt, and offline action catalog. If you add a <code>SPEC.md</code> beside Cargo.toml, it is packaged with the action too. Packaging also writes <code>&lt;action&gt;_METADATA.json</code> with its plugin requirements. Publish that metadata file and its checksum alongside the binary, including for actions whose plugin list is empty.</p>
           <p class="doc-p">The Linux cache entry is <code>actions_cache/custom_pack/custom_action_action-0.1.0-linux-x86_64.so</code>, with its receipt at the same path plus <code>.json</code>. Import the packaged version explicitly, as above. Morflow loads from the local cache without network access. After changing the action, rebuild and package it, then reload the pipeline to use the new binary.</p>
         </div>
         <div id="custom-action-testing" class="doc-section"><h3 class="doc-h3">5.7. Test the Action</h3>
@@ -1662,6 +1688,26 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <p class="doc-p">For runtime unit tests, call <code>core_types::shapecheck::execute("custom_action", shapecheck, process, payload)</code>. This runs the same shape-check, processing, and output-verification sequence as the engine. Calling <code>process</code> directly only tests processing and requires you to supply prepared data yourself.</p>
           <p class="doc-p">Cover valid concrete shapes, incompatible shapes, and dynamic declarations. Check that invalid inputs are rejected before processing, that partial shapes retain any known rank and dimensions, and that runtime outputs match the prediction. For Composite actions, also test missing components, incorrect kinds, and component ordering.</p>
           <p class="doc-p">Finally, load the example pipeline through a binding and run it with a matching Tensor. Try <code>Tensor[*,3]</code> in the declaration as well: the static report should identify unresolved dimensions, while execution checks the actual dimensions supplied by the host.</p>
+        </div>
+        <div id="custom-action-plugins" class="doc-section"><h3 class="doc-h3">5.8. Runtime Plugins</h3>
+          <p class="doc-p">A plugin is a shared native backend used by actions. Morflow ships the engine, actions, and plugins separately. For example, <code>image_opencv</code> supplies image actions, while <code>opencv-bridge</code> connects them to the execution machine’s shared OpenCV libraries.</p>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Declare a plugin</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">plugin</span> opencv-bridge/<span class="tok-num">0.1.0</span>
+<span class="tok-keyword">from</span> image_opencv/<span class="tok-num">0.1.0</span> <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor</span>[<span class="tok-num">480</span>,<span class="tok-num">640</span>,<span class="tok-num">3</span>] <span class="tok-var">$image</span>
+<span class="tok-var">$image</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-num">320</span>,<span class="tok-num">240</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre></div>
+          <p class="doc-p">Write an exact version or <code>plugin opencv-bridge/latest</code>. Versions are required for both plugins and action imports. Declare one version per plugin in each pipeline.</p>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Prepare and inspect dependencies</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> prep pipeline.morf
+<span class="tok-fn">morflow</span> plugins list
+<span class="tok-fn">morflow</span> check pipeline.morf</code></pre></div>
+          <p class="doc-p">Preparation installs prebuilt plugins and checks that their versions satisfy the imported actions’ requirements. Install compatible external shared libraries, such as OpenCV, through your system package manager. With a published plugin artifact, you do not compile the adapter yourself.</p>
+          <h4 class="doc-h4">Checking and execution</h4>
+          <p class="doc-p">Static checking and pipeline loading verify the local plugin artifact and its checksum without opening OpenCV. When the pipeline runs, Morflow calls <code>shapecheck</code> with the actual input, then supplies plugin access through <code>prepared.runtime</code> before calling <code>process</code>. The plugin opens its external libraries when processing requests it. Missing system libraries produce an execution error.</p>
+          <p class="doc-p">Each loaded pipeline keeps its selected plugin version. Preparing a newer <code>latest</code> release affects pipelines loaded afterward. Existing pipelines continue with their original selection.</p>
+          <h4 class="doc-h4">Developing plugins and dependent actions</h4>
+          <p class="doc-p">Create a Cargo package under <code>plugins/&lt;name&gt;/</code> with <code>crate-type = ["cdylib"]</code>, a unique library name, and <code>package.metadata.morflow.plugin</code> set to its plugin name. Build it with <code>bash scripts/build-plugins.sh</code>; the script packages exact-version binaries and receipts in <code>target/release/plugins</code>.</p>
+          <p class="doc-p">A dependent action lists plugin names and supported semantic version ranges in <code>package.metadata.morflow.plugins</code> and exports matching requirements from <code>get_required_plugins()</code>. The loader verifies this declaration against the artifact receipt. During processing, use the plugin’s typed SDK wrapper to access symbols through <code>prepared.runtime</code>. Keep plugin access out of <code>shapecheck</code> so pipelines can be checked on machines without the external library.</p>
+          <p class="doc-p">The repository’s <code>plugins/README.md</code> documents the full packaging contract. <code>plugins/opencv-bridge</code> and <code>backends/opencv</code> provide a working plugin and typed action SDK.</p>
         </div>
       </section>
     </article>
