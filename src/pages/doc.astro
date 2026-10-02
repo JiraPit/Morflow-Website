@@ -74,7 +74,6 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
           <li><a href="#plugins-use" class="docs-nav-link">5.2. Use a Plugin in a Pipeline</a></li>
           <li><a href="#plugins-lifecycle" class="docs-nav-link">5.3. Preparation, Checking &amp; Execution</a></li>
           <li><a href="#plugins-manage" class="docs-nav-link">5.4. Manage Plugins and Versions</a></li>
-          <li><a href="#plugins-develop" class="docs-nav-link">5.5. Develop a Plugin</a></li>
         </ul>
       </div>
       <div class="docs-nav-group">
@@ -1620,49 +1619,45 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
       </section>
       <section id="plugins" class="doc-section">
         <div class="doc-section-header"><p class="badge">Section 5</p><h2 class="doc-h2">5. Plugins</h2>
-          <p class="doc-p">A plugin is a shared binary used by a group of actions. It holds functionality those actions can reuse, so each action does not need its own copy. You select the plugin’s version in your pipeline, and Morflow prepares it alongside the actions that need it.</p>
+          <p class="doc-p">A plugin is a shared binary used by a group of actions. It contains code those actions reuse. Declare the plugin in your pipeline, and Morflow installs it together with the actions that need it.</p>
         </div>
         <div id="plugins-overview" class="doc-section"><h3 class="doc-h3">5.1. What a Plugin Does</h3>
-          <p class="doc-p">An action defines an operation you call in a .morf file, such as resize. A plugin contains the shared implementation or supporting functionality that a group of actions uses during processing. For example, several actions can reuse common processing routines from one plugin rather than including those routines in each action binary.</p>
-          <p class="doc-p">The engine, actions, and plugins are built and distributed separately. A plugin has its own name and version, and actions declare which plugin versions they support. This lets the shared functionality be installed once and reused across the actions that depend on it.</p>
-          <p class="doc-p">The <code>opencv-bridge</code> plugin is one example: it provides shared OpenCV operations for the <code>image_opencv</code> actions by calling the system’s OpenCV libraries. Plugins can also implement their shared functionality directly. Whether a plugin needs an external library depends on that plugin; its documentation describes any system dependencies.</p>
+          <p class="doc-p">You call actions in a .morf file. Those actions can call functions inside a plugin to do their work. This keeps common code in one shared binary instead of copying it into every action.</p>
+          <p class="doc-p">Each plugin has its own name and version. Actions declare which versions they support, and your pipeline chooses which version to use. Morflow checks that the choice is compatible with all the actions that depend on it.</p>
+          <p class="doc-p">For example, the <code>image_opencv</code> actions share the <code>opencv-bridge</code> plugin. That plugin uses an external library to perform image operations. Other plugins can provide their functionality directly; the same declaration and preparation workflow applies to both.</p>
         </div>
         <div id="plugins-use" class="doc-section"><h3 class="doc-h3">5.2. Use a Plugin in a Pipeline</h3>
-          <p class="doc-p">Declare the plugin at the top of your .morf file, then import the actions that use it. The plugin declaration selects a version; the action import selects the operations you want to call.</p>
+          <p class="doc-p">Add a <code>plugin</code> declaration before your flows, then import the actions you want to use. The example below selects a plugin and calls an action that depends on it:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>Declare a plugin</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">plugin</span> opencv-bridge/<span class="tok-num">0.1.0</span>
 <span class="tok-keyword">from</span> image_opencv/<span class="tok-num">0.1.0</span> <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Tensor</span>[<span class="tok-num">480</span>,<span class="tok-num">640</span>,<span class="tok-num">3</span>] <span class="tok-var">$image</span>
 <span class="tok-var">$image</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-num">320</span>,<span class="tok-num">240</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre></div>
 
-          <p class="doc-p">Both declarations require a version. Use an exact version such as <code>0.1.0</code>, or write <code>latest</code> explicitly. Each pipeline can declare one version of a given plugin. The selected plugin must satisfy the version requirements of every imported action that uses it.</p>
-          <p class="doc-p">On a Debian or Ubuntu execution machine, install shared OpenCV using <code>sudo apt install libopencv-dev</code>. The installed libraries must be compatible with the prebuilt plugin’s OpenCV ABI: the native interface and library versions it was built against. Other operating systems need an equivalent compatible shared OpenCV installation.</p>
+          <p class="doc-p">Always include a version in both the plugin declaration and the action import. You can select an exact release, such as <code>0.1.0</code>, or explicitly write <code>latest</code>. A pipeline selects one version of each plugin. Morflow checks that version against the requirements of the imported actions.</p>
+          <p class="doc-p">Run <code>prep</code> to download the published plugin and action binaries for your platform. Then run <code>check</code> to inspect the pipeline before executing it:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>Prepare and check the pipeline</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> prep pipeline.morf
 <span class="tok-fn">morflow</span> check pipeline.morf</code></pre></div>
-          <p class="doc-p">Once the plugin and action releases are published, preparation downloads their prebuilt binaries for your platform. You do not need to compile the plugin yourself. Load and run the pipeline through your usual Morflow binding.</p>
+          <p class="doc-p">After preparation, load and run the pipeline through your usual Morflow binding. The published binaries are ready to use; you do not need to build them yourself.</p>
+          <h4 class="doc-h4">System dependencies</h4>
+          <p class="doc-p">Some plugins need additional shared libraries on the machine that runs the pipeline. Follow that plugin’s installation instructions to choose compatible versions for your operating system. Morflow preparation installs the plugin binary; install any required system libraries separately. Missing or incompatible libraries are reported when the action tries to use the plugin during execution.</p>
         </div>
         <div id="plugins-lifecycle" class="doc-section"><h3 class="doc-h3">5.3. Preparation, Checking &amp; Execution</h3>
           <h4 class="doc-h4">During preparation</h4>
-          <p class="doc-p"><code>morflow prep</code> reads the plugin declarations and action imports, resolves their releases, and checks that the selected plugin versions meet the actions’ requirements. It downloads the required artifacts, verifies their published SHA-256 checksums, and records their identities in the local cache. Missing declarations, incompatible plugin versions, and failed verification produce an error.</p>
+          <p class="doc-p"><code>morflow prep</code> reads your declarations and finds the requested releases. It checks that the plugin versions are compatible with the actions, downloads the binaries, and verifies their checksums before saving them locally. If a required dependency cannot be prepared, the command reports an error.</p>
           <h4 class="doc-h4">During checking and loading</h4>
-          <p class="doc-p"><code>morflow check</code> and pipeline loading use the prepared local artifacts without network requests. They verify the receipts and binary checksums and select the plugin files the pipeline will use. The action’s shape check runs without loading OpenCV, so you can check or load a pipeline on a development machine where OpenCV is not installed.</p>
+          <p class="doc-p"><code>morflow check</code> and pipeline loading use those saved binaries without network requests. They verify the files and select the versions the pipeline will use. Shape checking does not load the plugin or its external libraries. You can therefore check and load a prepared pipeline on a machine without those external libraries installed.</p>
           <h4 class="doc-h4">During execution</h4>
-          <p class="doc-p">Before each action executes, the engine calls <code>shapecheck</code> with the actual input information. When the result is Ready, the engine passes the checked data and access to the selected plugins into <code>process</code>. The action requests the function it needs from its plugin, and the plugin performs the requested operation. A plugin that depends on an external library calls that library as part of its implementation.</p>
-          <p class="doc-p">The first request loads the selected plugin library and resolves the requested function. Later calls reuse the loaded library and cached function address. For plugins with external dependencies, a missing or incompatible system library produces an execution error. After processing, the engine verifies the returned output against the action’s predicted type and shape.</p>
+          <p class="doc-p">During processing, actions access the plugin version selected when the pipeline was loaded. The engine loads that binary when an action first requests one of its functions. Later calls reuse the loaded binary and function.</p>
         </div>
         <div id="plugins-manage" class="doc-section"><h3 class="doc-h3">5.4. Manage Plugins and Versions</h3>
           <div class="doc-code-card"><div class="doc-code-header"><span>Find, install, and inspect plugins</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> plugins search opencv
 <span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.0
 <span class="tok-fn">morflow</span> plugins list
 <span class="tok-fn">morflow</span> plugins clean</code></pre></div>
-          <p class="doc-p"><code>plugins search</code> searches the shipped catalog by name and prints paths you can install. It works offline and accepts <code>--limit</code>. <code>plugins install</code> prepares one plugin independently of a pipeline; use <code>--path</code> to choose its cache directory or <code>--force</code> to download it again. <code>plugins list</code> shows installed versions, including the concrete release selected for latest.</p>
-          <p class="doc-p">The default plugin cache is <code>~/.morflow/plugins</code>. Set <code>MORFLOW_PLUGINS_PATH</code> to use another location, or pass <code>--plugins-path</code> to <code>prep</code> and <code>check</code>. Action binaries remain in their separate action cache.</p>
-          <p class="doc-p">Every preparation or installation of <code>latest</code> resolves the newest stable release again. Exact versions remain installed alongside it. A loaded pipeline retains its selected plugin snapshot: refreshing latest affects pipelines loaded afterward, while an existing pipeline keeps its original selection. <code>plugins clean</code> removes prepared entries; already loaded pipelines retain their selected snapshots.</p>
-        </div>
-        <div id="plugins-develop" class="doc-section"><h3 class="doc-h3">5.5. Develop a Plugin</h3>
-          <p class="doc-p">Create a Rust package under <code>plugins/&lt;name&gt;/</code> and add it to the workspace. Use <code>crate-type = ["cdylib"]</code>, give the library a unique name, and set <code>package.metadata.morflow.plugin</code> to the plugin name. Export the native functions your dependent actions will call. The plugin and its action SDK must agree on function signatures, buffer ownership, and error handling.</p>
-          <p class="doc-p">Build and package plugins from the repository root with <code>bash scripts/build-plugins.sh</code>, or select one with <code>bash scripts/build-plugins.sh opencv-bridge</code>. The script creates exact-version binaries and receipts under <code>target/release/plugins</code>. Set <code>MORFLOW_PLUGINS_PATH</code> to that directory for local development. The release workflow publishes platform binaries and checksums under tags such as <code>plugins/opencv-bridge/v0.1.0</code>.</p>
-          <p class="doc-p">Put the functionality shared by your actions in the plugin and expose it through a documented native interface. If the plugin uses external libraries, keep them dynamically linked and document the compatible system dependencies users need. Provide a typed Rust wrapper for action developers so individual actions do not repeat function lookup and unsafe native calls. The repository’s <code>plugins/opencv-bridge</code> and <code>backends/opencv</code> show the plugin and its shared action SDK. See <a href="#custom-action-plugins">Declare Plugin Requirements</a> for the action side of the integration.</p>
+          <p class="doc-p">Use <code>plugins search</code> to find a plugin in the shipped catalog. Use <code>plugins install</code> when you want to install one without preparing a pipeline. <code>plugins list</code> shows what is installed, and <code>plugins clean</code> removes prepared entries. The <a href="#cli-plugins">CLI reference</a> explains the options for each command.</p>
+          <p class="doc-p">Plugins are saved in <code>~/.morflow/plugins</code> by default, separately from actions. Set <code>MORFLOW_PLUGINS_PATH</code> to use another directory. You can also pass <code>--plugins-path</code> to <code>prep</code> and <code>check</code>.</p>
+          <p class="doc-p">An exact version stays tied to that release. Each time you prepare or install <code>latest</code>, Morflow checks for the newest stable release. Reload a pipeline to use the refreshed version; an already loaded pipeline keeps its selected binary, even after the prepared cache entry is cleaned.</p>
         </div>
       </section>
       <section id="custom-action" class="doc-section">
