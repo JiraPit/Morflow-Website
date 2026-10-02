@@ -290,11 +290,11 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
 <span class="tok-fn">morflow</span> plugins search opencv --limit 5
 
 <span class="tok-comment"># Install an exact version, or explicitly request latest</span>
-<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.0
+<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.2
 <span class="tok-fn">morflow</span> plugins install opencv-bridge/latest
 
 <span class="tok-comment"># Choose a cache and force a fresh download</span>
-<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.0 --path ./plugins_cache --force
+<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.2 --path ./plugins_cache --force
 
 <span class="tok-comment"># Inspect verified entries in that cache</span>
 <span class="tok-fn">morflow</span> plugins list --path ./plugins_cache</code></pre></div>
@@ -1628,8 +1628,8 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         </div>
         <div id="plugins-use" class="doc-section"><h3 class="doc-h3">5.2. Use a Plugin in a Pipeline</h3>
           <p class="doc-p">Add a <code>plugin</code> declaration before your flows, then import the actions you want to use. The example below selects a plugin and calls an action that depends on it:</p>
-          <div class="doc-code-card"><div class="doc-code-header"><span>Declare a plugin</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">plugin</span> opencv-bridge/<span class="tok-num">0.1.0</span>
-<span class="tok-keyword">from</span> image_opencv/<span class="tok-num">0.1.0</span> <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Declare a plugin</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">plugin</span> opencv-bridge/<span class="tok-num">0.1.2</span>
+<span class="tok-keyword">from</span> image_opencv/<span class="tok-num">0.1.2</span> <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Tensor</span>[<span class="tok-num">480</span>,<span class="tok-num">640</span>,<span class="tok-num">3</span>] <span class="tok-var">$image</span>
 <span class="tok-var">$image</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-num">320</span>,<span class="tok-num">240</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre></div>
@@ -1640,7 +1640,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
 <span class="tok-fn">morflow</span> check pipeline.morf</code></pre></div>
           <p class="doc-p">After preparation, load and run the pipeline through your usual Morflow binding. The published binaries are ready to use; you do not need to build them yourself.</p>
           <h4 class="doc-h4">System dependencies</h4>
-          <p class="doc-p">Some plugins need additional shared libraries on the machine that runs the pipeline. Follow that plugin’s installation instructions to choose compatible versions for your operating system. Morflow preparation installs the plugin binary; install any required system libraries separately. Missing or incompatible libraries are reported when the action tries to use the plugin during execution.</p>
+          <p class="doc-p">Some plugins need additional shared libraries on the machine that runs the pipeline. For example, the <code>openblas</code> plugin shares numerical routines across the BLAS action packs and loads a system OpenBLAS installation. Follow that plugin’s installation instructions to choose compatible versions for your operating system. Morflow preparation installs the plugin binary; install any required system libraries separately. Missing or incompatible libraries are reported when the action tries to use the plugin during execution.</p>
         </div>
         <div id="plugins-lifecycle" class="doc-section"><h3 class="doc-h3">5.3. Preparation, Checking &amp; Execution</h3>
           <h4 class="doc-h4">During preparation</h4>
@@ -1652,7 +1652,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         </div>
         <div id="plugins-manage" class="doc-section"><h3 class="doc-h3">5.4. Manage Plugins and Versions</h3>
           <div class="doc-code-card"><div class="doc-code-header"><span>Find, install, and inspect plugins</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> plugins search opencv
-<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.0
+<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.2
 <span class="tok-fn">morflow</span> plugins list
 <span class="tok-fn">morflow</span> plugins clean</code></pre></div>
           <p class="doc-p">Use <code>plugins search</code> to find a plugin in the shipped catalog. Use <code>plugins install</code> when you want to install one without preparing a pipeline. <code>plugins list</code> shows what is installed, and <code>plugins clean</code> removes prepared entries. The <a href="#cli-plugins">CLI reference</a> explains the options for each command.</p>
@@ -1776,7 +1776,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
 <span class="tok-param">name</span> = <span class="tok-str">"opencv-bridge"</span>
 <span class="tok-param">version</span> = <span class="tok-str">"^0.1.0"</span></code></pre></div>
           <h4 class="doc-h4">Export the same requirement from the action</h4>
-          <p class="doc-p">The engine reads <code>get_required_plugins</code> when it loads the action and verifies that its requirements match the packaged receipt. Keep the exported names and ranges identical to Cargo.toml. A shared action SDK can provide this list for all actions that use the same plugin.</p>
+          <p class="doc-p">The engine reads <code>get_required_plugins</code> when it loads the action and verifies that its requirements match the packaged receipt. Keep the exported names and ranges identical to Cargo.toml. Define this export inside each action that requires the plugin.</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>src/lib.rs — additional export</span><span>rust</span></div><pre class="doc-code-pre"><code><span class="tok-param">#[no_mangle]</span>
 <span class="tok-keyword">pub extern</span> <span class="tok-str">"C"</span> <span class="tok-keyword">fn</span> <span class="tok-fn">get_required_plugins</span>()
     <span class="tok-op">-&gt;</span> core_types::<span class="tok-type">RVec</span>&lt;core_types::plugins::<span class="tok-type">PluginRequirement</span>&gt; &#123;
@@ -1786,8 +1786,8 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
     &#125;].<span class="tok-fn">into</span>()
 &#125;</code></pre></div>
           <h4 class="doc-h4">Access the plugin during processing</h4>
-          <p class="doc-p">After a successful runtime shape check, the engine provides the selected plugins through <code>prepared.runtime</code>. Use your plugin’s typed SDK wrapper inside <code>process</code>. For example, OpenCV actions delegate to <code>morflow_opencv::process</code>, which requests <code>morflow_opencv_process</code> from the declared <code>opencv-bridge</code> plugin and calls it using the agreed native signature.</p>
-          <p class="doc-p">At the lower level, <code>RuntimeContext::symbol(plugin_name, function_name)</code> returns a native function address or an error. Converting that address into a callable function is unsafe and must use the plugin’s exact documented signature. Put this conversion and buffer handling in the shared SDK wrapper, then return a useful <code>Payload::Error</code> if plugin access or processing fails.</p>
+          <p class="doc-p">After a successful runtime shape check, the engine provides the selected plugins through <code>prepared.runtime</code>. Call the plugin through a private, typed wrapper inside the action’s <code>process</code> implementation. For example, an OpenCV action’s processing code requests <code>morflow_opencv_process</code> from the declared <code>opencv-bridge</code> plugin and calls it using the agreed native signature. The action and plugin compile the same plugin-owned interface definition, which specifies the operation identifiers, parameter layout, and function signature.</p>
+          <p class="doc-p">At the lower level, <code>RuntimeContext::symbol(plugin_name, function_name)</code> returns a native function address or an error. Converting that address into a callable function is unsafe and must use the plugin’s exact documented signature. Keep this conversion and buffer handling in a private wrapper inside the action, then return a useful <code>Payload::Error</code> if plugin access or processing fails.</p>
           <p class="doc-p">Keep plugin lookup and external-library checks out of <code>shapecheck</code>. That function checks the input description and arguments; it must work on a machine without the external library. Initialize <code>PreparedData.runtime</code> with <code>None.into()</code> when constructing checked data. The engine fills it before processing, so pipeline authors do not pass this context themselves.</p>
           <h4 class="doc-h4">Package and test the dependency</h4>
           <p class="doc-p">The action packaging script includes the Cargo plugin requirements in the artifact receipt and <code>&lt;action&gt;_METADATA.json</code>. Publish the metadata and its checksum with the action binary. Preparation uses it to reject missing declarations or incompatible plugin versions before installing the required artifacts.</p>
