@@ -1619,7 +1619,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
       </section>
       <section id="plugins" class="doc-section">
         <div class="doc-section-header"><p class="badge">Section 5</p><h2 class="doc-h2">5. Plugins</h2>
-          <p class="doc-p">A plugin is a shared binary used by a group of actions. It contains code those actions reuse. Declare the plugin in your pipeline, and Morflow installs it together with the actions that need it.</p>
+          <p class="doc-p">Most actions are self-contained and do not need a plugin, but some share an implementation or rely on an external library. These actions use a plugin—a shared binary that keeps common code in one place instead of duplicating it in every action. To use them, declare the required plugin in your pipeline and run <code>morflow prep</code> to install it alongside the actions.</p>
         </div>
         <div id="plugins-overview" class="doc-section"><h3 class="doc-h3">5.1. What a Plugin Does</h3>
           <p class="doc-p">You call actions in a .morf file. Those actions can call functions inside a plugin to do their work. This keeps common code in one shared binary instead of copying it into every action.</p>
