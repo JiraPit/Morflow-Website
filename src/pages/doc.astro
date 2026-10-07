@@ -1619,12 +1619,11 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
       </section>
       <section id="plugins" class="doc-section">
         <div class="doc-section-header"><p class="badge">Section 5</p><h2 class="doc-h2">5. Plugins</h2>
-          <p class="doc-p">Most actions are self-contained and do not need a plugin, but some share an implementation or rely on an external library. These actions use a plugin—a shared binary that keeps common code in one place instead of duplicating it in every action. To use them, declare the required plugin in your pipeline and run <code>morflow prep</code> to install it alongside the actions.</p>
+          <p class="doc-p">Most Morflow actions include all the code they need to run, so you can use them without installing a plugin. However, when several actions need the same functionality, they can share it through a plugin rather than include a separate copy in every action binary.</p>
         </div>
         <div id="plugins-overview" class="doc-section"><h3 class="doc-h3">5.1. What a Plugin Does</h3>
-          <p class="doc-p">You call actions in a .morf file. Those actions can call functions inside a plugin to do their work. This keeps common code in one shared binary instead of copying it into every action.</p>
-          <p class="doc-p">Each plugin has its own name and version. Actions declare which versions they support, and your pipeline chooses which version to use. Morflow checks that the choice is compatible with all the actions that depend on it.</p>
-          <p class="doc-p">For example, the <code>image_opencv</code> actions share the <code>opencv-bridge</code> plugin. That plugin uses an external library to perform image operations. Other plugins can provide their functionality directly; the same declaration and preparation workflow applies to both.</p>
+          <p class="doc-p">A plugin is a shared binary that provides functionality to the actions that depend on it. When those actions run, they call the plugin's functions, which may perform the work directly or use an external library installed on your machine. You still call the actions in your <code>.morf</code> pipeline as usual, while the actions handle their interaction with the plugin.</p>
+          <p class="doc-p">Because plugins are installed separately from actions, your pipeline must declare which plugin version to use. Each action specifies the versions it supports, and Morflow checks your selection against those requirements to ensure that the plugin is compatible with every action that needs it.</p>
         </div>
         <div id="plugins-use" class="doc-section"><h3 class="doc-h3">5.2. Use a Plugin in a Pipeline</h3>
           <p class="doc-p">Add a <code>plugin</code> declaration before your flows, then import the actions you want to use. The example below selects a plugin and calls an action that depends on it:</p>
