@@ -1674,8 +1674,8 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
 <span class="tok-param">crate-type</span> = [<span class="tok-str">"cdylib"</span>]
 
 [<span class="tok-param">dependencies</span>]
-<span class="tok-param">core_types</span> = &#123; <span class="tok-param">path</span> = <span class="tok-str">"../../../core_types"</span> &#125;</code></pre></div>
-          <p class="doc-p">Add <code>"actions/custom_pack/custom_action"</code> to the root Cargo workspace’s <code>members</code> list. <code>cdylib</code> tells Cargo to build a library that Morflow can load. The dependency path above points to the checkout’s shared <code>core_types</code> crate.</p>
+<span class="tok-param">core_types</span> = &#123; <span class="tok-param">package</span> = <span class="tok-str">"morflow-core-types"</span>, <span class="tok-param">version</span> = <span class="tok-str">"0.4.2"</span> &#125;</code></pre></div>
+          <p class="doc-p">Add <code>"actions/custom_pack/custom_action"</code> to the root Cargo workspace’s <code>members</code> list. <code>cdylib</code> tells Cargo to build a library that Morflow can load. The dependency above uses the published <code>morflow-core-types</code> package under the name <code>core_types</code>, which is also used by the Rust code below.</p>
           <p class="doc-p">Start with this complete pass-through action. It accepts a Tensor and returns it with the same shape. The four exported functions are the action’s public interface; <code>dimensions</code> is an ordinary Rust helper:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>src/lib.rs</span><span>rust</span></div><pre class="doc-code-pre"><code><span class="tok-comment">// actions/custom_pack/custom_action/src/lib.rs</span>
 <span class="tok-keyword">use</span> core_types::&#123;<span class="tok-type">ActionArgs</span>, <span class="tok-type">DataType</span>, <span class="tok-type">InputDescriptor</span>, <span class="tok-type">Payload</span>, <span class="tok-type">PreparedData</span>,
@@ -1762,7 +1762,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         <div id="custom-action-testing" class="doc-section"><h3 class="doc-h3">6.7. Test the Action</h3>
           <p class="doc-p">Save the import example as <code>custom_pipeline.morf</code>. Check it with the same action cache you will use for execution:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>Check your pipeline</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">cargo</span> test -p custom_action
-<span class="tok-fn">cargo</span> run -p pipeline -- check custom_pipeline.morf</code></pre></div>
+<span class="tok-fn">cargo</span> run -p morflow -- check custom_pipeline.morf</code></pre></div>
           <p class="doc-p">For runtime unit tests, call <code>core_types::shapecheck::execute("custom_action", shapecheck, process, payload)</code>. This runs the same shape-check, processing, and output-verification sequence as the engine. Calling <code>process</code> directly only tests processing and requires you to supply prepared data yourself.</p>
           <p class="doc-p">Cover valid concrete shapes, incompatible shapes, and dynamic declarations. Check that invalid inputs are rejected before processing, that partial shapes retain any known rank and dimensions, and that runtime outputs match the prediction. For Composite actions, also test missing components, incorrect kinds, and component ordering.</p>
           <p class="doc-p">Finally, load the example pipeline through a binding and run it with a matching Tensor. Try <code>Tensor[*,3]</code> in the declaration as well: the static report should identify unresolved dimensions, while execution checks the actual dimensions supplied by the host.</p>
