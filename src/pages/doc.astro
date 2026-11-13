@@ -63,8 +63,7 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
         <ul class="docs-nav-list">
           <li><a href="#dtypes-supported" class="docs-nav-link">4.1. Supported DTypes</a></li>
           <li><a href="#dtypes-actions" class="docs-nav-link">4.2. DTypes of Numeric Actions</a></li>
-          <li><a href="#dtypes-two-tensor" class="docs-nav-link">4.3. Two-Tensor Arithmetic &amp; Promotion</a></li>
-          <li><a href="#dtypes-sdk" class="docs-nav-link">4.4. DTypes in the Host SDKs</a></li>
+          <li><a href="#dtypes-promotion" class="docs-nav-link">4.3. Promotion Between Two Tensors</a></li>
         </ul>
       </div>
 
@@ -75,6 +74,7 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
           <li><a href="#exec-js" class="docs-nav-link">5.2. JavaScript / Node.js</a></li>
           <li><a href="#exec-java" class="docs-nav-link">5.3. Java</a></li>
           <li><a href="#exec-rust" class="docs-nav-link">5.4. Rust</a></li>
+          <li><a href="#exec-dtypes" class="docs-nav-link">5.5. DTypes in the Host SDKs</a></li>
         </ul>
       </div>
       <div class="docs-nav-group">
@@ -1170,6 +1170,27 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           <p class="doc-p" style="margin-top: 16px;">
             <strong>Behavior with each:</strong> Does not work with each.
           </p>
+
+          <p class="doc-p">
+            <strong>Two-Tensor Arithmetic:</strong> Besides the scalar-argument form (<code>add(value=1.5)</code>), <code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code>, and <code>pow</code> accept a two-component Composite <code>[a, b]</code> and compute <code>a + b</code>, <code>a - b</code>, <code>a * b</code>, <code>a / b</code>, or <code>a ** b</code> element by element. The two tensors broadcast like NumPy: dimensions are matched from the last axis, and an axis of length 1, or a missing axis, stretches to fit. Either side can be a Scalar, and the result is a Scalar only if both are. A Composite with any other number of components, or a Composite together with a scalar argument, is an error.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>two_tensor.morf</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> math_basics/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Composite[Tensor[*, 3], Tensor[3]]</span> <span class="tok-var">$pair</span>
+
+<span class="tok-comment"># a + b, broadcasting b across every row of a</span>
+<span class="tok-var">$pair</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">add</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
+          </div>
+
+          <p class="doc-p">
+            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#exec-dtypes" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>). The dtype of the result follows the promotion rules in <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>.
+          </p>
         </div>
 
         <!-- 3.8: CONFIGURATION ARGUMENTS -->
@@ -1549,7 +1570,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
                   <td><code>argmin</code>, <code>argmax</code></td>
                 </tr>
                 <tr>
-                  <td>Promoted from both inputs (see <a href="#dtypes-two-tensor" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>)</td>
+                  <td>Promoted from both inputs (see <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>)</td>
                   <td><code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code>, and <code>pow</code> on two tensors, and <code>cosine_similarity</code></td>
                 </tr>
               </tbody>
@@ -1577,32 +1598,11 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           </div>
         </div>
 
-        <!-- 4.3: TWO-TENSOR ARITHMETIC & PROMOTION -->
-        <div id="dtypes-two-tensor" class="doc-section">
-          <h3 class="doc-h3">4.3. Two-Tensor Arithmetic &amp; Promotion</h3>
+        <!-- 4.3: PROMOTION BETWEEN TWO TENSORS -->
+        <div id="dtypes-promotion" class="doc-section">
+          <h3 class="doc-h3">4.3. Promotion Between Two Tensors</h3>
           <p class="doc-p">
-            Besides the scalar-argument form (<code>add(value=1.5)</code>), <code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code>, and <code>pow</code> accept a two-component Composite <code>[a, b]</code> and compute <code>a + b</code>, <code>a - b</code>, <code>a * b</code>, <code>a / b</code>, or <code>a ** b</code> element by element. The two tensors broadcast like NumPy: dimensions are matched from the last axis, and an axis of length 1, or a missing axis, stretches to fit. Either side can be a Scalar, and the result is a Scalar only if both are. A Composite with any other number of components, or a Composite together with a scalar argument, is an error.
-          </p>
-
-          <div class="doc-code-card">
-            <div class="doc-code-header">
-              <span>two_tensor.morf</span>
-              <span>morf</span>
-            </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> math_basics/latest
-
-<span class="tok-keyword">accept</span> <span class="tok-type">Composite[Tensor[*, 3], Tensor[3]]</span> <span class="tok-var">$pair</span>
-
-<span class="tok-comment"># a + b, broadcasting b across every row of a</span>
-<span class="tok-var">$pair</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">add</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
-          </div>
-
-          <p class="doc-p">
-            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#dtypes-sdk" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.4</a>).
-          </p>
-
-          <p class="doc-p">
-            The result dtype is promoted from both inputs:
+            When <code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code>, or <code>pow</code> combine two tensors (see <a href="#types-composite" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.7</a>), and in <code>cosine_similarity</code>, the result dtype is promoted from both inputs:
           </p>
           <div class="doc-table-container">
             <table class="doc-table">
@@ -1636,119 +1636,6 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           <p class="doc-p" style="margin-top: 16px;">
             <code>div</code> and <code>cosine_similarity</code> turn an integer result into <code>f64</code>. Integer overflow in <code>add</code>, <code>sub</code>, <code>mul</code>, and <code>pow</code> wraps like NumPy.
           </p>
-        </div>
-
-        <!-- 4.4: DTYPES IN THE HOST SDKS -->
-        <div id="dtypes-sdk" class="doc-section">
-          <h3 class="doc-h3">4.4. DTypes in the Host SDKs</h3>
-          <p class="doc-p">
-            Every SDK passes tensors of all nine dtypes in and returns results with their dtype, and each can send and receive a Composite:
-          </p>
-          <div class="doc-table-container">
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th>SDK</th>
-                  <th>Tensor of a DType</th>
-                  <th>Composite</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Python</td>
-                  <td>A NumPy array of that dtype, returned as an array of the same dtype. A <code>float64</code> array stays <code>f64</code>; <code>morflow.Image</code> and <code>morflow.Audio</code> convert it to <code>f32</code>.</td>
-                  <td>Pass a list or tuple, such as <code>pipeline.run([a, b])</code>; a Composite result is a list.</td>
-                </tr>
-                <tr>
-                  <td>JavaScript</td>
-                  <td>A typed array carries its dtype (<code>Float64Array</code> is <code>f64</code>, <code>BigInt64Array</code> is <code>i64</code>); a Buffer needs <code>&#123; data, shape, dtype &#125;</code>. Results have a <code>dtype</code> and <code>toTypedArray()</code>, <code>toFloat64Array()</code>, <code>toBigInt64Array()</code>, and similar getters.</td>
-                  <td>Pass an array, such as <code>pipeline.run([a, b])</code>; a Composite result is an array (in TypeScript, <code>run&lt;MorflowTensor[]&gt;(…)</code>).</td>
-                </tr>
-                <tr>
-                  <td>Java</td>
-                  <td><code>MorflowTensor.fromDoubleArray</code>, <code>fromLongArray</code>, <code>fromIntArray</code>, <code>fromShortArray</code>, <code>fromFloatArray</code>, <code>fromByteArray</code>, or <code>fromDirectBuffer(buffer, shape, "u32")</code> for the others. Read results with <code>getDtype()</code> and <code>toDoubleArray()</code>, <code>toLongArray()</code>, and similar.</td>
-                  <td>Pass <code>MorflowTensor.composite(a, b)</code>; a Composite result has <code>isComposite()</code> and <code>getItems()</code>.</td>
-                </tr>
-                <tr>
-                  <td>Rust</td>
-                  <td><code>Tensor::from_vec_of(values, shape)</code> for any element type; read with <code>to_vec_of::&lt;T&gt;()</code> and <code>dtype.name()</code>.</td>
-                  <td><code>Payload::Composite(RVec::from(vec![...]))</code></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <p class="doc-p" style="margin-top: 16px;">
-            An unknown dtype name is an error. In Python, a plain list of numbers is a Composite of numbers rather than a tensor, so build tensors with <code>np.array</code>. Each example below runs <code>two_tensor.morf</code> from <a href="#dtypes-two-tensor" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a> on two <code>i32</code> tensors:
-          </p>
-
-          <div class="doc-code-card">
-            <div class="doc-code-header">
-              <span>Two-Tensor Arithmetic in Python</span>
-              <span>python</span>
-            </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> numpy <span class="tok-keyword">as</span> np
-<span class="tok-keyword">import</span> morflow
-
-pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)
-a = np.<span class="tok-fn">array</span>([[<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>], [<span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>]], dtype=np.int32)
-b = np.<span class="tok-fn">array</span>([<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>], dtype=np.int32)
-
-<span class="tok-comment"># A list is sent as a Composite, so [a, b] feeds add</span>
-total = pipeline.<span class="tok-fn">run</span>([a, b])
-<span class="tok-fn">print</span>(total.dtype, total)  <span class="tok-comment"># int32 [[11 22 33] [14 25 36]]</span></code></pre>
-          </div>
-
-          <div class="doc-code-card">
-            <div class="doc-code-header">
-              <span>Two-Tensor Arithmetic in Node.js</span>
-              <span>javascript</span>
-            </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
-
-<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'two_tensor.morf'</span>);
-<span class="tok-keyword">const</span> a = &#123; data: <span class="tok-keyword">new</span> Int32Array([<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>]), shape: [<span class="tok-num">2</span>, <span class="tok-num">3</span>] &#125;;
-<span class="tok-keyword">const</span> b = <span class="tok-keyword">new</span> Int32Array([<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>]);  <span class="tok-comment">// a typed array carries its dtype</span>
-
-<span class="tok-comment">// An array is sent as a Composite</span>
-<span class="tok-keyword">const</span> total = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>([a, b]);
-console.<span class="tok-fn">log</span>(total.dtype, total.<span class="tok-fn">toInt32Array</span>());  <span class="tok-comment">// i32 Int32Array(6) [11, 22, 33, 14, 25, 36]</span></code></pre>
-          </div>
-
-          <div class="doc-code-card">
-            <div class="doc-code-header">
-              <span>Two-Tensor Arithmetic in Java</span>
-              <span>java</span>
-            </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">try</span> (Pipeline pipeline = Morflow.<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)) &#123;
-    MorflowTensor pair = MorflowTensor.<span class="tok-fn">composite</span>(
-        MorflowTensor.<span class="tok-fn">fromIntArray</span>(<span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>&#125;, <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">2</span>, <span class="tok-num">3</span>&#125;),
-        MorflowTensor.<span class="tok-fn">fromIntArray</span>(<span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>&#125;, <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">3</span>&#125;));
-    MorflowTensor total = pipeline.<span class="tok-fn">run</span>(pair);
-    System.out.<span class="tok-fn">println</span>(total.<span class="tok-fn">getDtype</span>() + <span class="tok-str">" "</span> + Arrays.<span class="tok-fn">toString</span>(total.<span class="tok-fn">toIntArray</span>()));  <span class="tok-comment">// i32 [11, 22, 33, 14, 25, 36]</span>
-&#125;</code></pre>
-          </div>
-
-          <div class="doc-code-card">
-            <div class="doc-code-header">
-              <span>Two-Tensor Arithmetic in Rust</span>
-              <span>rust</span>
-            </div>
-            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> morflow::&#123;Morflow, Payload, RVec, Tensor&#125;;
-
-<span class="tok-keyword">fn</span> <span class="tok-fn">main</span>() -&gt; Result&lt;(), Box&lt;<span class="tok-keyword">dyn</span> std::error::Error&gt;&gt; &#123;
-    <span class="tok-keyword">let mut</span> pipeline = Morflow::<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)?;
-    <span class="tok-keyword">let</span> a = Tensor::<span class="tok-fn">from_vec_of</span>(<span class="tok-fn">vec!</span>[<span class="tok-num">1i32</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>], <span class="tok-fn">vec!</span>[<span class="tok-num">2</span>, <span class="tok-num">3</span>]).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
-    <span class="tok-keyword">let</span> b = Tensor::<span class="tok-fn">from_vec_of</span>(<span class="tok-fn">vec!</span>[<span class="tok-num">10i32</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>], <span class="tok-fn">vec!</span>[<span class="tok-num">3</span>]).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
-
-    <span class="tok-comment">// A Composite holds the two tensors in order</span>
-    <span class="tok-keyword">let</span> pair = Payload::Composite(RVec::<span class="tok-fn">from</span>(<span class="tok-fn">vec!</span>[Payload::Tensor(a), Payload::Tensor(b)]));
-    <span class="tok-keyword">if let</span> Payload::Tensor(total) = pipeline.<span class="tok-fn">run</span>(pair)?.<span class="tok-fn">into_single</span>()? &#123;
-        <span class="tok-fn">println!</span>(<span class="tok-str">"&#123;&#125; &#123;:?&#125;"</span>, total.dtype.<span class="tok-fn">name</span>(), total.<span class="tok-fn">to_vec_of</span>::&lt;i32&gt;());  <span class="tok-comment">// i32 Some([11, 22, 33, 14, 25, 36])</span>
-    &#125;
-    Ok(())
-&#125;</code></pre>
-          </div>
         </div>
       </section>
 
@@ -1995,6 +1882,118 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         fs::write(<span class="tok-str">"output.wav"</span>, buffer.as_slice())?;
     &#125;
 
+    Ok(())
+&#125;</code></pre>
+          </div>
+        </div>
+        <!-- 5.5: DTYPES IN THE HOST SDKS -->
+        <div id="exec-dtypes" class="doc-section">
+          <h3 class="doc-h3">5.5. DTypes in the Host SDKs</h3>
+          <p class="doc-p">
+            Every SDK passes tensors of all nine dtypes in and returns results with their dtype, and each can send and receive a Composite:
+          </p>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>SDK</th>
+                  <th>Tensor of a DType</th>
+                  <th>Composite</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Python</td>
+                  <td>A NumPy array of that dtype, returned as an array of the same dtype. A <code>float64</code> array stays <code>f64</code>; <code>morflow.Image</code> and <code>morflow.Audio</code> convert it to <code>f32</code>.</td>
+                  <td>Pass a list or tuple, such as <code>pipeline.run([a, b])</code>; a Composite result is a list.</td>
+                </tr>
+                <tr>
+                  <td>JavaScript</td>
+                  <td>A typed array carries its dtype (<code>Float64Array</code> is <code>f64</code>, <code>BigInt64Array</code> is <code>i64</code>); a Buffer needs <code>&#123; data, shape, dtype &#125;</code>. Results have a <code>dtype</code> and <code>toTypedArray()</code>, <code>toFloat64Array()</code>, <code>toBigInt64Array()</code>, and similar getters.</td>
+                  <td>Pass an array, such as <code>pipeline.run([a, b])</code>; a Composite result is an array (in TypeScript, <code>run&lt;MorflowTensor[]&gt;(…)</code>).</td>
+                </tr>
+                <tr>
+                  <td>Java</td>
+                  <td><code>MorflowTensor.fromDoubleArray</code>, <code>fromLongArray</code>, <code>fromIntArray</code>, <code>fromShortArray</code>, <code>fromFloatArray</code>, <code>fromByteArray</code>, or <code>fromDirectBuffer(buffer, shape, "u32")</code> for the others. Read results with <code>getDtype()</code> and <code>toDoubleArray()</code>, <code>toLongArray()</code>, and similar.</td>
+                  <td>Pass <code>MorflowTensor.composite(a, b)</code>; a Composite result has <code>isComposite()</code> and <code>getItems()</code>.</td>
+                </tr>
+                <tr>
+                  <td>Rust</td>
+                  <td><code>Tensor::from_vec_of(values, shape)</code> for any element type; read with <code>to_vec_of::&lt;T&gt;()</code> and <code>dtype.name()</code>.</td>
+                  <td><code>Payload::Composite(RVec::from(vec![...]))</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="doc-p" style="margin-top: 16px;">
+            An unknown dtype name is an error. In Python, a plain list of numbers is a Composite of numbers rather than a tensor, so build tensors with <code>np.array</code>. Each example below runs <code>two_tensor.morf</code> from <a href="#types-composite" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 3.7</a> on two <code>i32</code> tensors:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Python</span>
+              <span>python</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> numpy <span class="tok-keyword">as</span> np
+<span class="tok-keyword">import</span> morflow
+
+pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)
+a = np.<span class="tok-fn">array</span>([[<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>], [<span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>]], dtype=np.int32)
+b = np.<span class="tok-fn">array</span>([<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>], dtype=np.int32)
+
+<span class="tok-comment"># A list is sent as a Composite, so [a, b] feeds add</span>
+total = pipeline.<span class="tok-fn">run</span>([a, b])
+<span class="tok-fn">print</span>(total.dtype, total)  <span class="tok-comment"># int32 [[11 22 33] [14 25 36]]</span></code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Node.js</span>
+              <span>javascript</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
+
+<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'two_tensor.morf'</span>);
+<span class="tok-keyword">const</span> a = &#123; data: <span class="tok-keyword">new</span> Int32Array([<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>]), shape: [<span class="tok-num">2</span>, <span class="tok-num">3</span>] &#125;;
+<span class="tok-keyword">const</span> b = <span class="tok-keyword">new</span> Int32Array([<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>]);  <span class="tok-comment">// a typed array carries its dtype</span>
+
+<span class="tok-comment">// An array is sent as a Composite</span>
+<span class="tok-keyword">const</span> total = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>([a, b]);
+console.<span class="tok-fn">log</span>(total.dtype, total.<span class="tok-fn">toInt32Array</span>());  <span class="tok-comment">// i32 Int32Array(6) [11, 22, 33, 14, 25, 36]</span></code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Java</span>
+              <span>java</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">try</span> (Pipeline pipeline = Morflow.<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)) &#123;
+    MorflowTensor pair = MorflowTensor.<span class="tok-fn">composite</span>(
+        MorflowTensor.<span class="tok-fn">fromIntArray</span>(<span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>&#125;, <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">2</span>, <span class="tok-num">3</span>&#125;),
+        MorflowTensor.<span class="tok-fn">fromIntArray</span>(<span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>&#125;, <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">3</span>&#125;));
+    MorflowTensor total = pipeline.<span class="tok-fn">run</span>(pair);
+    System.out.<span class="tok-fn">println</span>(total.<span class="tok-fn">getDtype</span>() + <span class="tok-str">" "</span> + Arrays.<span class="tok-fn">toString</span>(total.<span class="tok-fn">toIntArray</span>()));  <span class="tok-comment">// i32 [11, 22, 33, 14, 25, 36]</span>
+&#125;</code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Rust</span>
+              <span>rust</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> morflow::&#123;Morflow, Payload, RVec, Tensor&#125;;
+
+<span class="tok-keyword">fn</span> <span class="tok-fn">main</span>() -&gt; Result&lt;(), Box&lt;<span class="tok-keyword">dyn</span> std::error::Error&gt;&gt; &#123;
+    <span class="tok-keyword">let mut</span> pipeline = Morflow::<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)?;
+    <span class="tok-keyword">let</span> a = Tensor::<span class="tok-fn">from_vec_of</span>(<span class="tok-fn">vec!</span>[<span class="tok-num">1i32</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>], <span class="tok-fn">vec!</span>[<span class="tok-num">2</span>, <span class="tok-num">3</span>]).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
+    <span class="tok-keyword">let</span> b = Tensor::<span class="tok-fn">from_vec_of</span>(<span class="tok-fn">vec!</span>[<span class="tok-num">10i32</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>], <span class="tok-fn">vec!</span>[<span class="tok-num">3</span>]).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
+
+    <span class="tok-comment">// A Composite holds the two tensors in order</span>
+    <span class="tok-keyword">let</span> pair = Payload::Composite(RVec::<span class="tok-fn">from</span>(<span class="tok-fn">vec!</span>[Payload::Tensor(a), Payload::Tensor(b)]));
+    <span class="tok-keyword">if let</span> Payload::Tensor(total) = pipeline.<span class="tok-fn">run</span>(pair)?.<span class="tok-fn">into_single</span>()? &#123;
+        <span class="tok-fn">println!</span>(<span class="tok-str">"&#123;&#125; &#123;:?&#125;"</span>, total.dtype.<span class="tok-fn">name</span>(), total.<span class="tok-fn">to_vec_of</span>::&lt;i32&gt;());  <span class="tok-comment">// i32 Some([11, 22, 33, 14, 25, 36])</span>
+    &#125;
     Ok(())
 &#125;</code></pre>
           </div>
