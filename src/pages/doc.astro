@@ -59,34 +59,44 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
       </div>
 
       <div class="docs-nav-group">
-        <a href="#exec" class="docs-nav-title">4. Pipeline Execution</a>
+        <a href="#dtypes" class="docs-nav-title">4. Tensor DTypes</a>
         <ul class="docs-nav-list">
-          <li><a href="#exec-python" class="docs-nav-link">4.1. Python</a></li>
-          <li><a href="#exec-js" class="docs-nav-link">4.2. JavaScript / Node.js</a></li>
-          <li><a href="#exec-java" class="docs-nav-link">4.3. Java</a></li>
-          <li><a href="#exec-rust" class="docs-nav-link">4.4. Rust</a></li>
+          <li><a href="#dtypes-supported" class="docs-nav-link">4.1. Supported DTypes</a></li>
+          <li><a href="#dtypes-actions" class="docs-nav-link">4.2. DTypes of Numeric Actions</a></li>
+          <li><a href="#dtypes-two-tensor" class="docs-nav-link">4.3. Two-Tensor Arithmetic &amp; Promotion</a></li>
+          <li><a href="#dtypes-sdk" class="docs-nav-link">4.4. DTypes in the Host SDKs</a></li>
+        </ul>
+      </div>
+
+      <div class="docs-nav-group">
+        <a href="#exec" class="docs-nav-title">5. Pipeline Execution</a>
+        <ul class="docs-nav-list">
+          <li><a href="#exec-python" class="docs-nav-link">5.1. Python</a></li>
+          <li><a href="#exec-js" class="docs-nav-link">5.2. JavaScript / Node.js</a></li>
+          <li><a href="#exec-java" class="docs-nav-link">5.3. Java</a></li>
+          <li><a href="#exec-rust" class="docs-nav-link">5.4. Rust</a></li>
         </ul>
       </div>
       <div class="docs-nav-group">
-        <a href="#plugins" class="docs-nav-title">5. Plugins</a>
+        <a href="#plugins" class="docs-nav-title">6. Plugins</a>
         <ul class="docs-nav-list">
-          <li><a href="#plugins-overview" class="docs-nav-link">5.1. What a Plugin Does</a></li>
-          <li><a href="#plugins-use" class="docs-nav-link">5.2. Use a Plugin in a Pipeline</a></li>
-          <li><a href="#plugins-lifecycle" class="docs-nav-link">5.3. Preparation, Checking &amp; Execution</a></li>
-          <li><a href="#plugins-manage" class="docs-nav-link">5.4. Manage Plugins and Versions</a></li>
+          <li><a href="#plugins-overview" class="docs-nav-link">6.1. What a Plugin Does</a></li>
+          <li><a href="#plugins-use" class="docs-nav-link">6.2. Use a Plugin in a Pipeline</a></li>
+          <li><a href="#plugins-lifecycle" class="docs-nav-link">6.3. Preparation, Checking &amp; Execution</a></li>
+          <li><a href="#plugins-manage" class="docs-nav-link">6.4. Manage Plugins and Versions</a></li>
         </ul>
       </div>
       <div class="docs-nav-group">
-        <a href="#custom-action" class="docs-nav-title">6. Custom Action</a>
+        <a href="#custom-action" class="docs-nav-title">7. Custom Action</a>
         <ul class="docs-nav-list">
-          <li><a href="#custom-action-build" class="docs-nav-link">6.1. Create an Action</a></li>
-          <li><a href="#custom-action-lifecycle" class="docs-nav-link">6.2. How the Engine Runs an Action</a></li>
-          <li><a href="#custom-action-shapecheck" class="docs-nav-link">6.3. Write the Shape Check</a></li>
-          <li><a href="#custom-action-processing" class="docs-nav-link">6.4. Pass Checked Data to Processing</a></li>
-          <li><a href="#custom-action-composite" class="docs-nav-link">6.5. Handle Composite Inputs and Outputs</a></li>
-          <li><a href="#custom-action-package" class="docs-nav-link">6.6. Build, Package &amp; Import</a></li>
-          <li><a href="#custom-action-testing" class="docs-nav-link">6.7. Test the Action</a></li>
-          <li><a href="#custom-action-plugins" class="docs-nav-link">6.8. Declare Plugin Requirements</a></li>
+          <li><a href="#custom-action-build" class="docs-nav-link">7.1. Create an Action</a></li>
+          <li><a href="#custom-action-lifecycle" class="docs-nav-link">7.2. How the Engine Runs an Action</a></li>
+          <li><a href="#custom-action-shapecheck" class="docs-nav-link">7.3. Write the Shape Check</a></li>
+          <li><a href="#custom-action-processing" class="docs-nav-link">7.4. Pass Checked Data to Processing</a></li>
+          <li><a href="#custom-action-composite" class="docs-nav-link">7.5. Handle Composite Inputs and Outputs</a></li>
+          <li><a href="#custom-action-package" class="docs-nav-link">7.6. Build, Package &amp; Import</a></li>
+          <li><a href="#custom-action-testing" class="docs-nav-link">7.7. Test the Action</a></li>
+          <li><a href="#custom-action-plugins" class="docs-nav-link">7.8. Declare Plugin Requirements</a></li>
         </ul>
       </div>
     </aside>
@@ -573,6 +583,25 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p" style="margin-top: 24px;">
+            <strong>Choosing the Loop Axis (each(axis=N)):</strong> A Tensor loop goes over axis 0 by default. Write <code>each(axis=N)</code> to loop over another axis; negative values count from the end, so <code>axis=-1</code> is the last axis. Each iteration receives the tensor with that axis removed, and the results are stacked back along the same axis. Only Tensors take an axis: <code>each(axis=N)</code> on an Image or Audio is an error, and <code>morflow check</code> rejects an axis that cannot exist for the declared rank, such as <code>each(axis=2)</code> on <code>Tensor[*, 3]</code>.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Looping Over a Chosen Axis</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> tensor_stats/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[*, 3]</span> <span class="tok-var">$readings</span>
+
+<span class="tok-comment"># Loop over the columns (axis 1): each $column is one sensor over time</span>
+<span class="tok-var">$readings</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">each</span>(<span class="tok-param">axis</span>=<span class="tok-num">1</span>) (<span class="tok-var">$column</span>) &#123;
+    <span class="tok-var">$column</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">cumsum</span>
+&#125; <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
+          </div>
+
+          <p class="doc-p" style="margin-top: 24px;">
             <strong>Conditionals &amp; Dynamic Routing:</strong> Branch pipelines conditionally based on runtime metadata or route streams dynamically:
           </p>
 
@@ -582,17 +611,18 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
               <span>morf</span>
             </div>
             <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_basics/latest
+<span class="tok-keyword">from</span> base/latest <span class="tok-keyword">import</span> identity
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Bytes</span> <span class="tok-var">$input_audio</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$sample_rate</span> = <span class="tok-num">44100</span>
 <span class="tok-keyword">accept</span> <span class="tok-type">IntArg</span> <span class="tok-var">$channels</span> = <span class="tok-num">2</span>
 
 <span class="tok-comment"># 1. If / Else branching</span>
-<span class="tok-keyword">if</span> (<span class="tok-var">$sample_rate</span> != <span class="tok-num">48000</span>) &#123;
-    <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resample</span>(<span class="tok-param">to_rate</span>=<span class="tok-num">48000</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$prepared</span>
+<span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_audio</span>(<span class="tok-param">sample_rate</span>=<span class="tok-var">$sample_rate</span>, <span class="tok-param">channels</span>=<span class="tok-var">$channels</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">if</span> (<span class="tok-var">$sample_rate</span> != <span class="tok-num">48000</span>) &#123;
+    <span class="tok-fn">resample</span>(<span class="tok-param">to_rate</span>=<span class="tok-num">48000</span>)
 &#125; <span class="tok-keyword">else</span> &#123;
-    <span class="tok-var">$input_audio</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$prepared</span>
-&#125;
+    <span class="tok-fn">identity</span>
+&#125; <span class="tok-op">&gt;&gt;</span> <span class="tok-var">$prepared</span>
 
 <span class="tok-comment"># 2. Dynamic route pattern matching</span>
 <span class="tok-var">$prepared</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">route</span> &#123;
@@ -600,6 +630,42 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
     <span class="tok-var">$channels</span> == <span class="tok-num">2</span> =&gt; <span class="tok-fn">stereo_widen</span>(<span class="tok-param">width</span>=<span class="tok-num">1.4</span>)
     <span class="tok-keyword">else</span> =&gt; <span class="tok-fn">identity</span>
 &#125; <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">to_wav</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
+          </div>
+
+          <p class="doc-p" style="margin-top: 24px;">
+            <strong>Condition Rules:</strong> Both sides of a comparison (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>) must be numbers. An operand can be a number, a numeric argument, a Scalar, an element picked by index such as <code>$readings[0, 0]</code> (negative indexes count from the end), or one of these fields:
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><code>sample_rate</code> (<code>rate</code>), <code>duration</code> (<code>duration_seconds</code>), and <code>num_samples</code> (<code>samples</code>) of an Audio.</li>
+            <li><code>height</code>, <code>width</code>, and <code>channels</code> of an Image, or axes 0, 1, and 2 of a Tensor; <code>channels</code> also works on an Audio.</li>
+            <li><code>peak</code> (<code>peak_abs</code>), <code>rms</code>, <code>mean</code>, and <code>len</code> (<code>length</code>, the element count) of a Tensor, Scalar, Image, or Audio; <code>len</code> also gives the size of Bytes.</li>
+          </ul>
+          <p class="doc-p">
+            A condition that cannot be evaluated is an error rather than being treated as true. This covers a misspelled field such as <code>$readings.widht</code>, a field the value does not have, a string, and a value that is not a single number. <code>morflow check</code> reports the ones it can tell from the declared types before the pipeline runs. Comparisons are exact for every dtype, so large integers are never rounded.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Conditions on Tensor Values</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> math_basics/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[*, 3]</span> <span class="tok-var">$readings</span>
+
+<span class="tok-comment"># Flip every sign if the first reading is below zero</span>
+<span class="tok-var">$readings</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">if</span> (<span class="tok-var">$readings</span>[<span class="tok-num">0</span>, <span class="tok-num">0</span>] &lt; <span class="tok-num">0</span>) &#123;
+    <span class="tok-fn">neg</span>
+&#125; <span class="tok-keyword">else</span> &#123;
+    <span class="tok-fn">abs</span>
+&#125; <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"aligned"</span>)
+
+<span class="tok-comment"># Take the first arm whose condition holds</span>
+<span class="tok-var">$readings</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-keyword">route</span> &#123;
+    <span class="tok-var">$readings</span>.height &gt; <span class="tok-num">100</span> =&gt; <span class="tok-fn">clamp</span>(<span class="tok-param">max</span>=<span class="tok-num">10.0</span>)
+    <span class="tok-var">$readings</span>[<span class="tok-num">-1</span>, <span class="tok-num">2</span>] &gt; <span class="tok-num">10</span> =&gt; <span class="tok-fn">clamp</span>(<span class="tok-param">min</span>=<span class="tok-num">0.0</span>)
+    <span class="tok-keyword">else</span> =&gt; <span class="tok-fn">abs</span>
+&#125; <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"checked"</span>)</code></pre>
           </div>
         </div>
 
@@ -706,7 +772,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
                   <td>Flowable Payload</td>
                   <td><code>Tensor</code>, <code>Tensor[rank=N]</code>, <code>Tensor[*, *]</code></td>
 
-                  <td>Yes (Axis 0 / Batch)</td>
+                  <td>Yes (Axis 0 / Batch, or any axis with <code>each(axis=N)</code>)</td>
                 </tr>
                 <tr>
                   <td><code>Image</code></td>
@@ -839,14 +905,14 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
             <strong>How Tensor Works with each:</strong>
           </p>
           <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
-            <li><strong>Iteration Axis:</strong> Always iterates along <strong>Axis 0</strong> (the leading dimension / batch axis).</li>
-            <li><strong>Iteration Count:</strong> Exactly shape[0] parallel iterations are spawned.</li>
+            <li><strong>Iteration Axis:</strong> Iterates along <strong>Axis 0</strong> (the leading dimension / batch axis) by default; <code>each(axis=N)</code> picks another axis (see <a href="#syntax-step5-control" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 2.5</a>).</li>
+            <li><strong>Iteration Count:</strong> One parallel iteration per position along the loop axis (shape[0] for Axis 0).</li>
             <li><strong>Loop Variable Derivation:</strong>
               <br />• If rank &ge; 2: Each iteration produces an independent Tensor with rank reduced by one (rank N &minus; 1). Slicing Tensor[32, 128] yields 32 parallel sub-flows each receiving a Tensor[128].
               <br />• If rank 1: Iterating a 1D tensor slices single elements, binding each iteration to a <strong>Scalar</strong> (rank-0 numeric value).
               <br />• If rank 0: A rank-0 scalar tensor has no dimensions to slice and is rejected at compile time.
             </li>
-            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along Axis 0 back into the parent tensor shape. In accordance with the higher-rank restacking rule, sub-flows must yield rank-(N &minus; 1) tensors so that slices can be reassembled back into the original higher-rank Tensor[rank=N].</li>
+            <li><strong>Restacking:</strong> Outputs from all iterations are collected and restacked along the loop axis back into the parent tensor shape. In accordance with the higher-rank restacking rule, sub-flows must yield rank-(N &minus; 1) tensors so that slices can be reassembled back into the original higher-rank Tensor[rank=N].</li>
           </ul>
         </div>
 
@@ -1201,7 +1267,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
               <tbody>
                 <tr>
                   <td><code>Tensor[rank=N]</code> (N &ge; 2)</td>
-                  <td>Axis 0 (Batch / Leading)</td>
+                  <td>Axis 0 (Batch / Leading), or the axis chosen with <code>each(axis=N)</code></td>
                   <td><code>Tensor[rank=N-1]</code></td>
                   <td><code>Tensor[rank=N-1]</code></td>
                   <td><code>Tensor[rank=N]</code></td>
@@ -1257,7 +1323,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
               <strong>Higher-Rank Audio (Multi-Channel Synchronization):</strong> Slicing a multi-channel Audio yields mono Audio streams. Each branch must produce a mono Audio with identical sample rates and layouts. Morflow stacks the processed mono streams along the channel axis back into the original multi-channel higher-rank Audio container (transposing planar buffers into interleaved buffers if the parent audio used interleaved layout). When mono Audio is sliced per-sample, single Scalar float samples are processed and stacked back into mono Audio.
             </li>
             <li>
-              <strong>Higher-Rank Tensors (Axis 0 Concatenation):</strong> Slicing a rank-N Tensor along Axis 0 produces rank-(N &minus; 1) slices. Every parallel branch must yield a rank-(N &minus; 1) Tensor with identical inner dimension sizes. The runtime stacks them back along Axis 0 to recreate the higher-rank rank-N Tensor.
+              <strong>Higher-Rank Tensors (Loop-Axis Concatenation):</strong> Slicing a rank-N Tensor along its loop axis (Axis 0 unless <code>each(axis=N)</code> picks another) produces rank-(N &minus; 1) slices. Every parallel branch must yield a rank-(N &minus; 1) Tensor with identical inner dimension sizes. The runtime stacks them back along the same axis to recreate the higher-rank rank-N Tensor.
             </li>
           </ul>
 
@@ -1368,19 +1434,337 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
         </div>
       </section>
 
-      <!-- SECTION 4: PIPELINE EXECUTION -->
-      <section id="exec" class="doc-section">
+      <!-- SECTION 4: TENSOR DTYPES -->
+      <section id="dtypes" class="doc-section">
         <div class="doc-section-header">
           <p class="badge">Section 4</p>
-          <h2 class="doc-h2">4. Pipeline Execution</h2>
+          <h2 class="doc-h2">4. Tensor DTypes</h2>
+          <p class="doc-p">
+            Every Tensor has a dtype, the type of its elements. The numeric packs (math_basics, tensor_stats, and nn_basics) accept all nine dtypes, follow NumPy's rules for the dtype of each result, and can combine two tensors with NumPy broadcasting.
+          </p>
+        </div>
+
+        <!-- 4.1: SUPPORTED DTYPES -->
+        <div id="dtypes-supported" class="doc-section">
+          <h3 class="doc-h3">4.1. Supported DTypes</h3>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>DType</th>
+                  <th>Elements</th>
+                  <th>NumPy Equivalent</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>f32</code>, <code>f64</code></td>
+                  <td>32-bit and 64-bit floats</td>
+                  <td><code>float32</code>, <code>float64</code></td>
+                </tr>
+                <tr>
+                  <td><code>i8</code>, <code>i16</code>, <code>i32</code>, <code>i64</code></td>
+                  <td>Signed integers</td>
+                  <td><code>int8</code>, <code>int16</code>, <code>int32</code>, <code>int64</code></td>
+                </tr>
+                <tr>
+                  <td><code>u8</code>, <code>u32</code>, <code>u64</code></td>
+                  <td>Unsigned integers</td>
+                  <td><code>uint8</code>, <code>uint32</code>, <code>uint64</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="doc-p" style="margin-top: 16px;">
+            Packs differ in which dtypes they accept:
+          </p>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Pack</th>
+                  <th>DTypes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>math_basics, tensor_stats, nn_basics</td>
+                  <td>All nine</td>
+                </tr>
+                <tr>
+                  <td>tensor_basics, tensor_blas</td>
+                  <td>All nine</td>
+                </tr>
+                <tr>
+                  <td>image_basics, image_opencv</td>
+                  <td><code>f32</code>, <code>u8</code> (<code>crop</code> and <code>flip</code> also accept <code>i32</code>)</td>
+                </tr>
+                <tr>
+                  <td>audio_basics, linalg_basics</td>
+                  <td><code>f32</code></td>
+                </tr>
+                <tr>
+                  <td>linalg_blas</td>
+                  <td>Computes in <code>f32</code>; other numeric inputs are converted to <code>f32</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="doc-p" style="margin-top: 16px;">
+            To feed a tensor into an action that does not accept its dtype, convert it first with <code>cast</code> from tensor_basics, for example <code>cast(dtype="f32")</code>.
+          </p>
+        </div>
+
+        <!-- 4.2: DTYPES OF NUMERIC ACTIONS -->
+        <div id="dtypes-actions" class="doc-section">
+          <h3 class="doc-h3">4.2. DTypes of Numeric Actions</h3>
+          <p class="doc-p">
+            The dtype of a result depends on the action:
+          </p>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Result DType</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Same as the input</td>
+                  <td><code>abs</code>, <code>neg</code>, <code>sign</code>, <code>clamp</code>, <code>min</code>, <code>max</code>, <code>relu</code>, <code>max_pool2d</code>, and <code>add</code> / <code>sub</code> / <code>mul</code> / <code>pow</code> with a scalar argument</td>
+                </tr>
+                <tr>
+                  <td><code>f64</code> for integer input; floats keep their dtype</td>
+                  <td><code>sqrt</code>, <code>rsqrt</code>, <code>exp</code>, <code>log</code>, <code>sin</code>, <code>cos</code>, <code>tan</code>, <code>mean</code>, <code>var</code>, <code>std</code>, <code>norm</code>, <code>div</code> with a scalar argument, and every nn_basics action except <code>relu</code> and <code>max_pool2d</code></td>
+                </tr>
+                <tr>
+                  <td><code>i64</code> for signed integers, <code>u64</code> for unsigned; floats keep their dtype</td>
+                  <td><code>sum</code>, <code>cumsum</code></td>
+                </tr>
+                <tr>
+                  <td><code>i32</code> (index of the first match)</td>
+                  <td><code>argmin</code>, <code>argmax</code></td>
+                </tr>
+                <tr>
+                  <td>Promoted from both inputs (see <a href="#dtypes-two-tensor" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>)</td>
+                  <td><code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code>, and <code>pow</code> on two tensors, and <code>cosine_similarity</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <ul class="doc-list" style="margin: 16px 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Floats:</strong> <code>f32</code> is computed in single precision and <code>f64</code> in double precision. NaN values in the input behave like NumPy: they propagate through the result, and <code>argmin</code> / <code>argmax</code> return the index of the first NaN.</li>
+            <li><strong>Integer overflow</strong> wraps like NumPy. For example, <code>abs</code> of <code>-128</code> as <code>i8</code> is <code>-128</code>.</li>
+            <li><strong>Integer statistics</strong> (<code>mean</code>, <code>var</code>, <code>std</code>, <code>norm</code>) are computed exactly, and only the result is rounded to <code>f64</code>.</li>
+            <li><strong>Arguments on integer tensors:</strong> <code>value</code>, <code>exponent</code>, <code>min</code>, and <code>max</code> must be whole numbers that fit the dtype; anything else is an error. <code>div</code> accepts any value, because its result is <code>f64</code>. A negative exponent on an integer <code>pow</code> is an error.</li>
+          </ul>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Result DTypes from Integer Input</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> tensor_stats/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Tensor[*, 3]</span> <span class="tok-var">$counts</span>
+
+<span class="tok-var">$counts</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">sum</span>(<span class="tok-param">axis</span>=<span class="tok-num">0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"totals"</span>)     <span class="tok-comment"># i32 counts give i64 totals</span>
+<span class="tok-var">$counts</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">mean</span>(<span class="tok-param">axis</span>=<span class="tok-num">0</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span>(<span class="tok-str">"averages"</span>)  <span class="tok-comment"># and f64 averages</span></code></pre>
+          </div>
+        </div>
+
+        <!-- 4.3: TWO-TENSOR ARITHMETIC & PROMOTION -->
+        <div id="dtypes-two-tensor" class="doc-section">
+          <h3 class="doc-h3">4.3. Two-Tensor Arithmetic &amp; Promotion</h3>
+          <p class="doc-p">
+            Besides the scalar-argument form (<code>add(value=1.5)</code>), <code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code>, and <code>pow</code> accept a two-component Composite <code>[a, b]</code> and compute <code>a + b</code>, <code>a - b</code>, <code>a * b</code>, <code>a / b</code>, or <code>a ** b</code> element by element. The two tensors broadcast like NumPy: dimensions are matched from the last axis, and an axis of length 1, or a missing axis, stretches to fit. Either side can be a Scalar, and the result is a Scalar only if both are. A Composite with any other number of components, or a Composite together with a scalar argument, is an error.
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>two_tensor.morf</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> math_basics/latest
+
+<span class="tok-keyword">accept</span> <span class="tok-type">Composite[Tensor[*, 3], Tensor[3]]</span> <span class="tok-var">$pair</span>
+
+<span class="tok-comment"># a + b, broadcasting b across every row of a</span>
+<span class="tok-var">$pair</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">add</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre>
+          </div>
+
+          <p class="doc-p">
+            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#dtypes-sdk" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.4</a>).
+          </p>
+
+          <p class="doc-p">
+            The result dtype is promoted from both inputs:
+          </p>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Inputs</th>
+                  <th>Result DType</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>The same dtype</td>
+                  <td>That dtype</td>
+                </tr>
+                <tr>
+                  <td>At least one float</td>
+                  <td><code>f64</code> if either side is <code>f64</code>, otherwise <code>f32</code></td>
+                </tr>
+                <tr>
+                  <td>Two integers of the same signedness</td>
+                  <td>The wider one (<code>i8</code> and <code>i32</code> give <code>i32</code>)</td>
+                </tr>
+                <tr>
+                  <td>A signed and an unsigned integer</td>
+                  <td>The smallest signed type that holds both (<code>u8</code> and <code>i8</code> give <code>i16</code>), or <code>i64</code> if none does</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="doc-p" style="margin-top: 16px;">
+            <code>div</code> and <code>cosine_similarity</code> turn an integer result into <code>f64</code>. Integer overflow in <code>add</code>, <code>sub</code>, <code>mul</code>, and <code>pow</code> wraps like NumPy.
+          </p>
+        </div>
+
+        <!-- 4.4: DTYPES IN THE HOST SDKS -->
+        <div id="dtypes-sdk" class="doc-section">
+          <h3 class="doc-h3">4.4. DTypes in the Host SDKs</h3>
+          <p class="doc-p">
+            Every SDK passes tensors of all nine dtypes in and returns results with their dtype, and each can send and receive a Composite:
+          </p>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>SDK</th>
+                  <th>Tensor of a DType</th>
+                  <th>Composite</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Python</td>
+                  <td>A NumPy array of that dtype, returned as an array of the same dtype. A <code>float64</code> array stays <code>f64</code>; <code>morflow.Image</code> and <code>morflow.Audio</code> convert it to <code>f32</code>.</td>
+                  <td>Pass a list or tuple, such as <code>pipeline.run([a, b])</code>; a Composite result is a list.</td>
+                </tr>
+                <tr>
+                  <td>JavaScript</td>
+                  <td>A typed array carries its dtype (<code>Float64Array</code> is <code>f64</code>, <code>BigInt64Array</code> is <code>i64</code>); a Buffer needs <code>&#123; data, shape, dtype &#125;</code>. Results have a <code>dtype</code> and <code>toTypedArray()</code>, <code>toFloat64Array()</code>, <code>toBigInt64Array()</code>, and similar getters.</td>
+                  <td>Pass an array, such as <code>pipeline.run([a, b])</code>; a Composite result is an array (in TypeScript, <code>run&lt;MorflowTensor[]&gt;(…)</code>).</td>
+                </tr>
+                <tr>
+                  <td>Java</td>
+                  <td><code>MorflowTensor.fromDoubleArray</code>, <code>fromLongArray</code>, <code>fromIntArray</code>, <code>fromShortArray</code>, <code>fromFloatArray</code>, <code>fromByteArray</code>, or <code>fromDirectBuffer(buffer, shape, "u32")</code> for the others. Read results with <code>getDtype()</code> and <code>toDoubleArray()</code>, <code>toLongArray()</code>, and similar.</td>
+                  <td>Pass <code>MorflowTensor.composite(a, b)</code>; a Composite result has <code>isComposite()</code> and <code>getItems()</code>.</td>
+                </tr>
+                <tr>
+                  <td>Rust</td>
+                  <td><code>Tensor::from_vec_of(values, shape)</code> for any element type; read with <code>to_vec_of::&lt;T&gt;()</code> and <code>dtype.name()</code>.</td>
+                  <td><code>Payload::Composite(RVec::from(vec![...]))</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="doc-p" style="margin-top: 16px;">
+            An unknown dtype name is an error. In Python, a plain list of numbers is a Composite of numbers rather than a tensor, so build tensors with <code>np.array</code>. Each example below runs <code>two_tensor.morf</code> from <a href="#dtypes-two-tensor" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a> on two <code>i32</code> tensors:
+          </p>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Python</span>
+              <span>python</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> numpy <span class="tok-keyword">as</span> np
+<span class="tok-keyword">import</span> morflow
+
+pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)
+a = np.<span class="tok-fn">array</span>([[<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>], [<span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>]], dtype=np.int32)
+b = np.<span class="tok-fn">array</span>([<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>], dtype=np.int32)
+
+<span class="tok-comment"># A list is sent as a Composite, so [a, b] feeds add</span>
+total = pipeline.<span class="tok-fn">run</span>([a, b])
+<span class="tok-fn">print</span>(total.dtype, total)  <span class="tok-comment"># int32 [[11 22 33] [14 25 36]]</span></code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Node.js</span>
+              <span>javascript</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'morflow'</span>;
+
+<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">load</span>(<span class="tok-str">'two_tensor.morf'</span>);
+<span class="tok-keyword">const</span> a = &#123; data: <span class="tok-keyword">new</span> Int32Array([<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>]), shape: [<span class="tok-num">2</span>, <span class="tok-num">3</span>] &#125;;
+<span class="tok-keyword">const</span> b = <span class="tok-keyword">new</span> Int32Array([<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>]);  <span class="tok-comment">// a typed array carries its dtype</span>
+
+<span class="tok-comment">// An array is sent as a Composite</span>
+<span class="tok-keyword">const</span> total = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>([a, b]);
+console.<span class="tok-fn">log</span>(total.dtype, total.<span class="tok-fn">toInt32Array</span>());  <span class="tok-comment">// i32 Int32Array(6) [11, 22, 33, 14, 25, 36]</span></code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Java</span>
+              <span>java</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">try</span> (Pipeline pipeline = Morflow.<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)) &#123;
+    MorflowTensor pair = MorflowTensor.<span class="tok-fn">composite</span>(
+        MorflowTensor.<span class="tok-fn">fromIntArray</span>(<span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>&#125;, <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">2</span>, <span class="tok-num">3</span>&#125;),
+        MorflowTensor.<span class="tok-fn">fromIntArray</span>(<span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>&#125;, <span class="tok-keyword">new int</span>[]&#123;<span class="tok-num">3</span>&#125;));
+    MorflowTensor total = pipeline.<span class="tok-fn">run</span>(pair);
+    System.out.<span class="tok-fn">println</span>(total.<span class="tok-fn">getDtype</span>() + <span class="tok-str">" "</span> + Arrays.<span class="tok-fn">toString</span>(total.<span class="tok-fn">toIntArray</span>()));  <span class="tok-comment">// i32 [11, 22, 33, 14, 25, 36]</span>
+&#125;</code></pre>
+          </div>
+
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Two-Tensor Arithmetic in Rust</span>
+              <span>rust</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">use</span> morflow::&#123;Morflow, Payload, RVec, Tensor&#125;;
+
+<span class="tok-keyword">fn</span> <span class="tok-fn">main</span>() -&gt; Result&lt;(), Box&lt;<span class="tok-keyword">dyn</span> std::error::Error&gt;&gt; &#123;
+    <span class="tok-keyword">let mut</span> pipeline = Morflow::<span class="tok-fn">load</span>(<span class="tok-str">"two_tensor.morf"</span>)?;
+    <span class="tok-keyword">let</span> a = Tensor::<span class="tok-fn">from_vec_of</span>(<span class="tok-fn">vec!</span>[<span class="tok-num">1i32</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>], <span class="tok-fn">vec!</span>[<span class="tok-num">2</span>, <span class="tok-num">3</span>]).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
+    <span class="tok-keyword">let</span> b = Tensor::<span class="tok-fn">from_vec_of</span>(<span class="tok-fn">vec!</span>[<span class="tok-num">10i32</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>], <span class="tok-fn">vec!</span>[<span class="tok-num">3</span>]).<span class="tok-fn">map_err</span>(|e| e.<span class="tok-fn">to_string</span>())?;
+
+    <span class="tok-comment">// A Composite holds the two tensors in order</span>
+    <span class="tok-keyword">let</span> pair = Payload::Composite(RVec::<span class="tok-fn">from</span>(<span class="tok-fn">vec!</span>[Payload::Tensor(a), Payload::Tensor(b)]));
+    <span class="tok-keyword">if let</span> Payload::Tensor(total) = pipeline.<span class="tok-fn">run</span>(pair)?.<span class="tok-fn">into_single</span>()? &#123;
+        <span class="tok-fn">println!</span>(<span class="tok-str">"&#123;&#125; &#123;:?&#125;"</span>, total.dtype.<span class="tok-fn">name</span>(), total.<span class="tok-fn">to_vec_of</span>::&lt;i32&gt;());  <span class="tok-comment">// i32 Some([11, 22, 33, 14, 25, 36])</span>
+    &#125;
+    Ok(())
+&#125;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: PIPELINE EXECUTION -->
+      <section id="exec" class="doc-section">
+        <div class="doc-section-header">
+          <p class="badge">Section 5</p>
+          <h2 class="doc-h2">5. Pipeline Execution</h2>
           <p class="doc-p">
             Execute the same .morf pipelines and native actions across training and production serving. Morflow provides host SDKs for Python, JavaScript/Node.js, Java, and Rust, converting host tensors, image arrays, and raw bytes into engine payloads.
           </p>
         </div>
 
-        <!-- 4.1: PYTHON -->
+        <!-- 5.1: PYTHON -->
         <div id="exec-python" class="doc-section">
-          <h3 class="doc-h3">4.1. Python</h3>
+          <h3 class="doc-h3">5.1. Python</h3>
           <p class="doc-p">
             The Python SDK (morflow) converts NumPy arrays and raw bytes into engine payloads and executes pipelines in Rust with the Python GIL released. Payloads can be passed as typed wrappers (morflow.Image, morflow.Audio, morflow.Tensor), or plain NumPy arrays and bytes matching declared accept types.
           </p>
@@ -1431,9 +1815,9 @@ output_wav_bytes = audio_pipe.<span class="tok-fn">run</span>(input_bytes, <span
           </div>
         </div>
 
-        <!-- 4.2: JAVASCRIPT / NODE.JS -->
+        <!-- 5.2: JAVASCRIPT / NODE.JS -->
         <div id="exec-js" class="doc-section">
-          <h3 class="doc-h3">4.2. JavaScript / Node.js</h3>
+          <h3 class="doc-h3">5.2. JavaScript / Node.js</h3>
           <p class="doc-p">
             The Node.js SDK provides asynchronous execution (via pipeline.run() or pipeline.runArgs() offloading work to a background worker pool) and synchronous execution (via pipeline.runSync() / pipeline.runSyncArgs()). Positional arguments matching declared accept statements can be passed directly as heterogeneous arguments (numbers, booleans, strings, Buffers, or TensorInput).
           </p>
@@ -1486,9 +1870,9 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           </div>
         </div>
 
-        <!-- 4.3: JAVA -->
+        <!-- 5.3: JAVA -->
         <div id="exec-java" class="doc-section">
-          <h3 class="doc-h3">4.3. Java</h3>
+          <h3 class="doc-h3">5.3. Java</h3>
           <p class="doc-p">
             The Java SDK wraps native JNI bindings with type-safe classes, automatic memory cleanup, and direct tensor buffers for high-throughput enterprise JVM backends. Positional parameters are bound using pipeline.runArgs(...).
           </p>
@@ -1501,7 +1885,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
             <pre class="doc-code-pre"><code>&lt;dependency&gt;
     &lt;groupId&gt;org.morflow&lt;/groupId&gt;
     &lt;artifactId&gt;morflow&lt;/artifactId&gt;
-    &lt;version&gt;0.2.0&lt;/version&gt;
+    &lt;version&gt;0.3.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
           </div>
 
@@ -1528,11 +1912,10 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
             );
 
             <span class="tok-comment">// 3. Execute pipeline with positional arguments (runArgs)</span>
-            <span class="tok-keyword">try</span> (MorflowTensor outputTensor = pipeline.<span class="tok-fn">runArgs</span>(inputTensor, <span class="tok-num">512</span>, <span class="tok-num">512</span>)) &#123;
-                <span class="tok-keyword">int</span>[] outShape = outputTensor.<span class="tok-fn">getShape</span>();
-                <span class="tok-keyword">byte</span>[] outBytes = outputTensor.<span class="tok-fn">toByteArray</span>();
-                Files.<span class="tok-fn">write</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"output.raw"</span>), outBytes);
-            &#125;
+            MorflowTensor outputTensor = pipeline.<span class="tok-fn">runArgs</span>(inputTensor, <span class="tok-num">512</span>, <span class="tok-num">512</span>);
+            <span class="tok-keyword">int</span>[] outShape = outputTensor.<span class="tok-fn">getShape</span>();
+            <span class="tok-keyword">byte</span>[] outBytes = outputTensor.<span class="tok-fn">toByteArray</span>();
+            Files.<span class="tok-fn">write</span>(Path.<span class="tok-fn">of</span>(<span class="tok-str">"output.raw"</span>), outBytes);
         &#125;
 
         <span class="tok-comment">// Audio WAV execution with raw byte array and sample rate argument</span>
@@ -1546,9 +1929,9 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           </div>
         </div>
 
-        <!-- 4.4: RUST -->
+        <!-- 5.4: RUST -->
         <div id="exec-rust" class="doc-section">
-          <h3 class="doc-h3">4.4. Rust</h3>
+          <h3 class="doc-h3">5.4. Rust</h3>
           <p class="doc-p">
             The native Rust engine crate (morflow) provides direct access to Payload variants (Image, Audio, Tensor, Data, Scalar) for native pipeline integration.
           </p>
@@ -1618,14 +2001,14 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         </div>
       </section>
       <section id="plugins" class="doc-section">
-        <div class="doc-section-header"><p class="badge">Section 5</p><h2 class="doc-h2">5. Plugins</h2>
+        <div class="doc-section-header"><p class="badge">Section 6</p><h2 class="doc-h2">6. Plugins</h2>
           <p class="doc-p">Most Morflow actions include all the code they need to run, so you can use them without installing a plugin. However, when several actions need the same functionality, they can share it through a plugin rather than include a separate copy in every action binary.</p>
         </div>
-        <div id="plugins-overview" class="doc-section"><h3 class="doc-h3">5.1. What a Plugin Does</h3>
+        <div id="plugins-overview" class="doc-section"><h3 class="doc-h3">6.1. What a Plugin Does</h3>
           <p class="doc-p">A plugin is a shared binary that provides functionality to the actions that depend on it. When those actions run, they call the plugin's functions, which may perform the work directly or use an external library installed on your machine. You still call the actions in your <code>.morf</code> pipeline as usual, while the actions handle their interaction with the plugin.</p>
           <p class="doc-p">Because plugins are installed separately from actions, your pipeline must declare which plugin version to use. Each action specifies the versions it supports, and Morflow checks your selection against those requirements to ensure that the plugin is compatible with every action that needs it.</p>
         </div>
-        <div id="plugins-use" class="doc-section"><h3 class="doc-h3">5.2. Use a Plugin in a Pipeline</h3>
+        <div id="plugins-use" class="doc-section"><h3 class="doc-h3">6.2. Use a Plugin in a Pipeline</h3>
           <p class="doc-p">Add a <code>plugin</code> declaration before your flows, then import the actions you want to use. The example below selects a plugin and calls an action that depends on it:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>Declare a plugin</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">plugin</span> opencv-bridge/<span class="tok-num">0.1.2</span>
 <span class="tok-keyword">from</span> image_opencv/<span class="tok-num">0.1.2</span> <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
@@ -1641,7 +2024,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <h4 class="doc-h4">System dependencies</h4>
           <p class="doc-p">Some plugins need additional shared libraries on the machine that runs the pipeline. For example, the <code>openblas</code> plugin shares numerical routines across the BLAS action packs and loads a system OpenBLAS installation. Follow that plugin’s installation instructions to choose compatible versions for your operating system. Morflow preparation installs the plugin binary; install any required system libraries separately. Missing or incompatible libraries are reported when the action tries to use the plugin during execution.</p>
         </div>
-        <div id="plugins-lifecycle" class="doc-section"><h3 class="doc-h3">5.3. Preparation, Checking &amp; Execution</h3>
+        <div id="plugins-lifecycle" class="doc-section"><h3 class="doc-h3">6.3. Preparation, Checking &amp; Execution</h3>
           <h4 class="doc-h4">During preparation</h4>
           <p class="doc-p"><code>morflow prep</code> reads your declarations and finds the requested releases. It checks that the plugin versions are compatible with the actions, downloads the binaries, and verifies their checksums before saving them locally. If a required dependency cannot be prepared, the command reports an error.</p>
           <h4 class="doc-h4">During checking and loading</h4>
@@ -1649,7 +2032,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <h4 class="doc-h4">During execution</h4>
           <p class="doc-p">During processing, actions access the plugin version selected when the pipeline was loaded. The engine loads that binary when an action first requests one of its functions. Later calls reuse the loaded binary and function.</p>
         </div>
-        <div id="plugins-manage" class="doc-section"><h3 class="doc-h3">5.4. Manage Plugins and Versions</h3>
+        <div id="plugins-manage" class="doc-section"><h3 class="doc-h3">6.4. Manage Plugins and Versions</h3>
           <div class="doc-code-card"><div class="doc-code-header"><span>Find, install, and inspect plugins</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> plugins search opencv
 <span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.2
 <span class="tok-fn">morflow</span> plugins list
@@ -1660,10 +2043,10 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
         </div>
       </section>
       <section id="custom-action" class="doc-section">
-        <div class="doc-section-header"><p class="badge">Section 6</p><h2 class="doc-h2">6. Custom Action</h2>
+        <div class="doc-section-header"><p class="badge">Section 7</p><h2 class="doc-h2">7. Custom Action</h2>
           <p class="doc-p">A custom action is a Rust shared library that you import and call from a .morf pipeline. You describe which payloads it accepts, check the input shape and arguments, and implement the transformation. Morflow calls these functions for you, including the shape check before each execution.</p>
         </div>
-        <div id="custom-action-build" class="doc-section"><h3 class="doc-h3">6.1. Create an Action</h3>
+        <div id="custom-action-build" class="doc-section"><h3 class="doc-h3">7.1. Create an Action</h3>
           <p class="doc-p">In a Morflow checkout, create <code>actions/custom_pack/custom_action/Cargo.toml</code> and <code>actions/custom_pack/custom_action/src/lib.rs</code>. The folder <code>custom_pack</code> is the pack name; the Cargo package name <code>custom_action</code> is the action name. The Cargo version is the version you will import.</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>Cargo.toml</span><span>toml</span></div><pre class="doc-code-pre"><code>[<span class="tok-param">package</span>]
 <span class="tok-param">name</span> = <span class="tok-str">"custom_action"</span>
@@ -1674,7 +2057,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
 <span class="tok-param">crate-type</span> = [<span class="tok-str">"cdylib"</span>]
 
 [<span class="tok-param">dependencies</span>]
-<span class="tok-param">core_types</span> = &#123; <span class="tok-param">package</span> = <span class="tok-str">"morflow-core-types"</span>, <span class="tok-param">version</span> = <span class="tok-str">"0.4.2"</span> &#125;</code></pre></div>
+<span class="tok-param">core_types</span> = &#123; <span class="tok-param">package</span> = <span class="tok-str">"morflow-core-types"</span>, <span class="tok-param">version</span> = <span class="tok-str">"0.4.3"</span> &#125;</code></pre></div>
           <p class="doc-p">Add <code>"actions/custom_pack/custom_action"</code> to the root Cargo workspace’s <code>members</code> list. <code>cdylib</code> tells Cargo to build a library that Morflow can load. The dependency above uses the published <code>morflow-core-types</code> package under the name <code>core_types</code>, which is also used by the Rust code below.</p>
           <p class="doc-p">Start with this complete pass-through action. It accepts a Tensor and returns it with the same shape. The four exported functions are the action’s public interface; <code>dimensions</code> is an ordinary Rust helper:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>src/lib.rs</span><span>rust</span></div><pre class="doc-code-pre"><code><span class="tok-comment">// actions/custom_pack/custom_action/src/lib.rs</span>
@@ -1705,7 +2088,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
 </code></pre></div>
           <p class="doc-p">The engine requires all four exports: <code>get_input_type</code>, <code>get_output_type</code>, <code>shapecheck</code>, and <code>process</code>. Keep the shown signatures and <code>#[no_mangle]</code> attributes. To accept several payload kinds, combine their <code>DataType</code> values with <code>|</code>.</p>
         </div>
-        <div id="custom-action-lifecycle" class="doc-section"><h3 class="doc-h3">6.2. How the Engine Runs an Action</h3>
+        <div id="custom-action-lifecycle" class="doc-section"><h3 class="doc-h3">7.2. How the Engine Runs an Action</h3>
           <ActionLifecycleDiagram phase="static" />
           <ActionLifecycleDiagram phase="runtime" />
           <div class="doc-table-container"><table class="doc-table"><thead><tr><th>Function</th><th>When called</th><th>Responsibility</th></tr></thead><tbody>
@@ -1717,7 +2100,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <p class="doc-p">When the pipeline runs, Morflow calls <code>shapecheck</code> again with the actual input dimensions, metadata, and resolved arguments. A <code>Ready</code> result allows <code>process</code> to run. An <code>Invalid</code> or <code>Deferred</code> result stops that call and reports an error. After processing, Morflow checks that the returned payload matches the predicted type, shape, and Composite structure.</p>
           <p class="doc-p">The engine passes <code>prepared</code> automatically. Pipeline authors still write a normal call such as <code>custom_action</code> or <code>custom_action(axis=1)</code>. Prepared data from static checking is discarded; each runtime call gets fresh data, including calls inside parallel loops.</p>
         </div>
-        <div id="custom-action-shapecheck" class="doc-section"><h3 class="doc-h3">6.3. Write the Shape Check</h3>
+        <div id="custom-action-shapecheck" class="doc-section"><h3 class="doc-h3">7.3. Write the Shape Check</h3>
           <p class="doc-p"><code>shapecheck</code> receives two arguments. <code>InputDescriptor</code> describes the input’s type and shape, plus properties such as tensor dtype, image layout, and audio sample rate when available. <code>ActionArgs</code> contains positional and named arguments. The descriptor does not contain tensor elements, image pixels, audio samples, or encoded file contents.</p>
           <p class="doc-p">Use the same rules for static and runtime checking. Check ranks, compatible dimensions, component counts, axis bounds, and arguments that affect the operation. If a dimension or argument is unknown, preserve whatever output information you can still determine.</p>
           <div class="doc-table-container"><table class="doc-table"><thead><tr><th>Return value</th><th>When to use it</th><th>What Morflow does</th></tr></thead><tbody>
@@ -1729,7 +2112,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <p class="doc-p">In the pass-through example, <code>shapecheck::analyze</code> checks the accepted payload kind, calls <code>dimensions</code>, and creates the result and prepared data. Pass a single-shape helper as its <code>Some(dimensions)</code> argument, or a helper for a full Composite shape tree as its final argument. This helper suits actions whose validity depends on dimensions and arguments. Write a custom <code>shapecheck</code> body when you also need metadata or additional checks.</p>
           <p class="doc-p">Keep this function free of processing and side effects: it may run while a pipeline is only being inspected, and it may run concurrently. Give errors concrete explanations, such as “axis 3 is outside a rank-2 tensor” or “left columns 3 do not match right rows 4.”</p>
         </div>
-        <div id="custom-action-processing" class="doc-section"><h3 class="doc-h3">6.4. Pass Checked Data to Processing</h3>
+        <div id="custom-action-processing" class="doc-section"><h3 class="doc-h3">7.4. Pass Checked Data to Processing</h3>
           <p class="doc-p"><code>process(payload, prepared)</code> receives the actual payload and the data returned by that call’s successful shape check. Put shape compatibility rules in <code>shapecheck</code>, then use the checked results here to perform the transformation.</p>
           <div class="doc-table-container"><table class="doc-table"><thead><tr><th>Prepared data</th><th>Use</th></tr></thead><tbody>
             <tr><td><code>prepared.output</code></td><td>The predicted output shape, including ordered Composite components.</td></tr>
@@ -1741,13 +2124,13 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <p class="doc-p">For an action with an axis argument, resolve negative indices and check bounds once in <code>shapecheck</code>, store the normalized axis in a field, and use that field in <code>process</code>. The pipeline author does not have to supply or manage this data.</p>
           <p class="doc-p">Checks that depend on actual contents still belong in processing: decoding a file, checking a numerical domain, or detecting a singular matrix. Return <code>Payload::Error("useful explanation".into())</code> if processing fails. Shape verification describes the call’s type and shape compatibility; it does not promise that every possible data value will succeed.</p>
         </div>
-        <div id="custom-action-composite" class="doc-section"><h3 class="doc-h3">6.5. Handle Composite Inputs and Outputs</h3>
+        <div id="custom-action-composite" class="doc-section"><h3 class="doc-h3">7.5. Handle Composite Inputs and Outputs</h3>
           <p class="doc-p">A Composite holds an ordered list of payloads. Its shape description is also an ordered list, and can contain nested Composites. An action that accepts Composite inputs should declare <code>DataType::Composite</code>, check the component count and each component’s kind, then read their shapes in order.</p>
           <p class="doc-p">Use <code>input.value.get(0)</code> for the first component and <code>input.value.get(1)</code> for the second. These return optional references so you can report a missing component clearly. Metadata uses the same ordering through <code>input.metadata.get(index)</code>. In processing, match <code>Payload::Composite(items)</code> and use the corresponding indices.</p>
           <p class="doc-p">For matrix multiplication, component 0 is the left operand and component 1 is the right operand. Check their shared inner dimension and predict the result’s outer dimensions. For an action that returns several results, return <code>ValueShape::Composite</code> from checking and <code>Payload::Composite</code> from processing in the same order.</p>
           <p class="doc-p">For example, QR returns Q first and R second. Describing both output shapes lets a pipeline select <code>$parts[0]</code> or <code>$parts[1]</code> and have downstream actions checked against the selected component’s shape.</p>
         </div>
-        <div id="custom-action-package" class="doc-section"><h3 class="doc-h3">6.6. Build, Package &amp; Import</h3>
+        <div id="custom-action-package" class="doc-section"><h3 class="doc-h3">7.6. Build, Package &amp; Import</h3>
           <p class="doc-p">Build the action and package the resulting library into an action cache. The packaging tool reads the action name and version from Cargo.toml and the pack name from its parent folder. Run these commands from the Morflow repository root on Linux:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>Local action installation</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">cargo</span> build --release -p custom_action
 <span class="tok-fn">python3</span> scripts/package_action.py actions/custom_pack/custom_action/Cargo.toml \
@@ -1759,7 +2142,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <p class="doc-p">On macOS, use <code>target/release/libcustom_action.dylib</code>; on Windows, use <code>target/release/custom_action.dll</code> and set <code>MORFLOW_ACTIONS_PATH</code> using your shell’s environment-variable syntax. Packaging creates the versioned binary, checksum receipt, and offline action catalog. If you add a <code>SPEC.md</code> beside Cargo.toml, it is packaged with the action too. Packaging also writes <code>&lt;action&gt;_METADATA.json</code> with its plugin requirements. Publish that metadata file and its checksum alongside the binary, including for actions whose plugin list is empty.</p>
           <p class="doc-p">The Linux cache entry is <code>actions_cache/custom_pack/custom_action_action-0.1.0-linux-x86_64.so</code>, with its receipt at the same path plus <code>.json</code>. Import the packaged version explicitly, as above. Morflow loads from the local cache without network access. After changing the action, rebuild and package it, then reload the pipeline to use the new binary.</p>
         </div>
-        <div id="custom-action-testing" class="doc-section"><h3 class="doc-h3">6.7. Test the Action</h3>
+        <div id="custom-action-testing" class="doc-section"><h3 class="doc-h3">7.7. Test the Action</h3>
           <p class="doc-p">Save the import example as <code>custom_pipeline.morf</code>. Check it with the same action cache you will use for execution:</p>
           <div class="doc-code-card"><div class="doc-code-header"><span>Check your pipeline</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">cargo</span> test -p custom_action
 <span class="tok-fn">cargo</span> run -p morflow -- check custom_pipeline.morf</code></pre></div>
@@ -1767,7 +2150,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
           <p class="doc-p">Cover valid concrete shapes, incompatible shapes, and dynamic declarations. Check that invalid inputs are rejected before processing, that partial shapes retain any known rank and dimensions, and that runtime outputs match the prediction. For Composite actions, also test missing components, incorrect kinds, and component ordering.</p>
           <p class="doc-p">Finally, load the example pipeline through a binding and run it with a matching Tensor. Try <code>Tensor[*,3]</code> in the declaration as well: the static report should identify unresolved dimensions, while execution checks the actual dimensions supplied by the host.</p>
         </div>
-        <div id="custom-action-plugins" class="doc-section"><h3 class="doc-h3">6.8. Declare Plugin Requirements</h3>
+        <div id="custom-action-plugins" class="doc-section"><h3 class="doc-h3">7.8. Declare Plugin Requirements</h3>
           <p class="doc-p">If your action uses a plugin, declare the dependency in both its packaging metadata and its exported interface. Pipeline authors then select a compatible plugin version with a <code>plugin name/version</code> declaration. Actions that do not use plugins need no additional export.</p>
           <h4 class="doc-h4">Declare the dependency in Cargo.toml</h4>
           <p class="doc-p">Add one entry per required plugin. The version here is a supported semantic version range, rather than the exact version selected by the pipeline. For example, <code>^0.1.0</code> accepts compatible releases from 0.1.0 up to, but excluding, 0.2.0.</p>
