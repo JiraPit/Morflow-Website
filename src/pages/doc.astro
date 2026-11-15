@@ -267,7 +267,7 @@ morflow check ./pipeline.morf --path ./actions_cache</code></pre>
         <div id="cli-action-versions" class="doc-section">
           <h3 class="doc-h3">Action Versions &amp; Verified Cache</h3>
           <p class="doc-p">
-            Imports select an exact release, such as <code>image_basics/0.2.0</code>, or a refreshable <code>latest</code> entry. Exact binaries include their version in the filename; latest binaries use the word <code>latest</code>. Both can coexist in the same cache.
+            Imports select an exact release, such as <code>image_basics/0.3.3</code>, or a refreshable <code>latest</code> entry. Exact binaries include their version in the filename; latest binaries use the word <code>latest</code>. Both can coexist in the same cache.
           </p>
           <p class="doc-p">
             Each <code>prep</code> or <code>install</code> resolves the newest stable release for latest imports, verifies published SHA-256 checksums, and replaces cached bytes when the checksum changes. A receipt beside each binary records its concrete version and verified checksum. Pipeline loading verifies these artifacts locally, and loaded pipelines retain their actions until reloaded.
@@ -309,11 +309,11 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
 <span class="tok-fn">morflow</span> plugins search opencv --limit 5
 
 <span class="tok-comment"># Install an exact version, or explicitly request latest</span>
-<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.2
+<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.3
 <span class="tok-fn">morflow</span> plugins install opencv-bridge/latest
 
 <span class="tok-comment"># Choose a cache and force a fresh download</span>
-<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.2 --path ./plugins_cache --force
+<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.3 --path ./plugins_cache --force
 
 <span class="tok-comment"># Inspect verified entries in that cache</span>
 <span class="tok-fn">morflow</span> plugins list --path ./plugins_cache</code></pre></div>
@@ -1756,7 +1756,7 @@ fs.<span class="tok-fn">writeFileSync</span>(<span class="tok-str">'output.wav'<
             <pre class="doc-code-pre"><code>&lt;dependency&gt;
     &lt;groupId&gt;org.morflow&lt;/groupId&gt;
     &lt;artifactId&gt;morflow&lt;/artifactId&gt;
-    &lt;version&gt;0.3.0&lt;/version&gt;
+    &lt;version&gt;0.3.1&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
           </div>
 
@@ -1994,8 +1994,8 @@ console.<span class="tok-fn">log</span>(total.dtype, total.<span class="tok-fn">
         </div>
         <div id="plugins-use" class="doc-section"><h3 class="doc-h3">6.2. Use a Plugin in a Pipeline</h3>
           <p class="doc-p">Add a <code>plugin</code> declaration before your flows, then import the actions you want to use. The example below selects a plugin and calls an action that depends on it:</p>
-          <div class="doc-code-card"><div class="doc-code-header"><span>Declare a plugin</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">plugin</span> opencv-bridge/<span class="tok-num">0.1.2</span>
-<span class="tok-keyword">from</span> image_opencv/<span class="tok-num">0.1.2</span> <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
+          <div class="doc-code-card"><div class="doc-code-header"><span>Declare a plugin</span><span>morf</span></div><pre class="doc-code-pre"><code><span class="tok-keyword">plugin</span> opencv-bridge/<span class="tok-num">0.1.3</span>
+<span class="tok-keyword">from</span> image_opencv/<span class="tok-num">0.1.3</span> <span class="tok-keyword">import</span> <span class="tok-fn">resize</span>
 
 <span class="tok-keyword">accept</span> <span class="tok-type">Tensor</span>[<span class="tok-num">480</span>,<span class="tok-num">640</span>,<span class="tok-num">3</span>] <span class="tok-var">$image</span>
 <span class="tok-var">$image</span> <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">resize</span>(<span class="tok-num">320</span>,<span class="tok-num">240</span>) <span class="tok-op">&gt;&gt;</span> <span class="tok-fn">emit</span></code></pre></div>
@@ -2018,7 +2018,7 @@ console.<span class="tok-fn">log</span>(total.dtype, total.<span class="tok-fn">
         </div>
         <div id="plugins-manage" class="doc-section"><h3 class="doc-h3">6.4. Manage Plugins and Versions</h3>
           <div class="doc-code-card"><div class="doc-code-header"><span>Find, install, and inspect plugins</span><span>shell</span></div><pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> plugins search opencv
-<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.2
+<span class="tok-fn">morflow</span> plugins install opencv-bridge/0.1.3
 <span class="tok-fn">morflow</span> plugins list
 <span class="tok-fn">morflow</span> plugins clean</code></pre></div>
           <p class="doc-p">Use <code>plugins search</code> to find a plugin in the shipped catalog. Use <code>plugins install</code> when you want to install one without preparing a pipeline. <code>plugins list</code> shows what is installed, and <code>plugins clean</code> removes prepared entries. The <a href="#cli-plugins">CLI reference</a> explains the options for each command.</p>
