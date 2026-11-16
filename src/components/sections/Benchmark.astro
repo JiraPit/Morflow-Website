@@ -462,7 +462,8 @@ const formatThroughput = (value: number) => (value < 10 ? value.toFixed(1) : Mat
   .bench-detail {
     font-family: var(--font-ui);
     font-size: 13.5px;
-    color: var(--grey-600);
+    font-weight: 500;
+    color: var(--grey-800);
     white-space: nowrap;
   }
 
@@ -477,8 +478,7 @@ const formatThroughput = (value: number) => (value < 10 ? value.toFixed(1) : Mat
     height: 22px;
     min-width: 4px;
     flex-shrink: 0;
-    /* Square at the baseline, rounded at the data end. */
-    border-radius: 0 4px 4px 0;
+    border-radius: 4px;
     /* Every row scales against the same width, leaving room for the value. */
     width: calc((100% - 190px) * var(--share));
   }
