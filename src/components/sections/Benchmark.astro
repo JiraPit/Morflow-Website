@@ -7,7 +7,7 @@ import { withBase } from '../../lib/content';
 interface Row {
   engine: 'morflow' | 'numpy';
   name: string;
-  detail: string;
+  detail?: string;
   throughput: number;
   ms: number;
 }
@@ -53,8 +53,8 @@ const tabs: Tab[] = [
     timeUnit: 'ms per run',
     rows: [
       { engine: 'morflow', name: 'Morflow', detail: 'BLAS plugin', throughput: 92.0, ms: 10.9 },
-      { engine: 'numpy', name: 'NumPy', detail: 'numpy.linalg', throughput: 25.1, ms: 39.4 },
-      { engine: 'morflow', name: 'Morflow', detail: 'built-in actions', throughput: 2.8, ms: 354.8 },
+      { engine: 'numpy', name: 'NumPy', throughput: 25.1, ms: 39.4 },
+      { engine: 'morflow', name: 'Morflow', throughput: 2.8, ms: 354.8 },
     ],
     pin: `Morflow 0.3.2 · NumPy 2.2.6 · OpenBLAS, default threads · ${machine}`,
     url: `${repo}/simple_tensor`,
@@ -112,13 +112,13 @@ const formatThroughput = (value: number) => (value < 10 ? value.toFixed(1) : Mat
                       height="22"
                     />
                     <span class="bench-name">{row.name}</span>
-                    <span class="bench-detail">{row.detail}</span>
+                    {row.detail && <span class="bench-detail">{row.detail}</span>}
                   </div>
                   <div class="bench-track">
                     <div
                       class:list={['bench-bar', `bench-bar--${row.engine}`]}
                       style={`--share: ${(row.throughput / max).toFixed(4)}`}
-                      title={`${row.name}, ${row.detail}: ${row.ms} ${tab.timeUnit}`}
+                      title={`${[row.name, row.detail].filter(Boolean).join(', ')}: ${row.ms} ${tab.timeUnit}`}
                     ></div>
                     <span class="bench-value">
                       <span class="bench-num" data-value={row.throughput}>{formatThroughput(row.throughput)}</span> {tab.unit}
