@@ -74,7 +74,8 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
           <li><a href="#exec-js" class="docs-nav-link">5.2. JavaScript / Node.js</a></li>
           <li><a href="#exec-java" class="docs-nav-link">5.3. Java</a></li>
           <li><a href="#exec-rust" class="docs-nav-link">5.4. Rust</a></li>
-          <li><a href="#exec-dtypes" class="docs-nav-link">5.5. DTypes in the Host SDKs</a></li>
+          <li><a href="#exec-flutter" class="docs-nav-link">5.5. Flutter</a></li>
+          <li><a href="#exec-dtypes" class="docs-nav-link">5.6. DTypes in the Host SDKs</a></li>
         </ul>
       </div>
       <div class="docs-nav-group">
@@ -261,6 +262,7 @@ morflow check ./pipeline.morf --path ./actions_cache</code></pre>
 <span class="tok-fn">morflow</span> check ./pipeline.morf --path ./actions_cache --plugins-path ./plugins_cache</code></pre>
           </div>
           <p class="doc-p">Use an exact version or write <code>latest</code> explicitly in every import and plugin declaration. Each preparation refreshes the selected stable release for latest and reuses cached binaries when their checksums match. Preparation reports an error if any required dependency cannot be prepared.</p>
+          <p class="doc-p">For a Flutter app, run <code>morflow prep --prod-target flutter</code> in the app's root folder instead. It lists the packs in the app's <code>pubspec.yaml</code> so they ship inside the app; see <a href="#exec-flutter" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>.</p>
           <p class="doc-p">Plugins can depend on external shared libraries. Install compatible system libraries on the execution machine separately; preparation downloads the Morflow plugin, not its system dependencies. Once prepared, pipeline loading and execution use local artifacts without network requests. See <a href="#plugins-use">Use a Plugin in a Pipeline</a> for the OpenCV setup.</p>
         </div>
 
@@ -1198,7 +1200,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#exec-dtypes" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>). The dtype of the result follows the promotion rules in <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>.
+            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#exec-dtypes" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.6</a>). The dtype of the result follows the promotion rules in <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>.
           </p>
         </div>
 
@@ -1629,7 +1631,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           <p class="badge">Section 5</p>
           <h2 class="doc-h2">5. Pipeline Execution</h2>
           <p class="doc-p">
-            Execute the same .morf pipelines and native actions across training and production serving. Morflow provides host SDKs for Python, JavaScript/Node.js, Java, and Rust, converting host tensors, image arrays, and raw bytes into engine payloads.
+            Execute the same .morf pipelines and native actions across training and production serving. Morflow provides host SDKs for Python, JavaScript/Node.js, Java, Rust, and Dart for Flutter apps, converting host tensors, image arrays, and raw bytes into engine payloads.
           </p>
         </div>
 
@@ -1871,9 +1873,218 @@ cargo add morflow</code></pre>
 &#125;</code></pre>
           </div>
         </div>
-        <!-- 5.5: DTYPES IN THE HOST SDKS -->
+        <!-- 5.5: FLUTTER -->
+        <div id="exec-flutter" class="doc-section">
+          <h3 class="doc-h3">5.5. Flutter</h3>
+          <p class="doc-p">
+            Run pipelines inside a Flutter app on Android, iOS, macOS, Windows and Linux. Everything a pipeline needs ships inside your app, so it works offline and your users don't install anything. Getting set up takes one command, and after that <code>flutter run</code> and <code>flutter build</code> work as usual.
+          </p>
+
+          <div class="doc-callout">
+            <strong>Coming soon:</strong> The Flutter package is not on pub.dev yet. This guide describes how it works once it is released.
+          </div>
+
+          <h4 class="doc-h4">Step 1: Install the Morflow CLI</h4>
+          <p class="doc-p">
+            Install the CLI on your computer as described in <a href="#cli-installation" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 1.1</a>. You only use it while developing; the people who use your app never need it.
+          </p>
+
+          <h4 class="doc-h4">Step 2: Add Morflow to your app</h4>
+          <p class="doc-p">In your app's folder, add the package like any other:</p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Add the Package</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-fn">flutter</span> pub add morflow</code></pre>
+          </div>
+
+          <h4 class="doc-h4">Step 3: Put your pipelines in the app</h4>
+          <p class="doc-p">
+            Save your <code>.morf</code> files anywhere inside the app's folder, for example in a <code>pipelines</code> folder next to <code>lib</code>. This guide uses a pipeline that doubles the volume of a recording and returns it as a WAV file:
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>pipelines/boost.morf</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_basics/latest
+
+<span class="tok-keyword">accept</span> Audio $audio
+$audio &gt;&gt; <span class="tok-fn">gain</span>(linear=<span class="tok-num">2.0</span>) &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-keyword">emit</span></code></pre>
+          </div>
+
+          <h4 class="doc-h4">Step 4: Run <code>prep</code> for Flutter</h4>
+          <p class="doc-p">
+            From the app's root folder (the one with <code>pubspec.yaml</code>), run <code>prep</code> with <code>--prod-target flutter</code> and every pipeline the app uses:
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Prepare the App</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> prep --prod-target flutter pipelines/boost.morf
+
+<span class="tok-comment"># Several pipelines at once</span>
+<span class="tok-fn">morflow</span> prep --prod-target flutter pipelines/boost.morf pipelines/denoise.morf</code></pre>
+          </div>
+          <p class="doc-p">
+            It works out what your pipelines need, shows the changes it wants to make to <code>pubspec.yaml</code>, and asks before changing anything. Press Enter to apply them:
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Output</span>
+              <span>Terminal</span>
+            </div>
+            <pre class="doc-code-pre"><code>Packs these pipelines need: audio_basics 0.2.4
+
+Changes to pubspec.yaml:
+
+@@ -56,6 +56,8 @@
+   # included with your application, so that you can use the icons in
+   # the material Icons class.
+   uses-material-design: true
+<span class="tok-str">+  assets:</span>
+<span class="tok-str">+    - pipelines/boost.morf</span>
+
+   # To add assets to your application, add an assets section, like this:
+   # assets:
+@@ -87,3 +89,9 @@
+   #
+   # For details regarding fonts from package dependencies,
+   # see https://flutter.dev/to/font-from-package
+<span class="tok-str">+</span>
+<span class="tok-str">+hooks:</span>
+<span class="tok-str">+  user_defines:</span>
+<span class="tok-str">+    morflow:</span>
+<span class="tok-str">+      packs:</span>
+<span class="tok-str">+        audio_basics: 0.2.4</span>
+
+Apply these changes? [Y/n]
+Updated pubspec.yaml.</code></pre>
+          </div>
+          <p class="doc-p">
+            Two things changed: your pipeline files are now part of the app, and the app has a list of the action packs it ships with. It only touches those lines and leaves the rest of the file as it was. To apply the changes without the question, such as in a script, add <code>--yes</code>.
+          </p>
+
+          <h4 class="doc-h4">Step 5: Run a pipeline in your code</h4>
+          <p class="doc-p">
+            Load the pipeline from the app's files and run it. Running a pipeline doesn't block your UI.
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Run a Pipeline in Flutter</span>
+              <span>dart</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> <span class="tok-str">'dart:typed_data'</span>;
+<span class="tok-keyword">import</span> <span class="tok-str">'package:flutter/services.dart'</span> <span class="tok-keyword">show</span> rootBundle;
+<span class="tok-keyword">import</span> <span class="tok-str">'package:morflow/morflow.dart'</span> <span class="tok-keyword">as</span> morflow;
+
+<span class="tok-comment">/// Doubles the volume of a mono recording and returns it as a WAV file.</span>
+Future&lt;Uint8List&gt; <span class="tok-fn">boost</span>(Float32List samples) <span class="tok-keyword">async</span> &#123;
+  <span class="tok-comment">// 1. Load the pipeline that ships inside the app</span>
+  <span class="tok-keyword">final</span> pipeline = morflow.<span class="tok-fn">fromStr</span>(
+    <span class="tok-keyword">await</span> rootBundle.<span class="tok-fn">loadString</span>(<span class="tok-str">'pipelines/boost.morf'</span>),
+  );
+
+  <span class="tok-comment">// 2. Run it on the recording: 1 channel, 44.1 kHz</span>
+  <span class="tok-keyword">final</span> wav = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>&lt;morflow.MorflowTensor&gt;(
+    morflow.<span class="tok-fn">TensorInput</span>(
+      data: samples,
+      shape: [<span class="tok-num">1</span>, samples.length],
+      payloadType: <span class="tok-str">'audio'</span>,
+      sampleRate: <span class="tok-num">44100</span>,
+    ),
+  );
+
+  <span class="tok-comment">// 3. Free the pipeline when you're done with it</span>
+  pipeline.<span class="tok-fn">close</span>();
+  <span class="tok-keyword">return</span> wav.<span class="tok-fn">toBuffer</span>();
+&#125;</code></pre>
+          </div>
+          <p class="doc-p">
+            To run a pipeline many times, load it once (for example in <code>initState</code>) and call <code>close()</code> in <code>dispose</code>.
+          </p>
+
+          <h4 class="doc-h4">Step 6: Run and build as usual</h4>
+          <p class="doc-p">
+            <code>flutter run</code> and <code>flutter build</code> now include everything the pipelines need, for whichever platform you build. The same app works on Android, iOS, macOS, Windows and Linux.
+          </p>
+
+          <h4 class="doc-h4">When you change a pipeline</h4>
+          <p class="doc-p">
+            Run the same <code>prep</code> command again after adding a pipeline or changing its imports. If nothing needs to change, it says <code>pubspec.yaml is already up to date.</code> Packs that your other pipelines still need stay in the list.
+          </p>
+
+          <h4 class="doc-h4">What a Flutter app can't use</h4>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Plugins:</strong> Packs that need a <a href="#plugins" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">plugin</a> (<code>image_opencv</code>, <code>linalg_blas</code>, <code>tensor_blas</code>) can't ship inside an app. Use their plugin-free counterparts, such as <code>image_basics</code>, <code>linalg_basics</code> and <code>tensor_basics</code>. <code>prep</code> tells you if a pipeline uses one.</li>
+            <li><strong>Two versions of one pack:</strong> An app ships one version of each pack, so all its pipelines must agree. Use <code>latest</code>, or the same exact version everywhere.</li>
+          </ul>
+
+          <h4 class="doc-h4">Inputs and outputs</h4>
+          <p class="doc-p">
+            The Dart API matches the JavaScript one method for method. <code>morflow.fromStr(source)</code> loads a pipeline from text, and <code>morflow.load(path)</code> loads a file outside the app's assets, such as one on a desktop. Name the type you expect as a result, as in <code>run&lt;MorflowTensor&gt;(…)</code>; it is a <code>MorflowTensor</code>, or a <code>List</code> for a Composite.
+          </p>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Returns</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>run(input)</code> / <code>runSync(input)</code></td><td>The single emitted output</td></tr>
+                <tr><td><code>runAll(input)</code> / <code>runSyncAll(input)</code></td><td>Every named output, as a <code>Map</code></td></tr>
+                <tr><td><code>runArgs([...])</code> / <code>runSyncArgs([...])</code></td><td>The single output, binding parameters in declaration order</td></tr>
+                <tr><td><code>runAllArgs([...])</code> / <code>runSyncAllArgs([...])</code></td><td>Every named output, binding parameters in declaration order</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="doc-p" style="margin-top: 16px;">
+            The <code>Sync</code> methods wait for the result on the calling isolate; the others run on a background thread. Inputs are sent as follows:
+          </p>
+          <div class="doc-table-container">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Dart value</th>
+                  <th>Sent as</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Float32List</code>, <code>Float64List</code>, <code>Int8List</code>, <code>Int16List</code>, <code>Int32List</code>, <code>Int64List</code>, <code>Uint32List</code>, <code>Uint64List</code></td><td>A 1-D tensor of that dtype</td></tr>
+                <tr><td><code>Uint8List</code></td><td>Raw bytes, such as an encoded WAV or PNG file</td></tr>
+                <tr><td><code>TensorInput(data:, shape:, dtype:, payloadType:, …)</code></td><td>A tensor with a shape, or an Image (<code>payloadType: 'image'</code>) or Audio (<code>payloadType: 'audio'</code>)</td></tr>
+                <tr><td>A <code>List</code> of the above</td><td>A Composite</td></tr>
+                <tr><td><code>num</code>, <code>String</code>, <code>bool</code> (in the <code>…Args</code> methods)</td><td>Scalar and <code>*Arg</code> parameters</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="doc-p" style="margin-top: 16px;">
+            A <code>MorflowTensor</code> result has <code>shape</code>, <code>dtype</code> and the raw <code>data</code>, with views such as <code>toFloat32Array()</code>, <code>toInt32Array()</code> and <code>toBuffer()</code>. Engine errors throw <code>MorflowException</code>.
+          </p>
+
+          <h4 class="doc-h4">Under the hood</h4>
+          <p class="doc-p">
+            You don't need this to use Morflow in Flutter, but it explains what the steps above set up.
+          </p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Native code:</strong> The engine and the actions are compiled native libraries, not Dart, and each platform and processor needs its own build: Android phones and emulators, iPhones and the iOS simulator, Apple Silicon and Intel Macs, Windows and Linux. A <code>flutter build</code> includes the builds for the platform you're building.</li>
+            <li><strong>The pack list:</strong> <code>prep</code> resolves each <code>latest</code> import to the newest release and writes exact versions under <code>hooks: user_defines: morflow: packs:</code>, so every build of your app ships the same actions. You can also edit this list yourself.</li>
+            <li><strong>At build time:</strong> The morflow package's build hook runs during <code>flutter run</code> and <code>flutter build</code>. It downloads the engine and each listed pack for the target platform from Morflow's GitHub releases, checks them against the published SHA-256 checksums, and caches them so later builds work offline. Flutter then places them inside the app next to the engine: in the APK on Android, as frameworks on iOS and macOS, beside the <code>.exe</code> on Windows, and in <code>lib/</code> on Linux. Release builds for macOS hold both Apple Silicon and Intel code.</li>
+            <li><strong>At runtime:</strong> The engine finds the packs next to itself, so there is no action cache on the user's device. A pipeline can import a bundled pack at <code>latest</code> or at its bundled version; any other version fails with an error naming the version the app bundles. When a pack is bundled, it is used before any action cache, so the app always runs the versions it was built with.</li>
+            <li><strong>Without <code>--prod-target</code>:</strong> Plain <code>morflow prep</code> fills the action cache on your computer instead (<a href="#cli-prep" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 1.4</a>). Dart command-line programs and desktop development can use it, including plugins, but an app you give to others should bundle its packs.</li>
+          </ul>
+          <p class="doc-p">
+            To download the native libraries from a mirror instead of GitHub, set <code>release_url</code> (a URL or a folder with the same layout as the GitHub releases) under <code>hooks: user_defines: morflow:</code>. To use an engine library you built yourself, set <code>native_lib</code> to its path.
+          </p>
+        </div>
+
+        <!-- 5.6: DTYPES IN THE HOST SDKS -->
         <div id="exec-dtypes" class="doc-section">
-          <h3 class="doc-h3">5.5. DTypes in the Host SDKs</h3>
+          <h3 class="doc-h3">5.6. DTypes in the Host SDKs</h3>
           <p class="doc-p">
             Every SDK passes tensors of all nine dtypes in and returns results with their dtype, and each can send and receive a Composite:
           </p>
@@ -1901,6 +2112,11 @@ cargo add morflow</code></pre>
                   <td>Java</td>
                   <td><code>MorflowTensor.fromDoubleArray</code>, <code>fromLongArray</code>, <code>fromIntArray</code>, <code>fromShortArray</code>, <code>fromFloatArray</code>, <code>fromByteArray</code>, or <code>fromDirectBuffer(buffer, shape, "u32")</code> for the others. Read results with <code>getDtype()</code> and <code>toDoubleArray()</code>, <code>toLongArray()</code>, and similar.</td>
                   <td>Pass <code>MorflowTensor.composite(a, b)</code>; a Composite result has <code>isComposite()</code> and <code>getItems()</code>.</td>
+                </tr>
+                <tr>
+                  <td>Dart</td>
+                  <td>A typed list carries its dtype (<code>Int32List</code> is <code>i32</code>, <code>Float64List</code> is <code>f64</code>); use <code>TensorInput(data:, shape:, dtype:)</code> for a shape or another dtype. Results have a <code>dtype</code> and <code>toTypedArray()</code>, <code>toInt32Array()</code>, <code>toFloat64Array()</code>, and similar views.</td>
+                  <td>Pass a <code>List</code>, such as <code>pipeline.run([a, b])</code>; a Composite result is a <code>List</code> (<code>run&lt;List&gt;(…)</code>).</td>
                 </tr>
                 <tr>
                   <td>Rust</td>
