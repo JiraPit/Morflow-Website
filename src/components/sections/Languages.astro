@@ -101,28 +101,32 @@ const languages: Language[] = [
     color: #b94b00;
   }
 
+  /* Three columns; a shorter last row is centered. */
   .languages-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20px;
+    --cols: 3;
+    --gap: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--gap);
     width: 100%;
   }
 
-  @media (max-width: 1024px) {
-    .languages-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+  .languages-grid > .lang-card {
+    flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+    box-sizing: border-box;
+    min-width: 0;
   }
 
   @media (max-width: 760px) {
     .languages-grid {
-      grid-template-columns: repeat(2, 1fr);
+      --cols: 2;
     }
   }
 
   @media (max-width: 560px) {
     .languages-grid {
-      grid-template-columns: 1fr;
+      --cols: 1;
     }
   }
 
