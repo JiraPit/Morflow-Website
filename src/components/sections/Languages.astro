@@ -27,6 +27,11 @@ const languages: Language[] = [
     name: "Rust",
     install: "cargo add morflow",
     image: withBase("/assets/languages/rust.png")
+  },
+  {
+    name: "Flutter",
+    install: "flutter pub add morflow",
+    image: withBase("/assets/languages/flutter.png")
   }
 ];
 ---
@@ -98,12 +103,18 @@ const languages: Language[] = [
 
   .languages-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 20px;
     width: 100%;
   }
 
   @media (max-width: 1024px) {
+    .languages-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 760px) {
     .languages-grid {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -162,6 +173,7 @@ const languages: Language[] = [
     border-radius: 8px;
     color: var(--grey-900);
     border: 1px solid var(--grey-200);
-    word-break: break-all;
+    word-break: normal;
+    overflow-wrap: anywhere;
   }
 </style>
