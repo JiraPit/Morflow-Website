@@ -148,6 +148,20 @@ result = pipeline.<span class="tok-fn">run</span>(input_image)</code></pre>
 <span class="tok-keyword">final</span> source = <span class="tok-keyword">await</span> rootBundle.<span class="tok-fn">loadString</span>(<span class="tok-str">'image_pipeline.morf'</span>);
 <span class="tok-keyword">final</span> result = <span class="tok-keyword">await</span> morflow.<span class="tok-fn">fromStr</span>(source).<span class="tok-fn">run</span>(imageInput);</code></pre>
           </div>
+
+          <!-- React Native -->
+          <div class="code-card mini">
+            <div class="code-card__header">
+              <div class="lang-title-group">
+                <img class="lang-logo" src={withBase('/assets/languages/react-native.png')} alt="" width="18" height="18" />
+                <span class="code-card__title">React Native</span>
+              </div>
+            </div>
+            <pre class="code-card__pre"><code><span class="tok-keyword">import</span> source <span class="tok-keyword">from</span> <span class="tok-str">'./image_pipeline.morf'</span>;
+
+<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">fromStr</span>(source);
+<span class="tok-keyword">const</span> result = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>(imageInput);</code></pre>
+          </div>
         </div>
       </div>
 

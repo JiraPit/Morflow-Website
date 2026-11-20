@@ -75,7 +75,8 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
           <li><a href="#exec-java" class="docs-nav-link">5.3. Java</a></li>
           <li><a href="#exec-rust" class="docs-nav-link">5.4. Rust</a></li>
           <li><a href="#exec-flutter" class="docs-nav-link">5.5. Flutter</a></li>
-          <li><a href="#exec-dtypes" class="docs-nav-link">5.6. DTypes in the Host SDKs</a></li>
+          <li><a href="#exec-react-native" class="docs-nav-link">5.6. React Native</a></li>
+          <li><a href="#exec-dtypes" class="docs-nav-link">5.7. DTypes in the Host SDKs</a></li>
         </ul>
       </div>
       <div class="docs-nav-group">
@@ -267,7 +268,7 @@ morflow check ./pipeline.morf --path ./actions_cache</code></pre>
 <span class="tok-fn">morflow</span> check ./pipeline.morf --path ./actions_cache --plugins-path ./plugins_cache</code></pre>
           </div>
           <p class="doc-p">Use an exact version or write <code>latest</code> explicitly in every import and plugin declaration. Each preparation refreshes the selected stable release for latest and reuses cached binaries when their checksums match. Preparation reports an error if any required dependency cannot be prepared.</p>
-          <p class="doc-p">For a Flutter app, run <code>morflow prep --prod-target flutter</code> in the app's root folder instead. It lists the packs in the app's <code>pubspec.yaml</code> so they ship inside the app. <code>list</code>, <code>install</code>, <code>uninstall</code> and <code>clean</code> take <code>--prod-target flutter</code> too, and then work on that list instead of the action cache; see <a href="#exec-flutter" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>.</p>
+          <p class="doc-p">For a Flutter app, run <code>morflow prep --prod-target flutter</code> in the app's root folder instead. It lists the packs in the app's <code>pubspec.yaml</code> so they ship inside the app. <code>list</code>, <code>install</code>, <code>uninstall</code> and <code>clean</code> take <code>--prod-target flutter</code> too, and then work on that list instead of the action cache; see <a href="#exec-flutter" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>. For a React Native app, use <code>--prod-target react-native</code>, which lists the packs in the app's <code>package.json</code>; see <a href="#exec-react-native" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.6</a>.</p>
           <p class="doc-p">Plugins can depend on external shared libraries. Install compatible system libraries on the execution machine separately; preparation downloads the Morflow plugin, not its system dependencies. Once prepared, pipeline loading and execution use local artifacts without network requests. See <a href="#plugins-use">Use a Plugin in a Pipeline</a> for the OpenCV setup.</p>
         </div>
 
@@ -1205,7 +1206,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#exec-dtypes" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.6</a>). The dtype of the result follows the promotion rules in <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>.
+            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#exec-dtypes" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.7</a>). The dtype of the result follows the promotion rules in <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>.
           </p>
         </div>
 
@@ -2107,9 +2108,164 @@ Future&lt;Uint8List&gt; <span class="tok-fn">boost</span>(Float32List samples) <
           </p>
         </div>
 
-        <!-- 5.6: DTYPES IN THE HOST SDKS -->
+        <!-- 5.6: REACT NATIVE -->
+        <div id="exec-react-native" class="doc-section">
+          <h3 class="doc-h3">5.6. React Native</h3>
+          <p class="doc-p">
+            Run pipelines inside a React Native app on Android and iOS, with the same API as the JavaScript package. Everything a pipeline needs ships inside your app, so it works offline and your users don't install anything. It works in React Native apps and in Expo apps that use development builds.
+          </p>
+
+          <h4 class="doc-h4">Step 1: Install the Morflow CLI</h4>
+          <p class="doc-p">
+            Install the CLI on your computer as described in <a href="#cli-installation" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 1.1</a>. You only use it while developing; the people who use your app never need it.
+          </p>
+
+          <h4 class="doc-h4">Step 2: Add Morflow to your app</h4>
+          <p class="doc-p">In your app's folder, add the package like any other:</p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Add the Package</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-fn">npm</span> install react-native-morflow</code></pre>
+          </div>
+          <p class="doc-p">
+            Then let your app import <code>.morf</code> files by wrapping the Metro config with <code>withMorflow</code>:
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>metro.config.js</span>
+              <span>js</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">const</span> &#123; getDefaultConfig, mergeConfig &#125; = <span class="tok-fn">require</span>(<span class="tok-str">'@react-native/metro-config'</span>);
+<span class="tok-keyword">const</span> &#123; withMorflow &#125; = <span class="tok-fn">require</span>(<span class="tok-str">'react-native-morflow/metro'</span>);
+
+module.exports = <span class="tok-fn">withMorflow</span>(<span class="tok-fn">mergeConfig</span>(<span class="tok-fn">getDefaultConfig</span>(__dirname), &#123;&#125;));</code></pre>
+          </div>
+          <p class="doc-p">
+            Using Expo? Wrap the config from <code>expo/metro-config</code> the same way, and add <code>"plugins": ["react-native-morflow"]</code> to <code>app.json</code>. Run the app with a development build (<code>npx expo run:android</code> or <code>run:ios</code>); Expo Go can't load Morflow.
+          </p>
+
+          <h4 class="doc-h4">Step 3: Put your pipelines in the app</h4>
+          <p class="doc-p">
+            Save your <code>.morf</code> files anywhere inside the app's folder, for example in a <code>pipelines</code> folder. This guide uses the same pipeline as the Flutter guide, which doubles the volume of a recording and returns it as a WAV file:
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>pipelines/boost.morf</span>
+              <span>morf</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> audio_basics/latest
+
+<span class="tok-keyword">accept</span> Audio $audio
+$audio &gt;&gt; <span class="tok-fn">gain</span>(linear=<span class="tok-num">2.0</span>) &gt;&gt; <span class="tok-fn">to_wav</span> &gt;&gt; <span class="tok-keyword">emit</span></code></pre>
+          </div>
+
+          <h4 class="doc-h4">Step 4: Run <code>prep</code> for React Native</h4>
+          <p class="doc-p">
+            From the app's root folder (the one with <code>package.json</code>), run <code>prep</code> with <code>--prod-target react-native</code> and every pipeline the app uses:
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Prepare the App</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-fn">morflow</span> prep --prod-target react-native pipelines/boost.morf</code></pre>
+          </div>
+          <p class="doc-p">
+            It works out which action packs your pipelines need, shows the change it wants to make to <code>package.json</code>, and asks first. Press Enter to apply it:
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Output</span>
+              <span>Terminal</span>
+            </div>
+            <pre class="doc-code-pre"><code>Packs these pipelines need: audio_basics 0.2.4
+
+Changes to package.json:
+
+@@ -10,5 +10,10 @@
+     "react-native": "0.88.1",
+     "react-native-morflow": "^0.3.4"
+<span class="tok-str">+  &#125;,</span>
+<span class="tok-str">+  "morflow": &#123;</span>
+<span class="tok-str">+    "packs": &#123;</span>
+<span class="tok-str">+      "audio_basics": "0.2.4"</span>
+<span class="tok-str">+    &#125;</span>
+   &#125;
+ &#125;
+
+Apply these changes? [Y/n]
+Updated package.json.</code></pre>
+          </div>
+          <p class="doc-p">
+            Your app now has a list of the action packs it ships with. Nothing else in <code>package.json</code> changes. To apply the change without the question, such as in a script, add <code>--yes</code>.
+          </p>
+
+          <h4 class="doc-h4">Step 5: Run a pipeline in your code</h4>
+          <p class="doc-p">
+            Import the pipeline like any other file, compile it, and run it. <code>run</code> works on a background thread, so it doesn't block your UI.
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Run a Pipeline in React Native</span>
+              <span>ts</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-keyword">import</span> * <span class="tok-keyword">as</span> morflow <span class="tok-keyword">from</span> <span class="tok-str">'react-native-morflow'</span>;
+<span class="tok-keyword">import</span> boost <span class="tok-keyword">from</span> <span class="tok-str">'./pipelines/boost.morf'</span>;
+
+<span class="tok-comment">// 1. Compile the pipeline once, when the app starts</span>
+<span class="tok-keyword">const</span> pipeline = morflow.<span class="tok-fn">fromStr</span>(boost);
+
+<span class="tok-comment">/** Doubles the volume of a mono recording and returns it as a WAV file. */</span>
+<span class="tok-keyword">export async function</span> <span class="tok-fn">boostRecording</span>(samples: Float32Array): Promise&lt;Uint8Array&gt; &#123;
+  <span class="tok-comment">// 2. Run it on the recording: 1 channel, 44.1 kHz</span>
+  <span class="tok-keyword">const</span> wav = <span class="tok-keyword">await</span> pipeline.<span class="tok-fn">run</span>(&#123;
+    data: samples,
+    shape: [<span class="tok-num">1</span>, samples.length],
+    payloadType: <span class="tok-str">'audio'</span>,
+    sampleRate: <span class="tok-num">44100</span>,
+  &#125;);
+  <span class="tok-keyword">return</span> wav.<span class="tok-fn">toBuffer</span>();
+&#125;</code></pre>
+          </div>
+
+          <h4 class="doc-h4">Step 6: Run and build as usual</h4>
+          <p class="doc-p">
+            <code>npx react-native run-android</code> and <code>run-ios</code> (or <code>npx expo run:android</code> and <code>run:ios</code>) now include everything the pipelines need. For iOS, run <code>pod install</code> in the <code>ios</code> folder after changing the packs, as you do after adding any native package.
+          </p>
+
+          <h4 class="doc-h4">When you change a pipeline</h4>
+          <p class="doc-p">
+            Run the same <code>prep</code> command again after adding a pipeline or changing its imports. <code>list</code>, <code>install</code>, <code>uninstall</code> and <code>clean</code> work on the app's packs too, with <code>--prod-target react-native</code>, just as they do for Flutter (<a href="#exec-flutter" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>).
+          </p>
+
+          <h4 class="doc-h4">What a React Native app can't use</h4>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Plugins:</strong> Packs that need a <a href="#plugins" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">plugin</a> (<code>image_opencv</code>, <code>linalg_blas</code>, <code>tensor_blas</code>) can't ship inside an app. Use <code>image_basics</code>, <code>linalg_basics</code> and <code>tensor_basics</code> instead.</li>
+            <li><strong>Two versions of one pack:</strong> An app ships one version of each pack, so all its pipelines must agree.</li>
+            <li><strong>32-bit Android:</strong> Morflow runs on 64-bit Android phones (<code>arm64-v8a</code>) and emulators (<code>x86_64</code>). Set <code>reactNativeArchitectures=arm64-v8a,x86_64</code> in <code>android/gradle.properties</code>; the Expo plugin does this for you.</li>
+          </ul>
+
+          <h4 class="doc-h4">Inputs and outputs</h4>
+          <p class="doc-p">
+            The API is the JavaScript one (<a href="#exec-js" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.2</a>): <code>fromStr</code>, <code>load</code>, and the <code>run</code>, <code>runAll</code>, <code>runArgs</code> and <code>runAllArgs</code> methods, each with a <code>Sync</code> twin that runs on the JavaScript thread. The one difference is that React Native has no <code>Buffer</code>, so raw bytes are a <code>Uint8Array</code>: pass one as an input, and get one from a result's <code>data</code> and <code>toBuffer()</code>. Call <code>pipeline.close()</code> to free a pipeline you no longer need.
+          </p>
+
+          <h4 class="doc-h4">Under the hood</h4>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Native code:</strong> <code>react-native-morflow</code> is a C++ module that loads Morflow's engine library and gives JavaScript its functions directly, so tensors cross between JavaScript and the engine without being copied.</li>
+            <li><strong>At build time:</strong> The Android build and <code>pod install</code> download the engine and each listed pack from Morflow's GitHub releases, check them against the published SHA-256 checksums, and cache them so later builds work offline. They ship in the APK on Android and as frameworks on iOS.</li>
+            <li><strong>At runtime:</strong> The engine finds the packs inside the app, so there is no action cache on the user's device.</li>
+          </ul>
+          <p class="doc-p">
+            To download the native libraries from a mirror instead of GitHub, set the <code>MORFLOW_RELEASE_URL</code> environment variable, or <code>"releaseUrl"</code> under <code>"morflow"</code> in <code>package.json</code>, to a URL or a folder with the same layout as the GitHub releases.
+          </p>
+        </div>
+
+        <!-- 5.7: DTYPES IN THE HOST SDKS -->
         <div id="exec-dtypes" class="doc-section">
-          <h3 class="doc-h3">5.6. DTypes in the Host SDKs</h3>
+          <h3 class="doc-h3">5.7. DTypes in the Host SDKs</h3>
           <p class="doc-p">
             Every SDK passes tensors of all nine dtypes in and returns results with their dtype, and each can send and receive a Composite:
           </p>
