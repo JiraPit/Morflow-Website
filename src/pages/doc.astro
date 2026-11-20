@@ -179,6 +179,11 @@ pip install morflow</code></pre>
                   <td>Installs a versioned action or an entire pack into the action cache. Use prep to prepare all pipeline dependencies.</td>
                 </tr>
                 <tr>
+                  <td><code>uninstall</code></td>
+                  <td><code>morflow uninstall &lt;target&gt; [-p &lt;dir&gt;]</code></td>
+                  <td>Removes an action (<code>pack/version/action</code>), a pack version (<code>pack/version</code>) or a whole pack (<code>pack</code>) from the action cache.</td>
+                </tr>
+                <tr>
                   <td><code>list</code></td>
                   <td><code>morflow list [-p &lt;dir&gt;]</code></td>
                   <td>Lists installed action versions and the concrete release behind latest.</td>
@@ -262,7 +267,7 @@ morflow check ./pipeline.morf --path ./actions_cache</code></pre>
 <span class="tok-fn">morflow</span> check ./pipeline.morf --path ./actions_cache --plugins-path ./plugins_cache</code></pre>
           </div>
           <p class="doc-p">Use an exact version or write <code>latest</code> explicitly in every import and plugin declaration. Each preparation refreshes the selected stable release for latest and reuses cached binaries when their checksums match. Preparation reports an error if any required dependency cannot be prepared.</p>
-          <p class="doc-p">For a Flutter app, run <code>morflow prep --prod-target flutter</code> in the app's root folder instead. It lists the packs in the app's <code>pubspec.yaml</code> so they ship inside the app; see <a href="#exec-flutter" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>.</p>
+          <p class="doc-p">For a Flutter app, run <code>morflow prep --prod-target flutter</code> in the app's root folder instead. It lists the packs in the app's <code>pubspec.yaml</code> so they ship inside the app. <code>list</code>, <code>install</code>, <code>uninstall</code> and <code>clean</code> take <code>--prod-target flutter</code> too, and then work on that list instead of the action cache; see <a href="#exec-flutter" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.5</a>.</p>
           <p class="doc-p">Plugins can depend on external shared libraries. Install compatible system libraries on the execution machine separately; preparation downloads the Morflow plugin, not its system dependencies. Once prepared, pipeline loading and execution use local artifacts without network requests. See <a href="#plugins-use">Use a Plugin in a Pipeline</a> for the OpenCV setup.</p>
         </div>
 
@@ -2010,6 +2015,30 @@ Future&lt;Uint8List&gt; <span class="tok-fn">boost</span>(Float32List samples) <
           <h4 class="doc-h4">When you change a pipeline</h4>
           <p class="doc-p">
             Run the same <code>prep</code> command again after adding a pipeline or changing its imports. If nothing needs to change, it says <code>pubspec.yaml is already up to date.</code> Packs that your other pipelines still need stay in the list.
+          </p>
+
+          <h4 class="doc-h4">See and change the packs your app ships</h4>
+          <p class="doc-p">
+            <code>list</code>, <code>install</code>, <code>uninstall</code> and <code>clean</code> work on your app too: add <code>--prod-target flutter</code> and run them in the app's root folder. They change the pack list in <code>pubspec.yaml</code> instead of the action cache on your computer, and show the change and ask first, just like <code>prep</code>.
+          </p>
+          <div class="doc-code-card">
+            <div class="doc-code-header">
+              <span>Manage the App's Packs</span>
+              <span>Shell</span>
+            </div>
+            <pre class="doc-code-pre"><code><span class="tok-comment"># See the packs your app ships</span>
+<span class="tok-fn">morflow</span> list --prod-target flutter
+
+<span class="tok-comment"># Add a pack (the newest version, or one you name)</span>
+<span class="tok-fn">morflow</span> install audio_basics --prod-target flutter
+<span class="tok-fn">morflow</span> install audio_basics/0.2.4 --prod-target flutter
+
+<span class="tok-comment"># Remove one pack, or all of them</span>
+<span class="tok-fn">morflow</span> uninstall audio_basics --prod-target flutter
+<span class="tok-fn">morflow</span> clean --prod-target flutter</code></pre>
+          </div>
+          <p class="doc-p">
+            An app ships whole packs, so <code>install</code> with a single action, such as <code>audio_basics/latest/gain</code>, adds all of <code>audio_basics</code>. After <code>uninstall</code> or <code>clean</code>, pipelines that import a removed pack won't load in the app; run <code>prep</code> again to add back what they need.
           </p>
 
           <h4 class="doc-h4">What a Flutter app can't use</h4>
