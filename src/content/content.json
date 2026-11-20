@@ -110,6 +110,10 @@
           "label": "Documentation"
         },
         {
+          "href": "/usecases",
+          "label": "Use Cases"
+        },
+        {
           "href": "https://github.com/JiraPit/Morflow",
           "label": "GitHub"
         }
@@ -124,6 +128,10 @@
     {
       "href": "/doc",
       "label": "Documentation"
+    },
+    {
+      "href": "/usecases",
+      "label": "Use Cases"
     }
   ]
 }

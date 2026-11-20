@@ -16,8 +16,12 @@ export interface Props {
   ogImage?: string;
   /** The waitlist and thank-you pages carry no structured data in Framer. */
   schema?: boolean;
+  /** Open Graph type: 'article' for use cases and other long reads. */
+  ogType?: 'website' | 'article';
+  /** Page-specific JSON-LD (Article, BreadcrumbList, FAQPage…), emitted after the site-wide block. */
+  jsonLd?: object[];
 }
-const { title, description, path, ogImage, schema: withSchema = true } = Astro.props;
+const { title, description, path, ogImage, schema: withSchema = true, ogType = 'website', jsonLd = [] } = Astro.props;
 const siteUrl = Astro.site ?? new URL('https://jirapit.github.io/Morflow-Website');
 const canonical = new URL(withBase(path), siteUrl).href;
 const card = new URL(withBase(ogImage ?? '/assets/og-image.jpg'), siteUrl).href;
@@ -30,7 +34,7 @@ const card = new URL(withBase(ogImage ?? '/assets/og-image.jpg'), siteUrl).href;
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content={ogType} />
 <meta property="og:site_name" content="Morflow" />
 <meta property="og:url" content={canonical} />
 <meta property="og:title" content={title} />
@@ -52,3 +56,4 @@ const card = new URL(withBase(ogImage ?? '/assets/og-image.jpg'), siteUrl).href;
 />
 
 {withSchema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
+{jsonLd.map((block) => <script type="application/ld+json" set:html={JSON.stringify(block)} />)}

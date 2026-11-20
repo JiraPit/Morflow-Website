@@ -1,0 +1,322 @@
+/* ============================================================
+   USE CASES
+   /usecases (a list of guides) and each guide: one readable
+   column with numbered steps. Code cards, tables and callouts
+   reuse the docs styles (docs.css).
+   ============================================================ */
+
+/* ---- Index -------------------------------------------------- */
+.uc-index {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 8px 0 96px;
+}
+
+.uc-index__lede {
+  margin: 0;
+  max-width: 680px;
+  font-size: var(--l-size);
+  line-height: var(--body-line);
+  color: var(--grey-800);
+}
+
+.uc-list {
+  min-width: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 20px;
+}
+
+.uc-card {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--white);
+  border: 1px solid var(--grey-200);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.uc-card:hover,
+.uc-card:focus-visible {
+  border-color: rgba(219, 88, 55, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -20px rgba(28, 24, 20, 0.35);
+}
+
+.uc-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--grey-900);
+}
+
+.uc-card__summary {
+  margin: 0;
+  font-size: var(--m-size);
+  line-height: var(--body-line);
+  color: var(--grey-800);
+}
+
+.uc-card__more {
+  margin-top: auto;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brand-500);
+}
+
+.uc-tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.uc-tag {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(219, 88, 55, 0.1);
+  color: #b94b00;
+}
+
+/* ---- Article ------------------------------------------------ */
+.uc-article {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 0 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Code cards scroll sideways instead of widening the column on phones. */
+.uc-article > *,
+.uc-flow > * { min-width: 0; }
+
+.uc-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--grey-600);
+}
+
+.uc-crumbs a {
+  color: var(--grey-800);
+  text-decoration: none;
+}
+
+.uc-crumbs a:hover { color: var(--brand-500); }
+.uc-crumbs li + li::before { content: '/'; margin-right: 8px; color: var(--grey-400); }
+
+.uc-title {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 46px);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--grey-900);
+}
+
+.uc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--grey-600);
+}
+
+.uc-lede {
+  margin: 8px 0 0;
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--grey-800);
+}
+
+.uc-article .doc-p a,
+.uc-article li a {
+  color: var(--brand-500);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.uc-h2 {
+  margin: 40px 0 2px;
+  padding-top: 24px;
+  border-top: 1px solid var(--grey-200);
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--grey-900);
+  scroll-margin-top: 100px;
+}
+
+.uc-step {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-500);
+}
+
+.uc-h3 {
+  margin: 18px 0 0;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--grey-900);
+}
+
+.uc-list-plain {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--grey-800);
+}
+
+.uc-list-plain code,
+.uc-callout code,
+.uc-flow code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 14.5px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--grey-100);
+  border: 1px solid var(--grey-200);
+  color: #b94b00;
+}
+
+/* The "what you'll build" flow: training on one side, the app on the other. */
+.uc-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.uc-flow__box {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: var(--white);
+  border: 1px solid var(--grey-200);
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--grey-800);
+}
+
+.uc-flow__box strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--grey-900);
+}
+
+.uc-flow__shared {
+  grid-column: 1 / -1;
+  text-align: center;
+  background: rgba(219, 88, 55, 0.08);
+  border-color: rgba(219, 88, 55, 0.3);
+}
+
+.uc-flow__arrow {
+  align-self: center;
+  font-size: 22px;
+  color: var(--grey-600);
+}
+
+@media (max-width: 640px) {
+  .uc-flow { grid-template-columns: 1fr; }
+  .uc-flow__arrow { transform: rotate(90deg); justify-self: center; }
+}
+
+.uc-callout {
+  margin: 4px 0;
+}
+
+.uc-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.uc-faq details {
+  border: 1px solid var(--grey-200);
+  border-radius: 12px;
+  background: var(--white);
+  padding: 4px 18px;
+}
+
+.uc-faq summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-family: var(--font-display);
+  font-size: 17.5px;
+  font-weight: 600;
+  color: var(--grey-900);
+}
+
+.uc-faq details p {
+  margin: 0 0 14px;
+  font-size: 16.5px;
+  line-height: 1.65;
+  color: var(--grey-800);
+}
+
+.uc-next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.uc-next a {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--grey-200);
+  background: var(--white);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--grey-900);
+  text-decoration: none;
+}
+
+.uc-next a:hover { border-color: var(--brand-500); color: var(--brand-500); }

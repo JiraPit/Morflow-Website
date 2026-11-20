@@ -1,0 +1,319 @@
+---
+import Base from '../../layouts/Base.astro';
+import CodeCard from '../../components/CodeCard.astro';
+import { withBase } from '../../lib/content';
+import { useCases, useCasePath } from '../../content/usecases';
+import { longDate, useCaseJsonLd, type Faq } from '../../lib/usecase';
+
+const meta = useCases.find((u) => u.slug === 'image-processing-flutter-react-native-on-device')!;
+const site = Astro.site ?? new URL('https://morflow.org');
+
+const faq: Faq[] = [
+  {
+    q: 'Does the app need an internet connection to process photos?',
+    a: 'No. The Morflow engine and the image actions ship inside the app, so the pipeline runs on the phone even in airplane mode. Nothing is uploaded unless your app uploads it.',
+  },
+  {
+    q: 'Will a big photo freeze the UI?',
+    a: 'The pipeline runs on a background thread in both Flutter and React Native, so the screen stays responsive while a photo is processed.',
+  },
+  {
+    q: 'Can Flutter and React Native share the same pipeline file?',
+    a: 'Yes. A .morf file is plain text and both packages run the same native actions, so one file can live in both apps. In our test, both apps produced exactly the same pixels from the same photo.',
+  },
+  {
+    q: 'Which image operations can a pipeline do on the phone?',
+    a: 'Everything in the image_basics pack: resize, crop, rotate, flip, pad, blur, sharpen, color and exposure adjustment, threshold, edge detection, morphology and blending. Packs that need a plugin, such as image_opencv, cannot ship inside an app.',
+  },
+  {
+    q: 'Does it work with Expo?',
+    a: 'Yes, with a development build. Add the react-native-morflow config plugin to app.json and run the app with npx expo run:android or run:ios. Expo Go cannot load it, because it needs native code.',
+  },
+];
+
+const jsonLd = useCaseJsonLd(meta, site, faq, ['On-device image processing', 'Flutter', 'React Native', 'Mobile apps']);
+
+const pipeline = `
+import image_basics/latest
+
+# A photo as RGBA pixels: height x width x 4, values 0-255
+accept Tensor[*,*,4] $photo
+
+$photo
+  >> resize(width=1080, height=1080, keep_aspect_ratio=true)
+  >> color_adjust(contrast=1.1, saturation=1.2, color="rgba")
+  >> sharpen(strength=0.8)
+  >> emit`;
+
+const flutterPrep = `
+flutter pub add morflow
+morflow prep --prod-target flutter pipelines/enhance.morf`;
+
+const flutterEnhancer = `
+import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:morflow/morflow.dart' as morflow;
+
+class PhotoEnhancer {
+  PhotoEnhancer._(this._pipeline);
+
+  final morflow.Pipeline _pipeline;
+
+  /// Loads the pipeline that ships inside the app.
+  static Future<PhotoEnhancer> load() async {
+    final source = await rootBundle.loadString('pipelines/enhance.morf');
+    return PhotoEnhancer._(morflow.fromStr(source));
+  }
+
+  /// Resizes, brightens and sharpens a JPEG or PNG photo on the device.
+  Future<ui.Image> enhance(Uint8List photoBytes) async {
+    // 1. Decode the photo into RGBA pixels with Flutter's built-in decoder.
+    final codec = await ui.instantiateImageCodec(photoBytes);
+    final photo = (await codec.getNextFrame()).image;
+    final pixels = (await photo.toByteData(format: ui.ImageByteFormat.rawStraightRgba))!;
+    final (width, height) = (photo.width, photo.height);
+    photo.dispose();
+    codec.dispose();
+
+    // 2. Run the pipeline. It works on a background thread.
+    final result = await _pipeline.run<morflow.MorflowTensor>(
+      morflow.TensorInput(
+        data: pixels.buffer.asUint8List(pixels.offsetInBytes, pixels.lengthInBytes),
+        shape: [height, width, 4],
+        dtype: 'u8',
+      ),
+    );
+
+    // 3. Turn the result back into an image Flutter can draw.
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(
+      result.toUint8Array(),
+      result.shape[1],
+      result.shape[0],
+      ui.PixelFormat.rgba8888,
+      completer.complete,
+    );
+    return completer.future;
+  }
+
+  void close() => _pipeline.close();
+}`;
+
+const flutterUse = `
+final enhancer = await PhotoEnhancer.load();
+final enhanced = await enhancer.enhance(photoBytes);
+
+// Show it
+RawImage(image: enhanced, fit: BoxFit.contain);
+
+// Or turn it into a PNG file to save or upload
+final png = await enhanced.toByteData(format: ui.ImageByteFormat.png);`;
+
+const rnInstall = `
+npm install react-native-morflow @shopify/react-native-skia
+morflow prep --prod-target react-native pipelines/enhance.morf`;
+
+const metro = `
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const { withMorflow } = require('react-native-morflow/metro');
+
+module.exports = withMorflow(mergeConfig(getDefaultConfig(__dirname), {}));`;
+
+const morfTypes = `
+declare module '*.morf' {
+  const source: string;
+  export default source;
+}`;
+
+const rnEnhance = `
+import { AlphaType, ColorType, Skia, type SkImage } from '@shopify/react-native-skia';
+import { fromStr, type MorflowTensor, type Pipeline } from 'react-native-morflow';
+import enhance from '../pipelines/enhance.morf';
+
+let pipeline: Pipeline | undefined;
+
+/** Resizes, brightens and sharpens a photo on the device. */
+export async function enhancePhoto(photo: SkImage): Promise<SkImage> {
+  pipeline ??= fromStr(enhance);
+
+  // 1. Read the photo's pixels: height x width x 4 bytes (RGBA).
+  const width = photo.width();
+  const height = photo.height();
+  const pixels = photo.readPixels(0, 0, {
+    width,
+    height,
+    colorType: ColorType.RGBA_8888,
+    alphaType: AlphaType.Unpremul,
+  }) as Uint8Array;
+
+  // 2. Run the pipeline. It works on a background thread.
+  const result = await pipeline.run<MorflowTensor>({
+    data: pixels,
+    shape: [height, width, 4],
+    dtype: 'u8',
+  });
+
+  // 3. Turn the result back into an image.
+  const [newHeight, newWidth] = result.shape;
+  const image = Skia.Image.MakeImage(
+    { width: newWidth, height: newHeight, colorType: ColorType.RGBA_8888, alphaType: AlphaType.Unpremul },
+    Skia.Data.fromBytes(result.data),
+    newWidth * 4,
+  );
+  if (!image) throw new Error('Could not create the enhanced image');
+  return image;
+}`;
+
+const rnLoad = `
+import { Skia, ImageFormat } from '@shopify/react-native-skia';
+import { enhancePhoto } from './src/enhancePhoto';
+
+// uri: a photo from your image picker, such as 'file:///data/user/0/…/photo.jpg'
+const photo = Skia.Image.MakeImageFromEncoded(await Skia.Data.fromURI(uri));
+const enhanced = await enhancePhoto(photo!);
+
+// Turn it into a JPEG file to save or upload
+const jpeg = enhanced.encodeToBytes(ImageFormat.JPEG, 90);`;
+
+const rnShow = `
+import { Canvas, Image } from '@shopify/react-native-skia';
+
+<Canvas style={{ width: 360, height: 270 }}>
+  <Image image={enhanced} x={0} y={0} width={360} height={270} fit="contain" />
+</Canvas>`;
+
+const docs = (hash: string) => withBase(`/doc#${hash}`);
+---
+<Base
+  title={`${meta.seoTitle} | Morflow`}
+  description={meta.summary}
+  path={useCasePath(meta.slug)}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <article class="uc-article">
+    <nav aria-label="Breadcrumb">
+      <ol class="uc-crumbs">
+        <li><a href={withBase('/')}>Home</a></li>
+        <li><a href={withBase('/usecases')}>Use Cases</a></li>
+        <li aria-current="page">On-device image processing</li>
+      </ol>
+    </nav>
+
+    <h1 class="uc-title">{meta.title}</h1>
+    <div class="uc-meta">
+      <ul class="uc-tags" aria-label="Topics">{meta.tags.map((t) => <li class="uc-tag">{t}</li>)}</ul>
+      <span>{meta.minutes} min read</span>
+      <span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span>
+    </div>
+
+    <p class="uc-lede">
+      A lot of apps send every photo to a server just to shrink it, touch it up or sharpen it, and then download the result again. The phone in your user's hand is fast enough to do that work itself.
+    </p>
+    <p class="doc-p">
+      This guide shows how to process photos on the device with a Morflow pipeline, in a Flutter app and in a React Native app. The pipeline is a small text file, and the very same file works in both.
+    </p>
+
+    <h2 class="uc-h2" id="why">Why process photos on the phone</h2>
+    <ul class="uc-list-plain">
+      <li><strong>It's faster.</strong> There's no upload and no download, so the result is ready almost as soon as the photo is taken.</li>
+      <li><strong>It works offline.</strong> On a plane, in a basement, on a bad connection: the app keeps working.</li>
+      <li><strong>Photos stay private.</strong> The original never leaves the phone unless your app sends it somewhere.</li>
+      <li><strong>There's no server to run.</strong> No image servers to scale or pay for. If you still upload, you upload the smaller, finished photo.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="pipeline"><span class="uc-step">Step 1</span>Write the pipeline</h2>
+    <p class="doc-p">
+      Our example takes a photo of any size, resizes it to fit in 1080 × 1080, gives the colors a little boost and sharpens it. Save it as <code>pipelines/enhance.morf</code>:
+    </p>
+    <CodeCard title="pipelines/enhance.morf" lang="morf" code={pipeline} />
+    <ul class="uc-list-plain">
+      <li><code>accept Tensor[*,*,4] $photo</code> takes the photo as RGBA pixels: any height, any width, four channels. Both Flutter and React Native decode photos to RGBA, so neither app has to convert anything.</li>
+      <li><code>resize</code> with <code>keep_aspect_ratio=true</code> scales the photo to fit inside 1080 × 1080 without stretching it. A 4000 × 3000 photo becomes 1080 × 810. A smaller photo is scaled up the same way, so if you only ever want to shrink, check the photo's size in the app first.</li>
+      <li><code>color_adjust</code> raises the contrast by 10% and the saturation by 20%. <code>color="rgba"</code> tells it which channel is which, so the alpha channel is left alone.</li>
+      <li><code>sharpen</code> brings back the crispness that resizing takes away.</li>
+    </ul>
+    <p class="doc-p">
+      Want something else? Swap in other actions from the <code>image_basics</code> pack, such as <code>crop</code>, <code>rotate</code>, <code>gaussian_blur</code> or <code>threshold</code>. The app code below doesn't change.
+    </p>
+
+    <h2 class="uc-h2" id="cli"><span class="uc-step">Step 2</span>Install the Morflow CLI</h2>
+    <p class="doc-p">
+      You use the CLI on your computer to set the app up; the people who use your app never need it. Any one of these works:
+    </p>
+    <CodeCard title="Install the CLI" lang="shell" label="Shell" code={`curl -fsSL https://morflow.org/install.sh | bash\n\n# or\nnpm install -g morflow\n\n# or\npip install morflow`} />
+
+    <h2 class="uc-h2" id="flutter"><span class="uc-step">Step 3a</span>In a Flutter app</h2>
+    <p class="doc-p">
+      Add the package, then let Morflow set up the app. <code>prep</code> adds the pipeline to the app's assets and the <code>image_basics</code> pack to the list of packs the app ships, and asks before changing <code>pubspec.yaml</code>:
+    </p>
+    <CodeCard title="Set Up the App" lang="shell" label="Shell" code={flutterPrep} />
+    <p class="doc-p">
+      Now the code. Flutter can already decode JPEG and PNG files into RGBA pixels and turn pixels back into an image, so the only new thing is the pipeline in the middle. Put this in <code>lib/photo_enhancer.dart</code>:
+    </p>
+    <CodeCard title="lib/photo_enhancer.dart" lang="dart" code={flutterEnhancer} />
+    <p class="doc-p">
+      Load it once, for example in <code>initState</code>, and call <code>close()</code> in <code>dispose</code>. Then give it the bytes of any photo, such as one from <code>image_picker</code>:
+    </p>
+    <CodeCard title="Use It" lang="dart" code={flutterUse} />
+    <p class="doc-p">
+      Flutter can save an image as PNG on its own. For a JPEG, encode the pixels with a package such as <code>image</code>.
+    </p>
+
+    <h2 class="uc-h2" id="react-native"><span class="uc-step">Step 3b</span>In a React Native app</h2>
+    <p class="doc-p">
+      React Native has no built-in way to get at a photo's pixels, so we'll use <a href="https://shopify.github.io/react-native-skia/" rel="noopener">React Native Skia</a> to decode and draw images. Install both packages and let Morflow add the pack list to <code>package.json</code>:
+    </p>
+    <CodeCard title="Set Up the App" lang="shell" label="Shell" code={rnInstall} />
+    <p class="doc-p">So your code can import the pipeline file, wrap your Metro config with <code>withMorflow</code>:</p>
+    <CodeCard title="metro.config.js" lang="js" code={metro} />
+    <p class="doc-p">
+      If your app uses TypeScript, also add a <code>morf.d.ts</code> file next to <code>App.tsx</code>, so TypeScript knows what a <code>.morf</code> import is:
+    </p>
+    <CodeCard title="morf.d.ts" lang="ts" code={morfTypes} />
+    <p class="doc-p">
+      Morflow runs on 64-bit Android, so set <code>reactNativeArchitectures=arm64-v8a,x86_64</code> in <code>android/gradle.properties</code>, and run <code>pod install</code> in the <code>ios</code> folder. Using Expo? Add <code>"plugins": ["react-native-morflow"]</code> to <code>app.json</code> instead and use a development build; the plugin sets the architectures for you.
+    </p>
+    <p class="doc-p">Now the code. Put this in <code>src/enhancePhoto.ts</code>:</p>
+    <CodeCard title="src/enhancePhoto.ts" lang="ts" code={rnEnhance} />
+    <p class="doc-p">
+      To use it, decode a photo with Skia, enhance it, and either draw it or encode it as a JPEG. <code>Skia.Data.fromURI</code> loads a <code>file://</code> URI, which is what <code>react-native-image-picker</code> and <code>expo-image-picker</code> give you:
+    </p>
+    <CodeCard title="Use It" lang="ts" code={rnLoad} />
+    <CodeCard title="Show It" lang="ts" label="tsx" code={rnShow} />
+
+    <h2 class="uc-h2" id="run"><span class="uc-step">Step 4</span>Run the app</h2>
+    <p class="doc-p">
+      Build and run as usual with <code>flutter run</code>, or <code>npx react-native run-android</code> and <code>run-ios</code>. The Morflow engine and the <code>image_basics</code> pack are bundled into the app at build time, so there's nothing to download when it runs and nothing for your users to install.
+    </p>
+
+    <h2 class="uc-h2" id="same">Same photo, same pixels, in both apps</h2>
+    <p class="doc-p">
+      We gave both apps, running on an Android emulator, the same 1600 × 1200 PNG photo. Both returned a 1080 × 810 photo, and the two results were identical byte for byte, and identical to what the same pipeline returned in Python on a computer. When a pipeline gets the same pixels, it returns the same pixels, whichever app runs it.
+    </p>
+    <p class="doc-p">
+      That also makes it easy to try a pipeline before putting it in an app: run it on a few photos on your computer with the Python package (<code>pip install morflow</code>), look at the results, and ship the file once you like them.
+    </p>
+
+    <h2 class="uc-h2" id="faq">Questions people ask</h2>
+    <div class="uc-faq">
+      {faq.map(({ q, a }) => (
+        <details>
+          <summary>{q}</summary>
+          <p>{a}</p>
+        </details>
+      ))}
+    </div>
+
+    <h2 class="uc-h2" id="next">Where to go next</h2>
+    <div class="uc-next">
+      <a href={docs('exec-flutter')}>Morflow in Flutter</a>
+      <a href={docs('exec-react-native')}>Morflow in React Native</a>
+      <a href={docs('syntax')}>The .morf syntax</a>
+      <a href={withBase('/usecases')}>More use cases</a>
+    </div>
+  </article>
+</Base>

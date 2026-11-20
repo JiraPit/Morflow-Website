@@ -1,0 +1,21 @@
+---
+import { highlight, type Lang } from '../lib/highlight';
+
+/** A titled, highlighted code sample in the docs' code-card style. */
+export interface Props {
+  title: string;
+  lang: Lang;
+  code: string;
+  /** Label in the header's right corner; defaults to the language. */
+  label?: string;
+}
+const { title, lang, code, label } = Astro.props;
+const html = highlight(code.replace(/^\n+|\s+$/g, ''), lang);
+---
+<div class="doc-code-card">
+  <div class="doc-code-header">
+    <span>{title}</span>
+    <span>{label ?? lang}</span>
+  </div>
+  <pre class="doc-code-pre"><code set:html={html} /></pre>
+</div>

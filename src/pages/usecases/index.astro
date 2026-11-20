@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { withBase } from '../../lib/content';
+import { useCases, useCasePath } from '../../content/usecases';
+
+const site = Astro.site ?? new URL('https://morflow.org');
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Morflow Use Cases',
+    url: new URL(withBase('/usecases'), site).href,
+    description: 'Step-by-step guides to real projects built with Morflow.',
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: useCases.map((u, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: new URL(withBase(useCasePath(u.slug)), site).href,
+        name: u.title,
+      })),
+    },
+  },
+];
+---
+<Base
+  title="Use Cases — Morflow Data Processing Engine"
+  description="Step-by-step guides to real projects built with Morflow: preprocessing data for machine learning in Python, Flutter, Node.js, Rust and more."
+  path="/usecases"
+  jsonLd={jsonLd}
+>
+  <PageHero badge="Use Cases">
+    What you can build <em>with Morflow</em>
+  </PageHero>
+
+  <div class="uc-index">
+    <p class="uc-index__lede">
+      Each guide walks through one real project from start to finish, with the commands and code you need, tested before it was published. Pick one that looks like what you're building.
+    </p>
+
+    <ul class="uc-list">
+      {useCases.map((u) => (
+        <li>
+          <a class="uc-card" href={withBase(useCasePath(u.slug))}>
+            <ul class="uc-tags" aria-label="Topics">
+              {u.tags.map((t) => <li class="uc-tag">{t}</li>)}
+            </ul>
+            <h2 class="uc-card__title">{u.title}</h2>
+            <p class="uc-card__summary">{u.summary}</p>
+            <span class="uc-card__more">Read the guide · {u.minutes} min <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</Base>
