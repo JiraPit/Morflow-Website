@@ -2062,9 +2062,9 @@ Future&lt;Uint8List&gt; <span class="tok-fn">boost</span>(Float32List samples) <
               </thead>
               <tbody>
                 <tr><td><code>run(input)</code> / <code>runSync(input)</code></td><td>The single emitted output</td></tr>
-                <tr><td><code>runAll(input)</code> / <code>runSyncAll(input)</code></td><td>Every named output, as a <code>Map</code></td></tr>
+                <tr><td><code>runToMap(input)</code> / <code>runSyncToMap(input)</code></td><td>Every named output, as a <code>Map</code></td></tr>
                 <tr><td><code>runArgs([...])</code> / <code>runSyncArgs([...])</code></td><td>The single output, binding parameters in declaration order</td></tr>
-                <tr><td><code>runAllArgs([...])</code> / <code>runSyncAllArgs([...])</code></td><td>Every named output, binding parameters in declaration order</td></tr>
+                <tr><td><code>runToMapArgs([...])</code> / <code>runSyncToMapArgs([...])</code></td><td>Every named output, binding parameters in declaration order</td></tr>
               </tbody>
             </table>
           </div>
@@ -2249,7 +2249,7 @@ Updated package.json.</code></pre>
 
           <h4 class="doc-h4">Inputs and outputs</h4>
           <p class="doc-p">
-            The API is the JavaScript one (<a href="#exec-js" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.2</a>): <code>fromStr</code>, <code>load</code>, and the <code>run</code>, <code>runAll</code>, <code>runArgs</code> and <code>runAllArgs</code> methods, each with a <code>Sync</code> twin that runs on the JavaScript thread. The one difference is that React Native has no <code>Buffer</code>, so raw bytes are a <code>Uint8Array</code>: pass one as an input, and get one from a result's <code>data</code> and <code>toBuffer()</code>. Call <code>pipeline.close()</code> to free a pipeline you no longer need.
+            The API is the JavaScript one (<a href="#exec-js" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.2</a>): <code>fromStr</code>, <code>load</code>, and the <code>run</code>, <code>runToMap</code>, <code>runArgs</code> and <code>runToMapArgs</code> methods, each with a <code>Sync</code> twin that runs on the JavaScript thread. The one difference is that React Native has no <code>Buffer</code>, so raw bytes are a <code>Uint8Array</code>: pass one as an input, and get one from a result's <code>data</code> and <code>toBuffer()</code>. Call <code>pipeline.close()</code> to free a pipeline you no longer need.
           </p>
 
           <h4 class="doc-h4">Under the hood</h4>
