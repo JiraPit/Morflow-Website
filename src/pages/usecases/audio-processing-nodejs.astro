@@ -275,40 +275,6 @@ const docs = (hash: string) => withBase(`/doc/#${hash}`);
       Processing several files at once is where most of the speed comes from: the batch finished more than three times faster than processing the files one by one. Your numbers will depend on your CPU, but the pattern is the same: use <code>run()</code>, keep several files going at once, and the cores stay busy while the event loop stays free.
     </p>
 
-    <h2 class="uc-h2" id="results">Did it actually clean the audio?</h2>
-    <p class="doc-p">
-      To check, we made three test recordings with text-to-speech and spoiled them on purpose: a stereo episode with loud 50 Hz hum and hiss, a very quiet interview with rumbling background noise, and a voice note at 22.05 kHz. Then we measured them before and after <code>clean.js</code>:
-    </p>
-    <div class="doc-table-container">
-      <table class="doc-table">
-        <thead>
-          <tr><th>Measurement</th><th>Before</th><th>After</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>50 Hz hum in the episode, compared with the voice</td><td>2.4 dB louder than the voice</td><td>49.8 dB quieter than the voice</td></tr>
-          <tr><td>Noise in the gaps of the episode</td><td>−40.5 dB</td><td>−78.4 dB</td></tr>
-          <tr><td>Rumble below 80 Hz in the interview, compared with the voice</td><td>0.2 dB louder</td><td>16.9 dB quieter</td></tr>
-          <tr><td>Average level of the three files</td><td>−38.3, −41.9 and −26.5 dB</td><td>−20.0 dB, all three</td></tr>
-          <tr><td>Sample rates</td><td>44.1, 48 and 22.05 kHz</td><td>48 kHz, all three</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="doc-p">
-      None of the peaks went above −1 dB. Note that <code>normalize</code> matches the average level (RMS) of the files. That's not the same as the LUFS loudness that podcast platforms measure, but it makes a batch of recordings sound equally loud next to each other.
-    </p>
-
-    <h2 class="uc-h2" id="tune">Tuning it for your recordings</h2>
-    <ul class="uc-list-plain">
-      <li><strong>The gaps still hiss.</strong> Raise the gate's <code>threshold_db</code>, for example to −45. If the ends of words get cut off, lower it instead.</li>
-      <li><strong>The voice sounds squashed.</strong> Lower the compressor's <code>ratio</code> to 2, or raise its <code>threshold_db</code> to −18.</li>
-      <li><strong>You want it louder or quieter.</strong> Change <code>target_db</code> in <code>normalize</code>. −16 is louder than −20, and −24 is quieter.</li>
-      <li><strong>You need other output.</strong> <code>to_wav(dtype="f32")</code> writes 32-bit float WAV, and <code>to_pcm</code> gives raw samples for streaming.</li>
-      <li><strong>You recorded music, not speech.</strong> Leave out the gate and the compressor, and lower the high-pass frequency to 30 Hz.</li>
-    </ul>
-    <p class="doc-p">
-      You only change the <code>.morf</code> file. <code>clean.js</code> and <code>server.js</code> stay exactly the same.
-    </p>
-
     <h2 class="uc-h2" id="faq">Questions people ask</h2>
     <div class="uc-faq">
       {faq.map(({ q, a }) => (
