@@ -185,7 +185,7 @@ import { Canvas, Image } from '@shopify/react-native-skia';
   <Image image={enhanced} x={0} y={0} width={360} height={270} fit="contain" />
 </Canvas>`;
 
-const docs = (hash: string) => withBase(`/doc#${hash}`);
+const docs = (hash: string) => withBase(`/doc/#${hash}`);
 ---
 <Base
   title={`${meta.seoTitle} | Morflow`}
@@ -198,7 +198,7 @@ const docs = (hash: string) => withBase(`/doc#${hash}`);
     <nav aria-label="Breadcrumb">
       <ol class="uc-crumbs">
         <li><a href={withBase('/')}>Home</a></li>
-        <li><a href={withBase('/usecases')}>Use Cases</a></li>
+        <li><a href={withBase('/usecases/')}>Use Cases</a></li>
         <li aria-current="page">On-device image processing</li>
       </ol>
     </nav>
@@ -313,7 +313,7 @@ const docs = (hash: string) => withBase(`/doc#${hash}`);
       <a href={docs('exec-flutter')}>Morflow in Flutter</a>
       <a href={docs('exec-react-native')}>Morflow in React Native</a>
       <a href={docs('syntax')}>The .morf syntax</a>
-      <a href={withBase('/usecases')}>More use cases</a>
+      <a href={withBase('/usecases/')}>More use cases</a>
     </div>
   </article>
 </Base>

@@ -12,8 +12,8 @@ export const GET: APIRoute = ({ site }) => {
   const newest = useCases.map((u) => u.updated).sort().at(-1);
   const pages: { path: string; lastmod?: string }[] = [
     { path: '/' },
-    { path: '/doc' },
-    { path: '/usecases', lastmod: newest },
+    { path: '/doc/' },
+    { path: '/usecases/', lastmod: newest },
     ...useCases.map((u) => ({ path: useCasePath(u.slug), lastmod: u.updated })),
   ];
   const urls = pages

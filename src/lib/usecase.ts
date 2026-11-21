@@ -33,7 +33,7 @@ export function useCaseJsonLd(meta: UseCase, site: URL, faq: Faq[], about: strin
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: new URL(withBase('/'), site).href },
-        { '@type': 'ListItem', position: 2, name: 'Use Cases', item: new URL(withBase('/usecases'), site).href },
+        { '@type': 'ListItem', position: 2, name: 'Use Cases', item: new URL(withBase('/usecases/'), site).href },
         { '@type': 'ListItem', position: 3, name: meta.title, item: url },
       ],
     },

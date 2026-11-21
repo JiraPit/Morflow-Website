@@ -10,7 +10,7 @@ const jsonLd = [
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'Morflow Use Cases',
-    url: new URL(withBase('/usecases'), site).href,
+    url: new URL(withBase('/usecases/'), site).href,
     description: 'Step-by-step guides to real projects built with Morflow.',
     mainEntity: {
       '@type': 'ItemList',
@@ -27,7 +27,7 @@ const jsonLd = [
 <Base
   title="Use Cases — Morflow Data Processing Engine"
   description="Step-by-step guides to real projects built with Morflow: preprocessing data for machine learning in Python, Flutter, Node.js, Rust and more."
-  path="/usecases"
+  path="/usecases/"
   jsonLd={jsonLd}
 >
   <PageHero badge="Use Cases">

@@ -47,4 +47,4 @@ export const useCases: UseCase[] = [
   },
 ];
 
-export const useCasePath = (slug: string) => `/usecases/${slug}`;
+export const useCasePath = (slug: string) => `/usecases/${slug}/`;

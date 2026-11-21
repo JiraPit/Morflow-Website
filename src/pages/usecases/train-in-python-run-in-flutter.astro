@@ -275,7 +275,7 @@ class _FruitScreenState extends State<FruitScreen> {
   }
 }`;
 
-const docs = (hash: string) => withBase(`/doc#${hash}`);
+const docs = (hash: string) => withBase(`/doc/#${hash}`);
 ---
 <Base
   title={`${meta.seoTitle} | Morflow`}
@@ -288,7 +288,7 @@ const docs = (hash: string) => withBase(`/doc#${hash}`);
     <nav aria-label="Breadcrumb">
       <ol class="uc-crumbs">
         <li><a href={withBase('/')}>Home</a></li>
-        <li><a href={withBase('/usecases')}>Use Cases</a></li>
+        <li><a href={withBase('/usecases/')}>Use Cases</a></li>
         <li aria-current="page">Python training, Flutter app</li>
       </ol>
     </nav>
@@ -463,7 +463,7 @@ const docs = (hash: string) => withBase(`/doc#${hash}`);
       <a href={docs('exec-flutter')}>Morflow in Flutter</a>
       <a href={docs('exec-python')}>Morflow in Python</a>
       <a href={docs('syntax')}>The .morf syntax</a>
-      <a href={withBase('/usecases')}>More use cases</a>
+      <a href={withBase('/usecases/')}>More use cases</a>
     </div>
   </article>
 </Base>
