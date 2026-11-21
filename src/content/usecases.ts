@@ -45,6 +45,17 @@ export const useCases: UseCase[] = [
     published: '2026-11-21',
     updated: '2026-11-21',
   },
+  {
+    slug: 'audio-processing-nodejs',
+    title: 'High-Performance Audio Processing in Node.js: Clean Up Voice Recordings in Bulk',
+    seoTitle: 'High-Performance Audio Processing in Node.js',
+    summary:
+      'Remove hum and background noise, even out the volume and resample WAV files in Node.js with one Morflow pipeline, in a batch script and an Express endpoint.',
+    tags: ['Node.js', 'Audio', 'Express', 'WAV', 'Batch processing'],
+    minutes: 10,
+    published: '2026-11-21',
+    updated: '2026-11-21',
+  },
 ];
 
 export const useCasePath = (slug: string) => `/usecases/${slug}/`;
