@@ -25,8 +25,8 @@ export interface UseCase {
 export const useCases: UseCase[] = [
   {
     slug: 'train-in-python-run-in-flutter',
-    title: 'Train an Image Model in Python and Run It in a Flutter App With the Same Preprocessing',
-    seoTitle: 'Train in Python, Run in Flutter With the Same Preprocessing',
+    title: 'Ship AI Models Trained in Python to Flutter',
+    seoTitle: 'Ship AI Models Trained in Python to Flutter',
     summary:
       'Preprocess images with one Morflow pipeline while you train a PyTorch model and in your Flutter app, so the model sees the same numbers in both places.',
     tags: ['Python', 'PyTorch', 'Flutter', 'ONNX', 'Images'],
