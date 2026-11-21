@@ -47,7 +47,7 @@ export const useCases: UseCase[] = [
   },
   {
     slug: 'audio-processing-nodejs',
-    title: 'High-Performance Audio Processing in Node.js: Clean Up Voice Recordings in Bulk',
+    title: 'High-Performance Audio Processing in Node.js',
     seoTitle: 'High-Performance Audio Processing in Node.js',
     summary:
       'Remove hum and background noise, even out the volume and resample WAV files in Node.js with one Morflow pipeline, in a batch script and an Express endpoint.',
