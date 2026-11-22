@@ -63,6 +63,17 @@ export const languages: Language[] = [
     featured: true,
   },
   {
+    name: 'Go',
+    image: 'go.png',
+    summary:
+      'Run pipelines in services, command-line tools and desktop programs, with no cgo. CGO_ENABLED=0 builds and cross-compiling just work.',
+    tags: ['Servers', 'CLI Tools', 'Desktop Apps'],
+    platforms: 'Windows, macOS, Linux',
+    install: 'go get github.com/JiraPit/Morflow/bindings/go',
+    doc: 'exec-go',
+    featured: false,
+  },
+  {
     name: 'Flutter',
     image: 'flutter.png',
     summary:

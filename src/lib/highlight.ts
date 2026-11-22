@@ -4,7 +4,7 @@
  * code sample on the site looks alike. It is a tokenizer, not a parser: good
  * enough for short, well-formed samples.
  */
-export type Lang = 'python' | 'dart' | 'ts' | 'js' | 'csharp' | 'morf' | 'shell' | 'yaml' | 'text';
+export type Lang = 'python' | 'dart' | 'ts' | 'js' | 'csharp' | 'go' | 'morf' | 'shell' | 'yaml' | 'text';
 
 const KEYWORDS: Record<Lang, string[]> = {
   python: ['import', 'from', 'as', 'def', 'class', 'return', 'for', 'in', 'if', 'else', 'elif', 'with', 'not', 'and', 'or', 'None', 'True', 'False', 'lambda', 'yield', 'while', 'try', 'except', 'pass'],
@@ -12,6 +12,7 @@ const KEYWORDS: Record<Lang, string[]> = {
   ts: ['import', 'from', 'export', 'default', 'const', 'let', 'var', 'function', 'async', 'await', 'return', 'if', 'else', 'throw', 'new', 'type', 'interface', 'as', 'of', 'for', 'null', 'undefined', 'true', 'false', 'typeof', 'require'],
   js: ['import', 'from', 'export', 'default', 'const', 'let', 'var', 'function', 'async', 'await', 'return', 'if', 'else', 'throw', 'new', 'for', 'of', 'null', 'undefined', 'true', 'false', 'typeof', 'require', 'module', 'declare'],
   csharp: ['using', 'public', 'private', 'readonly', 'const', 'static', 'class', 'void', 'var', 'new', 'return', 'if', 'else', 'async', 'await', 'try', 'catch', 'finally', 'null', 'true', 'false', 'this', 'float', 'int', 'bool', 'string', 'get', 'set', 'out', 'in'],
+  go: ['package', 'import', 'func', 'return', 'if', 'else', 'for', 'range', 'var', 'const', 'type', 'struct', 'defer', 'go', 'nil', 'true', 'false', 'err', 'map', 'any', 'string', 'int', 'int32', 'int64', 'float32', 'float64', 'byte', 'bool', 'error'],
   morf: ['import', 'from', 'accept', 'emit', 'each', 'if', 'else', 'true', 'false'],
   shell: [],
   yaml: [],
@@ -24,6 +25,7 @@ const TYPES: Record<Lang, RegExp | null> = {
   ts: /^(?:[A-Z][A-Za-z0-9_]*|string|number|boolean|void)$/,
   js: null,
   csharp: /^[A-Z][A-Za-z0-9_]*$/,
+  go: /^[A-Z][A-Za-z0-9_]*$/,
   morf: /^(?:Tensor|Image|Audio|Scalar|Bytes|Composite|IntArg|FloatArg|StrArg|BoolArg)$/,
   shell: null,
   yaml: null,
@@ -73,7 +75,7 @@ export function highlight(code: string, lang: Lang): string {
 
   const keywords = new Set(KEYWORDS[lang]);
   const types = TYPES[lang];
-  const comment = lang === 'dart' || lang === 'ts' || lang === 'js' || lang === 'csharp' ? '//[^\\n]*' : '#[^\\n]*';
+  const comment = lang === 'dart' || lang === 'ts' || lang === 'js' || lang === 'csharp' || lang === 'go' ? '//[^\\n]*' : '#[^\\n]*';
   const token = new RegExp(
     [
       `(${comment})`, // 1 comment

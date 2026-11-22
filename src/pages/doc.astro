@@ -2,6 +2,69 @@
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
+import CodeCard from '../components/CodeCard.astro';
+
+const goLouder = `
+import audio_basics/latest
+
+accept Bytes $wav
+$wav >> to_audio >> gain(linear=2.0) >> to_wav >> emit`;
+
+const goMain = `
+package main
+
+import (
+	"log"
+	"os"
+
+	morflow "github.com/JiraPit/Morflow/bindings/go"
+)
+
+func main() {
+	pipeline, err := morflow.Load("pipelines/louder.morf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pipeline.Close()
+
+	wav, err := os.ReadFile("in.wav")
+	if err != nil {
+		log.Fatal(err)
+	}
+	out, err := pipeline.Run(wav)
+	if err != nil {
+		log.Fatal(err)
+	}
+	os.WriteFile("out.wav", out.Bytes(), 0o644)
+}`;
+
+const goTensors = `
+package main
+
+import (
+	"fmt"
+	"log"
+
+	morflow "github.com/JiraPit/Morflow/bindings/go"
+)
+
+func main() {
+	pipeline, err := morflow.FromStr(\`
+import tensor_stats/latest
+
+accept Tensor $data
+$data >> sum(axis=0) >> emit\`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pipeline.Close()
+
+	out, err := pipeline.Run(morflow.TensorInput{Data: []int32{1, 2, 3, 4}, Shape: []int{2, 2}})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(out.DType, out.Shape, out.Int64s())
+}`;
 ---
 <Base
   title="Documentation — Morflow Data Processing Engine"
@@ -77,7 +140,8 @@ import ActionLifecycleDiagram from '../components/ActionLifecycleDiagram.astro';
           <li><a href="#exec-flutter" class="docs-nav-link">5.5. Flutter</a></li>
           <li><a href="#exec-react-native" class="docs-nav-link">5.6. React Native</a></li>
           <li><a href="#exec-unity" class="docs-nav-link">5.7. Unity</a></li>
-          <li><a href="#exec-dtypes" class="docs-nav-link">5.8. DTypes in the Host SDKs</a></li>
+          <li><a href="#exec-go" class="docs-nav-link">5.8. Go</a></li>
+          <li><a href="#exec-dtypes" class="docs-nav-link">5.9. DTypes in the Host SDKs</a></li>
         </ul>
       </div>
       <div class="docs-nav-group">
@@ -1207,7 +1271,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           </div>
 
           <p class="doc-p">
-            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#exec-dtypes" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.8</a>). The dtype of the result follows the promotion rules in <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>.
+            <code>morflow check</code> predicts the broadcast shape when it can, and rejects shapes that can never broadcast. For example, <code>Composite[Tensor[2, 3], Tensor[4]]</code> fails with <em>operands could not be broadcast together with shapes [2, 3] and [4]</em>. A Composite reaches these actions either from an action that returns one, such as <code>qr</code>, or from the host (see <a href="#exec-dtypes" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 5.9</a>). The dtype of the result follows the promotion rules in <a href="#dtypes-promotion" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 4.3</a>.
           </p>
         </div>
 
@@ -1638,7 +1702,7 @@ morflow spec audio_basics/latest/biquad_filter</code></pre>
           <p class="badge">Section 5</p>
           <h2 class="doc-h2">5. Pipeline Execution</h2>
           <p class="doc-p">
-            Execute the same .morf pipelines and native actions across training and production serving. Morflow provides host SDKs for Python, JavaScript/Node.js, Java, Rust, Dart for Flutter apps, React Native, and C# for Unity, converting host tensors, image arrays, and raw bytes into engine payloads.
+            Execute the same .morf pipelines and native actions across training and production serving. Morflow provides host SDKs for Python, JavaScript/Node.js, Java, Rust, Dart for Flutter apps, React Native, C# for Unity, and Go, converting host tensors, image arrays, and raw bytes into engine payloads.
           </p>
         </div>
 
@@ -2426,9 +2490,52 @@ Updated ProjectSettings/Morflow.json.</code></pre>
           </p>
         </div>
 
-        <!-- 5.8: DTYPES IN THE HOST SDKS -->
+        <!-- 5.8: GO -->
+        <div id="exec-go" class="doc-section">
+          <h3 class="doc-h3">5.8. Go</h3>
+          <p class="doc-p">
+            Run pipelines from Go in servers, command-line tools and desktop programs, on Linux (x86-64 and ARM64), macOS (Apple silicon and Intel) and Windows (x86-64). The package needs no cgo, so <code>CGO_ENABLED=0</code> builds and cross-compiling work as usual. Like Python and Node.js, it runs the actions that <code>morflow prep</code> downloads into the action cache.
+          </p>
+
+          <h4 class="doc-h4">Step 1: Add the package</h4>
+          <CodeCard title="Install" lang="shell" label="Shell" code="go get github.com/JiraPit/Morflow/bindings/go" />
+          <p class="doc-p">
+            You also need the Morflow CLI, as described in <a href="#cli-installation" style="color: var(--brand-500); font-weight: 600; text-decoration: underline;">Section 1.1</a>, to download the actions your pipelines use.
+          </p>
+
+          <h4 class="doc-h4">Step 2: Prepare your pipeline</h4>
+          <p class="doc-p">Save a pipeline, for example <code>pipelines/louder.morf</code>, which doubles the volume of a WAV file:</p>
+          <CodeCard title="pipelines/louder.morf" lang="morf" code={goLouder} />
+          <p class="doc-p">Then download its actions once, as for any language:</p>
+          <CodeCard title="Prepare the Pipeline" lang="shell" label="Shell" code="morflow prep pipelines/louder.morf" />
+
+          <h4 class="doc-h4">Step 3: Run it</h4>
+          <CodeCard title="main.go" lang="go" label="Go" code={goMain} />
+          <p class="doc-p">
+            <code>Load</code> compiles a <code>.morf</code> file and <code>FromStr</code> compiles source text. A pipeline can run from many goroutines at once; <code>Close</code> frees it once runs in progress finish. Engine errors are <code>*morflow.Error</code> values with the engine's message.
+          </p>
+
+          <h4 class="doc-h4">Tensors in and out</h4>
+          <CodeCard title="Sum a Tensor" lang="go" label="Go" code={goTensors} />
+          <p class="doc-p">This prints <code>i64 [2] [4 6]</code>.</p>
+          <ul class="doc-list" style="margin: 0 0 16px 20px; color: var(--grey-800); line-height: 1.65;">
+            <li><strong>Inputs:</strong> a numeric slice (<code>[]float32</code>, <code>[]float64</code>, <code>[]int8</code>, <code>[]int16</code>, <code>[]int32</code>, <code>[]int64</code>, <code>[]int</code>, <code>[]uint32</code>, <code>[]uint64</code>) is a one-dimensional tensor. <code>morflow.TensorInput</code> gives any shape, and <code>morflow.Image</code> and <code>morflow.Audio</code> build image and audio inputs. A <code>[]byte</code> is raw bytes, such as a WAV, PNG or JPEG file. A <code>[]any</code> of those is a Composite, and an output can go back in as an input.</li>
+            <li><strong>Outputs:</strong> a <code>*morflow.Tensor</code> with its <code>Shape</code> and <code>DType</code>, read with <code>Float32s()</code>, <code>Int64s()</code>, <code>Bytes()</code> and so on, or <code>Values()</code> for the slice that matches its dtype. A Composite has its parts in <code>Items</code>.</li>
+            <li><strong>More outputs and parameters:</strong> <code>RunToMap</code> returns every output named with <code>emit("name")</code>. <code>RunArgs</code> and <code>RunToMapArgs</code> pass the parameters declared with <code>accept</code> in order: Go numbers, strings and bools, or any input.</li>
+          </ul>
+
+          <h4 class="doc-h4">The engine library</h4>
+          <p class="doc-p">
+            The first <code>Load</code> or <code>FromStr</code> downloads Morflow's engine library for your platform (about 3 MB) from the engine's GitHub release, checks it against the published SHA-256 checksums, and caches it in <code>~/.morflow/capi</code>. Later runs use the cached copy, offline.
+          </p>
+          <p class="doc-p">
+            For a container image or a server without internet access, download the library while building instead, with <code>go run github.com/JiraPit/Morflow/bindings/go/cmd/morflow-fetch@latest -out /opt/morflow</code>, and set <code>MORFLOW_CAPI_PATH</code> to the file it prints. Run <code>morflow prep</code> while building too, and set <code>MORFLOW_ACTIONS_PATH</code> if the actions live somewhere other than <code>~/.morflow/actions</code>. <code>MORFLOW_RELEASE_URL</code> downloads from a mirror, or a folder with the same layout as the GitHub releases, instead.
+          </p>
+        </div>
+
+        <!-- 5.9: DTYPES IN THE HOST SDKS -->
         <div id="exec-dtypes" class="doc-section">
-          <h3 class="doc-h3">5.8. DTypes in the Host SDKs</h3>
+          <h3 class="doc-h3">5.9. DTypes in the Host SDKs</h3>
           <p class="doc-p">
             Every SDK passes tensors of all nine dtypes in and returns results with their dtype, and each can send and receive a Composite:
           </p>
