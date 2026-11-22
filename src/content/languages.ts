@@ -67,7 +67,7 @@ export const languages: Language[] = [
     image: 'flutter.png',
     summary:
       'Ship pipelines inside mobile and desktop apps. Everything they need is bundled into the app, so they run on the device, offline.',
-    tags: ['Mobile Apps', 'Desktop Apps', 'AI/ML'],
+    tags: ['Mobile Apps', 'Desktop Apps'],
     platforms: 'Android, iOS, Windows, macOS, Linux',
     install: 'flutter pub add morflow',
     doc: 'exec-flutter',
@@ -78,7 +78,7 @@ export const languages: Language[] = [
     image: 'react-native.png',
     summary:
       'Run pipelines in Android and iOS apps, including Expo development builds, with the same API as the Node.js package.',
-    tags: ['Mobile Apps', 'AI/ML'],
+    tags: ['Mobile Apps'],
     platforms: 'Android, iOS',
     install: 'npm install react-native-morflow',
     doc: 'exec-react-native',
@@ -89,7 +89,7 @@ export const languages: Language[] = [
     image: 'unity.png',
     summary:
       'Use pipelines in games and apps, from the Editor to every build. Your .morf files are assets, and the engine ships inside the game.',
-    tags: ['Games', 'Mobile Apps', 'Desktop Apps', 'AI/ML'],
+    tags: ['Games', 'Mobile Apps', 'Desktop Apps'],
     platforms: 'Android, iOS, Windows, macOS, Linux',
     install: 'https://github.com/JiraPit/Morflow.git?path=bindings/unity',
     doc: 'exec-unity',
