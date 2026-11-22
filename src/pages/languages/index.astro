@@ -1,0 +1,191 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { withBase } from '../../lib/content';
+import { languages } from '../../content/languages';
+
+const site = Astro.site ?? new URL('https://morflow.org');
+const docs = (hash: string) => withBase(`/doc/#${hash}`);
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Morflow Languages and Frameworks',
+    url: new URL(withBase('/languages/'), site).href,
+    description: 'Every language and framework Morflow pipelines run in, with how to install each one.',
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: languages.map((l, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: l.name,
+        url: new URL(docs(l.doc), site).href,
+      })),
+    },
+  },
+];
+---
+<Base
+  title="Languages and Frameworks — Morflow Data Processing Engine"
+  description="Run the same Morflow pipelines in Python, Node.js, Java, Rust, Flutter, React Native and Unity: on servers, desktops, phones and in games."
+  path="/languages/"
+  jsonLd={jsonLd}
+>
+  <PageHero badge="Languages">
+    Languages and<br /><em>Frameworks</em>
+  </PageHero>
+
+  <div class="lf">
+    <p class="lf__lede">
+      Write a pipeline once as a <code>.morf</code> file and run it wherever your project lives: in a training script, on a server, in a mobile app or in a game. Every package runs the same native engine, so the same input gives the same output everywhere.
+    </p>
+
+    <ul class="lf__list">
+      {languages.map((l) => (
+        <li class="lf-card">
+          <div class="lf-card__head">
+            <img class="lf-card__logo" src={withBase(`/assets/languages/${l.image}`)} alt="" width="56" height="56" loading="lazy" />
+            <div>
+              <h2 class="lf-card__name">{l.name}</h2>
+              <p class="lf-card__platforms">{l.platforms}</p>
+            </div>
+          </div>
+          <ul class="uc-tags" aria-label="Good for">
+            {l.tags.map((t) => <li class="uc-tag">{t}</li>)}
+          </ul>
+          <p class="lf-card__summary">{l.summary}</p>
+          <code class="lf-card__cmd">{l.install}</code>
+          <a class="lf-card__btn" href={docs(l.doc)}>
+            Read the {l.name} guide <span aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .lf {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 8px 0 96px;
+  }
+
+  .lf__lede {
+    margin: 0;
+    max-width: 720px;
+    font-size: var(--l-size);
+    line-height: var(--body-line);
+    color: var(--grey-800);
+  }
+
+  .lf__lede code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+    background: var(--grey-100);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #b94b00;
+  }
+
+  .lf__list {
+    min-width: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
+    gap: 20px;
+  }
+
+  .lf-card {
+    min-width: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 28px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid var(--grey-200);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .lf-card:hover {
+    border-color: rgba(219, 88, 55, 0.45);
+    box-shadow: 0 16px 36px -20px rgba(28, 24, 20, 0.35);
+  }
+
+  .lf-card__head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .lf-card__logo {
+    display: block;
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .lf-card__name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--grey-900);
+  }
+
+  .lf-card__platforms {
+    margin: 4px 0 0;
+    font-family: var(--font-ui);
+    font-size: 14px;
+    color: var(--grey-700, var(--grey-800));
+  }
+
+  .lf-card__summary {
+    margin: 0;
+    font-size: var(--m-size);
+    line-height: var(--body-line);
+    color: var(--grey-800);
+  }
+
+  .lf-card__cmd {
+    display: block;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    background: var(--background);
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--grey-900);
+    border: 1px solid var(--grey-200);
+    overflow-wrap: anywhere;
+  }
+
+  .lf-card__btn {
+    margin-top: auto;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: var(--brand-500);
+    color: var(--white);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 150ms ease, transform 150ms ease;
+  }
+
+  .lf-card__btn:hover,
+  .lf-card__btn:focus-visible {
+    background: #c24a2c;
+    transform: translateY(-1px);
+  }
+</style>

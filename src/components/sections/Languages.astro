@@ -1,49 +1,8 @@
 ---
 import { withBase } from '../../lib/content';
+import { languages } from '../../content/languages';
 
-interface Language {
-  name: string;
-  install: string;
-  image: string;
-}
-
-const languages: Language[] = [
-  {
-    name: "Python",
-    install: "pip install morflow",
-    image: withBase("/assets/languages/python.png")
-  },
-  {
-    name: "Node.js",
-    install: "npm install morflow",
-    image: withBase("/assets/languages/nodejs.png")
-  },
-  {
-    name: "Java",
-    install: "org.morflow:morflow:0.3.4",
-    image: withBase("/assets/languages/java.png")
-  },
-  {
-    name: "Rust",
-    install: "cargo add morflow",
-    image: withBase("/assets/languages/rust.png")
-  },
-  {
-    name: "Flutter",
-    install: "flutter pub add morflow",
-    image: withBase("/assets/languages/flutter.png")
-  },
-  {
-    name: "React Native",
-    install: "npm install react-native-morflow",
-    image: withBase("/assets/languages/react-native.png")
-  },
-  {
-    name: "Unity",
-    install: "https://github.com/JiraPit/Morflow.git?path=bindings/unity",
-    image: withBase("/assets/languages/unity.png")
-  }
-];
+const featured = languages.filter((l) => l.featured);
 ---
 
 <section class="languages-section" id="languages">
@@ -55,16 +14,18 @@ const languages: Language[] = [
   </header>
 
   <div class="languages-grid">
-    {languages.map((lang) => (
+    {featured.map((lang) => (
       <article class="lang-card">
         <div class="lang-card__header">
-          <img class="lang-card__logo" src={lang.image} alt={lang.name} width="36" height="36" loading="lazy" />
+          <img class="lang-card__logo" src={withBase(`/assets/languages/${lang.image}`)} alt={lang.name} width="36" height="36" loading="lazy" />
           <h3 class="lang-card__name">{lang.name}</h3>
         </div>
         <code class="lang-card__cmd">{lang.install}</code>
       </article>
     ))}
   </div>
+
+  <a class="languages-more" href={withBase('/languages/')}>See the full list <span aria-hidden="true">→</span></a>
 </section>
 
 <style>
@@ -138,6 +99,20 @@ const languages: Language[] = [
     .languages-grid {
       --cols: 1;
     }
+  }
+
+  .languages-more {
+    align-self: center;
+    font-family: var(--font-ui);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brand-500);
+    text-decoration: none;
+  }
+
+  .languages-more:hover,
+  .languages-more:focus-visible {
+    text-decoration: underline;
   }
 
   .lang-card {

@@ -13,6 +13,7 @@ export const GET: APIRoute = ({ site }) => {
   const pages: { path: string; lastmod?: string }[] = [
     { path: '/' },
     { path: '/doc/' },
+    { path: '/languages/' },
     { path: '/usecases/', lastmod: newest },
     ...useCases.map((u) => ({ path: useCasePath(u.slug), lastmod: u.updated })),
   ];

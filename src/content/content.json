@@ -110,6 +110,10 @@
           "label": "Documentation"
         },
         {
+          "href": "/languages/",
+          "label": "Languages and Frameworks"
+        },
+        {
           "href": "/usecases/",
           "label": "Use Cases"
         },
@@ -128,6 +132,10 @@
     {
       "href": "/doc/",
       "label": "Documentation"
+    },
+    {
+      "href": "/languages/",
+      "label": "Languages"
     },
     {
       "href": "/usecases/",
