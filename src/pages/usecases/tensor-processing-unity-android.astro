@@ -1,0 +1,292 @@
+---
+import Base from '../../layouts/Base.astro';
+import CodeCard from '../../components/CodeCard.astro';
+import { withBase } from '../../lib/content';
+import { useCases, useCasePath } from '../../content/usecases';
+import { longDate, useCaseJsonLd, type Faq } from '../../lib/usecase';
+
+const meta = useCases.find((u) => u.slug === 'tensor-processing-unity-android')!;
+const site = Astro.site ?? new URL('https://morflow.org');
+
+const faq: Faq[] = [
+  {
+    q: 'Does the game need an internet connection?',
+    a: 'No. The Unity Editor downloads the Morflow engine and the packs once, while you develop, and every build carries them inside it. On the phone, the pipeline runs fully offline and no sensor data leaves the device.',
+  },
+  {
+    q: 'Does running the pipeline slow down the game?',
+    a: 'RunAsync and RunToMapAsync run the pipeline on a background thread, so the frame keeps rendering. When the run finishes, the code after await continues on Unity\'s main thread, where it is safe to use the results in gameplay.',
+  },
+  {
+    q: 'Which Android phones does it run on?',
+    a: '64-bit Android phones (ARM64) and x86-64 emulators. Build with the IL2CPP scripting backend and leave ARMv7 unticked under Target Architectures. The same project also builds for iOS, Windows, macOS and Linux.',
+  },
+  {
+    q: 'Why not do the math in C#?',
+    a: 'You can, but then the preprocessing lives only in your game. A .morf file is plain text that the Python package runs too, so the code that prepares your training data and the code in the game are the same file, and the model sees the same numbers in both places.',
+  },
+  {
+    q: 'What units are the sensor readings in?',
+    a: 'Unity reports Input.acceleration in g, where 1 is the pull of gravity, and Input.gyro.rotationRateUnbiased in radians per second. The pipeline scales each axis on its own, so the different units don\'t matter to the model.',
+  },
+  {
+    q: 'Can I use the new Input System instead of Input.acceleration?',
+    a: 'Yes. Read Accelerometer.current and Gyroscope.current from the Input System (enable the gyroscope with InputSystem.EnableDevice first) and write the same six values into the window. The pipeline doesn\'t change.',
+  },
+];
+
+const jsonLd = useCaseJsonLd(meta, site, faq, ['Unity', 'Android', 'Tensor processing', 'Sensor data', 'On-device machine learning']);
+
+const packageUrl = `https://github.com/JiraPit/Morflow.git?path=bindings/unity#unity-v0.1.0`;
+
+const pipeline = `
+import tensor_basics/latest
+import tensor_stats/latest
+import nn_basics/latest
+
+# Two seconds of motion: 100 readings, each with 6 values
+# (accelerometer x, y, z, then gyroscope x, y, z)
+accept Tensor[100, 6] $window
+
+# For the model: one row per sensor axis, each scaled to mean 0 and spread 1
+$window >> transpose >> layer_norm >> unsqueeze(axis=0) >> emit("model_input")
+
+# For gameplay: how much the total acceleration varies, in g
+$window[:, 0:3] >> norm(axis=1) >> std >> emit("shake")`;
+
+const prep = `morflow prep --prod-target unity Assets/Pipelines`;
+
+const reader = `
+using System;
+using System.Threading.Tasks;
+using MorflowUnity;
+using UnityEngine;
+
+public class MotionReader : MonoBehaviour
+{
+    // Drag Assets/Pipelines/motion.morf here in the Inspector
+    public MorflowPipelineAsset motion;
+
+    const int Readings = 100;  // 2 seconds at Unity's default 50 physics steps a second
+    const int Values = 6;      // accelerometer x, y, z, then gyroscope x, y, z
+
+    readonly float[] window = new float[Readings * Values];
+    MorflowPipeline pipeline;
+    int count;
+    bool busy;
+
+    /// The latest window, ready for a model: shape [1, 6, 100].
+    public MorflowTensor ModelInput { get; private set; }
+
+    /// How much the total acceleration varies over the window, in g.
+    public float Shake { get; private set; }
+
+    void Start()
+    {
+        Input.gyro.enabled = true;
+        pipeline = Morflow.FromAsset(motion);
+    }
+
+    void FixedUpdate()
+    {
+        // Drop the oldest reading and add the newest at the end
+        Array.Copy(window, Values, window, 0, window.Length - Values);
+        Vector3 a = Input.acceleration;
+        Vector3 g = Input.gyro.rotationRateUnbiased;
+        int at = window.Length - Values;
+        window[at] = a.x; window[at + 1] = a.y; window[at + 2] = a.z;
+        window[at + 3] = g.x; window[at + 4] = g.y; window[at + 5] = g.z;
+
+        // Twice a second, once the window is full
+        count++;
+        if (count >= Readings && count % 25 == 0 && !busy) _ = Process();
+    }
+
+    async Task Process()
+    {
+        busy = true;
+        try
+        {
+            var input = new TensorInput((float[])window.Clone(), Readings, Values);
+            var outputs = await pipeline.RunToMapAsync(input);
+            ModelInput = (MorflowTensor)outputs["model_input"];
+            Shake = ((MorflowTensor)outputs["shake"]).ToFloatArray()[0];
+        }
+        catch (MorflowException e)
+        {
+            Debug.LogError(e.Message);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    void OnDestroy() => pipeline?.Dispose();
+}`;
+
+const classifier = `
+using System;
+using System.Linq;
+using Unity.InferenceEngine;
+using UnityEngine;
+
+public class GestureClassifier : MonoBehaviour
+{
+    public MotionReader motion;
+    public ModelAsset model;  // your trained model, imported from an .onnx file
+    public string[] gestures = { "still", "walking", "shaking" };
+
+    Worker worker;
+
+    void Start() => worker = new Worker(ModelLoader.Load(model), BackendType.CPU);
+
+    /// The most likely gesture for the latest window, or null before the first one.
+    public string Classify()
+    {
+        if (motion.ModelInput == null) return null;
+        using var input = new Tensor<float>(new TensorShape(1, 6, 100), motion.ModelInput.ToFloatArray());
+        worker.Schedule(input);
+        float[] scores = (worker.PeekOutput() as Tensor<float>).DownloadToArray();
+        return gestures[Array.IndexOf(scores, scores.Max())];
+    }
+
+    void OnDestroy() => worker?.Dispose();
+}`;
+
+const docs = (hash: string) => withBase(`/doc/#${hash}`);
+---
+<Base
+  title={`${meta.seoTitle} | Morflow`}
+  description={meta.summary}
+  path={useCasePath(meta.slug)}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <article class="uc-article">
+    <nav aria-label="Breadcrumb">
+      <ol class="uc-crumbs">
+        <li><a href={withBase('/')}>Home</a></li>
+        <li><a href={withBase('/usecases/')}>Use Cases</a></li>
+        <li aria-current="page">Tensor processing in Unity</li>
+      </ol>
+    </nav>
+
+    <h1 class="uc-title">{meta.title}</h1>
+    <div class="uc-meta">
+      <ul class="uc-tags" aria-label="Topics">{meta.tags.map((t) => <li class="uc-tag">{t}</li>)}</ul>
+      <span>{meta.minutes} min read</span>
+      <span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span>
+    </div>
+
+    <p class="uc-lede">
+      Picture a mobile game you control by moving the phone: shake it to reload, swing it to strike. The phone's sensors report dozens of readings a second, and before a game, or a model, can make sense of them, they have to be shaped into tensors and scaled.
+    </p>
+    <p class="doc-p">
+      You could send the readings to a server and wait for an answer, but that adds lag, needs a connection, and sends your players' movements off their phones. This guide does the work on the phone instead, with a Morflow pipeline: a short text file that describes the tensor processing, run by native code inside your Unity game. At the end, the same tensors go into an on-device model.
+    </p>
+
+    <h2 class="uc-h2" id="what">What the pipeline does with each window</h2>
+    <p class="doc-p">
+      The game keeps the last two seconds of readings: 100 rows, each with six values from the accelerometer and the gyroscope. Twice a second, the pipeline turns that window into two things:
+    </p>
+    <ul class="uc-list-plain">
+      <li><strong>A model input.</strong> One row per sensor axis, each scaled to an average of 0 and a spread of 1, in the shape <code>[1, 6, 100]</code> that a motion model expects.</li>
+      <li><strong>A shake number.</strong> How much the total acceleration changes over the window, in g. It's near 0 when the phone lies still and grows the harder it's shaken, so gameplay can use it directly.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="setup"><span class="uc-step">Step 1</span>Add Morflow to your Unity project</h2>
+    <p class="doc-p">
+      You need Unity 2022.3 or newer with Android Build Support. In Unity, open <strong>Window &gt; Package Manager</strong>, choose <strong>+ &gt; Install package from git URL</strong>, and enter:
+    </p>
+    <CodeCard title="Package URL" lang="text" label="Text" code={packageUrl} />
+    <p class="doc-p">
+      Then open <strong>Project Settings &gt; Player &gt; Android &gt; Other Settings</strong>, set the <strong>Scripting Backend</strong> to IL2CPP, and under <strong>Target Architectures</strong> tick ARM64 and untick ARMv7. Morflow runs on 64-bit phones.
+    </p>
+    <p class="doc-p">
+      You also need the Morflow CLI on your computer, as described in <a href={docs('cli-installation')}>the installation guide</a>. Your players never need it.
+    </p>
+
+    <h2 class="uc-h2" id="pipeline"><span class="uc-step">Step 2</span>Write the pipeline</h2>
+    <p class="doc-p">Save this as <code>Assets/Pipelines/motion.morf</code>. Unity imports it as a pipeline asset:</p>
+    <CodeCard title="Assets/Pipelines/motion.morf" lang="morf" code={pipeline} />
+    <p class="doc-p">There are two flows, and both start from the same window:</p>
+    <ul class="uc-list-plain">
+      <li><code>accept Tensor[100, 6] $window</code> declares the input and its shape, so Morflow checks every step's shape before the game ever runs.</li>
+      <li><code>transpose</code> turns the window on its side, to one row per sensor axis. <code>layer_norm</code> then scales each row on its own to an average of 0 and a spread of 1, so the gyroscope's radians per second and the accelerometer's g end up on the same scale. <code>unsqueeze(axis=0)</code> adds the batch dimension a model expects.</li>
+      <li><code>$window[:, 0:3]</code> takes just the accelerometer columns. <code>norm(axis=1)</code> gives the total acceleration of each reading, and <code>std</code> measures how much it varies over the two seconds.</li>
+      <li>Every step is a view or a single pass over 600 numbers, and the two flows run at the same time on Morflow's worker threads.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="prep"><span class="uc-step">Step 3</span>List the packs the game needs</h2>
+    <p class="doc-p">From your Unity project's folder, run:</p>
+    <CodeCard title="Prepare the Project" lang="shell" label="Shell" code={prep} />
+    <p class="doc-p">
+      It finds the three packs the pipeline imports, <code>tensor_basics</code>, <code>tensor_stats</code> and <code>nn_basics</code>, and lists them in <code>ProjectSettings/Morflow.json</code>. Commit that file. When you switch back to Unity, it downloads the Morflow engine and those packs, checks them against their published checksums, and from then on bundles them into every build, for both 64-bit Android architectures.
+    </p>
+
+    <h2 class="uc-h2" id="reader"><span class="uc-step">Step 4</span>Read the sensors and run the pipeline</h2>
+    <p class="doc-p">Save this as <code>Assets/Scripts/MotionReader.cs</code>, add it to a GameObject, and drag <code>motion.morf</code> onto its <strong>Motion</strong> field:</p>
+    <CodeCard title="MotionReader.cs" lang="csharp" label="C#" code={reader} />
+    <ul class="uc-list-plain">
+      <li><code>FixedUpdate</code> runs at a steady 50 steps a second by default, which makes it a good clock for sampling sensors. Each step moves the window along by one reading.</li>
+      <li>The pipeline is compiled once in <code>Start</code> and reused for every window.</li>
+      <li><code>RunToMapAsync</code> returns both outputs by name and works on a background thread, so the frame never waits for it. The <code>busy</code> flag skips a run if the last one hasn't finished.</li>
+      <li>The window is copied before each run, so the next readings can't change the numbers while the pipeline is working on them.</li>
+    </ul>
+    <p class="doc-p">
+      Any other script can now read <code>Shake</code>. To choose the value that should count as a shake in your game, log it for a few seconds while you shake the phone, then compare it with the phone lying still.
+    </p>
+
+    <h2 class="uc-h2" id="build"><span class="uc-step">Step 5</span>Build and run on Android</h2>
+    <p class="doc-p">
+      Connect a phone with USB debugging on, open <strong>File open <strong>File &gt; Build Profiles</strong>, choose Androidgt; Build Profiles</strong> (<strong>Build Settings</strong> in Unity 2022), choose Android, and click <strong>Build And Run</strong>. The APK holds the engine and the three packs for ARM64 and x86-64, and the game processes its sensor data with no network connection at all.
+    </p>
+
+    <h2 class="uc-h2" id="checked">What we checked</h2>
+    <p class="doc-p">We ran the code from this guide unchanged, with Unity 6 and Morflow 0.3.5:</p>
+    <div class="doc-table-container">
+      <table class="doc-table">
+        <thead>
+          <tr><th>Check</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>The model input, compared with the same math in NumPy</td><td>The same numbers, to within 0.0000005</td></tr>
+          <tr><td>The shake number, compared with NumPy</td><td>Identical: 0.2149932 for our test window</td></tr>
+          <tr><td>The Android APK</td><td>The engine and the three packs, for both ARM64 and x86-64</td></tr>
+          <tr><td>The game on an Android emulator (Android 16, x86-64)</td><td>First window after 2 seconds, then a new one twice a second, with no network and no action cache</td></tr>
+          <tr><td>The phone lying still</td><td>Shake 0.0000</td></tr>
+          <tr><td>Shaking the emulator's virtual sensors</td><td>Shake rose to about 0.3 g, and fell back to 0 when the shaking stopped</td></tr>
+          <tr><td>The model input in Unity's Inference Engine 2.6.1</td><td>Ran on the phone, and in the Editor it picked the same gesture as the NumPy reference</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="uc-h2" id="model">Going further: an on-device model</h2>
+    <p class="doc-p">
+      The model input is already shaped for a gesture model, so recognizing moves takes one more script. Train a small model on recorded windows, export it to ONNX, and run it with Unity's Inference Engine package (<code>com.unity.ai.inference</code>):
+    </p>
+    <CodeCard title="GestureClassifier.cs" lang="csharp" label="C#" code={classifier} />
+    <p class="doc-p">
+      Morflow prepares the numbers and the Inference Engine runs the model, both on the phone. The important part is training on the same preprocessing: run <code>motion.morf</code> with Morflow's Python package on the windows you record for training, and the model sees exactly the numbers the game will give it. <a href={withBase(useCasePath('train-in-python-run-in-flutter'))}>Ship AI Models Trained in Python to Flutter</a> walks through that idea from training to app.
+    </p>
+
+    <h2 class="uc-h2" id="faq">Questions people ask</h2>
+    <div class="uc-faq">
+      {faq.map(({ q, a }) => (
+        <details>
+          <summary>{q}</summary>
+          <p>{a}</p>
+        </details>
+      ))}
+    </div>
+
+    <h2 class="uc-h2" id="next">Where to go next</h2>
+    <div class="uc-next">
+      <a href={docs('exec-unity')}>Morflow in Unity</a>
+      <a href={docs('syntax')}>The .morf syntax</a>
+      <a href={docs('types-tensor')}>Tensors and shapes</a>
+      <a href={withBase('/usecases/')}>More use cases</a>
+    </div>
+  </article>
+</Base>

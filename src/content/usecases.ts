@@ -56,6 +56,17 @@ export const useCases: UseCase[] = [
     published: '2026-11-21',
     updated: '2026-11-21',
   },
+  {
+    slug: 'tensor-processing-unity-android',
+    title: 'On-Device Tensor Processing in Unity for Android',
+    seoTitle: 'On-Device Tensor Processing in Unity for Android',
+    summary:
+      'Turn phone motion sensor readings into clean tensors inside a Unity Android game with one Morflow pipeline, then feed them to an on-device model. No server.',
+    tags: ['Unity', 'Android', 'C#', 'Tensors', 'On-device ML'],
+    minutes: 9,
+    published: '2026-11-23',
+    updated: '2026-11-23',
+  },
 ];
 
 export const useCasePath = (slug: string) => `/usecases/${slug}/`;
