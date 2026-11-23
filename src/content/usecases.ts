@@ -57,6 +57,17 @@ export const useCases: UseCase[] = [
     updated: '2026-11-21',
   },
   {
+    slug: 'morflow-docker-python-nodejs',
+    title: 'Ship Python and Node.js Servers with Morflow in Docker',
+    seoTitle: 'Ship Python and Node.js Servers with Morflow in Docker',
+    summary:
+      'Pack a Python or Node.js server that runs Morflow pipelines into a Docker image: install the CLI with pip, prep the actions at build time, run offline.',
+    tags: ['Docker', 'Python', 'Node.js', 'Servers', 'Deployment'],
+    minutes: 8,
+    published: '2026-11-23',
+    updated: '2026-11-23',
+  },
+  {
     slug: 'audio-processing-nodejs',
     title: 'High-Performance Audio Processing in Node.js',
     seoTitle: 'High-Performance Audio Processing in Node.js',

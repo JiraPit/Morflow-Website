@@ -1,0 +1,304 @@
+---
+import Base from '../../layouts/Base.astro';
+import CodeCard from '../../components/CodeCard.astro';
+import { withBase } from '../../lib/content';
+import { useCases, useCasePath } from '../../content/usecases';
+import { longDate, useCaseJsonLd, type Faq } from '../../lib/usecase';
+
+const meta = useCases.find((u) => u.slug === 'morflow-docker-python-nodejs')!;
+const site = Astro.site ?? new URL('https://morflow.org');
+
+const faq: Faq[] = [
+  {
+    q: 'Does the container need internet access?',
+    a: 'Only while the image is built: pip, npm and morflow prep download what they need then. The running container reads the actions from inside the image, so it works with no network at all. We checked by running both containers with --network none.',
+  },
+  {
+    q: 'Can I use an Alpine base image?',
+    a: 'No. The morflow package is built for Linux with glibc, and Alpine uses musl, so pip finds no matching package for it. Use a Debian-based image such as python:3.12-slim or node:24-slim.',
+  },
+  {
+    q: 'Why does the server need write access to the actions folder?',
+    a: 'While it loads a pipeline, the engine opens small lock files in the actions folder, so several processes can share one folder safely. It doesn\'t add or change any actions, but the user that runs the server has to be allowed to open those files for writing.',
+  },
+  {
+    q: 'Can I use the npm package\'s CLI instead of pip in the Node.js image?',
+    a: 'Yes. The morflow npm package includes the CLI too, so RUN npx morflow prep pipelines/ in the Node.js image works the same way. The Python build stage in this guide keeps the CLI and its download out of the final image, and works for any language.',
+  },
+  {
+    q: 'Do I have to rebuild the image when a pipeline changes?',
+    a: 'Yes, and only the steps from the pipelines onward run again, so morflow prep downloads just what changed. Changing only the server code reuses the downloaded actions from the build cache.',
+  },
+  {
+    q: 'Does this work on ARM servers?',
+    a: 'Morflow ships its actions for Linux on x86-64 and ARM64. Because morflow prep runs inside the image during the build, it downloads the actions for the image\'s own platform.',
+  },
+];
+
+const jsonLd = useCaseJsonLd(meta, site, faq, ['Docker', 'Deployment', 'Python', 'Node.js', 'Audio processing']);
+
+const pipeline = `
+import audio_basics/latest
+
+# A WAV file, exactly as it was uploaded
+accept Bytes $wav
+
+$wav
+  >> to_audio
+  >> biquad_filter(type="highpass", freq=80)
+  >> normalize(mode="rms", target_db=-20)
+  >> limiter(ceiling_db=-1)
+  >> to_wav
+  >> emit`;
+
+const requirements = `
+morflow==0.3.6
+flask==3.1.3
+gunicorn==27.0.1`;
+
+const serverPy = `
+import morflow
+from flask import Flask, Response, request
+
+app = Flask(__name__)
+clean = morflow.load("pipelines/clean.morf")
+
+
+@app.post("/clean")
+def clean_wav():
+    wav = request.get_data()
+    if wav[:4] != b"RIFF" or wav[8:12] != b"WAVE":
+        return {"error": "Send a WAV file"}, 415
+    try:
+        cleaned = clean.run(wav)
+    except (RuntimeError, ValueError) as error:
+        return {"error": str(error)}, 422
+    return Response(cleaned, mimetype="audio/wav")
+
+
+@app.get("/health")
+def health():
+    return "ok"`;
+
+const dockerPy = `
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# The morflow package brings the Morflow CLI with it.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# The server runs as this user, who also owns the actions folder.
+RUN useradd --system app \\
+ && mkdir -p /opt/morflow/actions \\
+ && chown app /opt/morflow/actions
+ENV MORFLOW_ACTIONS_PATH=/opt/morflow/actions
+USER app
+
+# Download the actions the pipelines use into the image.
+COPY pipelines/ pipelines/
+RUN morflow prep pipelines/
+
+COPY server.py .
+
+EXPOSE 8000
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "server:app"]`;
+
+const runPy = `
+docker build -t voice-api-python .
+docker run -p 8000:8000 voice-api-python
+
+# In another terminal
+curl -X POST -H "Content-Type: audio/wav" --data-binary @recording.wav \\
+  http://localhost:8000/clean -o clean.wav`;
+
+const packageJson = `
+{
+  "name": "voice-api",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "express": "^5.3.0",
+    "morflow": "0.3.6"
+  }
+}`;
+
+const serverJs = `
+import express from 'express';
+import morflow from 'morflow';
+
+const clean = morflow.load('pipelines/clean.morf');
+const app = express();
+
+app.post('/clean', express.raw({ type: 'audio/*', limit: '100mb' }), async (req, res) => {
+  const wav = req.body;
+  if (!Buffer.isBuffer(wav) || wav.toString('ascii', 0, 4) !== 'RIFF' || wav.toString('ascii', 8, 12) !== 'WAVE') {
+    return res.status(415).json({ error: 'Send a WAV file' });
+  }
+  try {
+    const cleaned = await clean.run(wav);
+    res.type('audio/wav').send(cleaned.toBuffer());
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
+});
+
+app.get('/health', (req, res) => res.send('ok'));
+
+app.listen(3000, () => console.log('Listening on port 3000'));`;
+
+const dockerNode = `
+# Stage 1: download the actions with the Morflow CLI from pip.
+FROM python:3.12-slim AS actions
+RUN pip install --no-cache-dir morflow==0.3.6
+ENV MORFLOW_ACTIONS_PATH=/opt/morflow/actions
+COPY pipelines/ /pipelines/
+RUN morflow prep /pipelines/
+
+# Stage 2: the Node.js server, with only the actions copied over.
+FROM node:24-slim
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY --from=actions --chown=node:node /opt/morflow/actions /opt/morflow/actions
+ENV MORFLOW_ACTIONS_PATH=/opt/morflow/actions
+
+COPY pipelines/ pipelines/
+COPY server.js .
+
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]`;
+
+const runNode = `
+npm install --package-lock-only
+docker build -t voice-api-node .
+docker run -p 3000:3000 voice-api-node`;
+
+const docs = (hash: string) => withBase(`/doc/#${hash}`);
+---
+<Base
+  title={`${meta.seoTitle} | Morflow`}
+  description={meta.summary}
+  path={useCasePath(meta.slug)}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <article class="uc-article">
+    <nav aria-label="Breadcrumb">
+      <ol class="uc-crumbs">
+        <li><a href={withBase('/')}>Home</a></li>
+        <li><a href={withBase('/usecases/')}>Use Cases</a></li>
+        <li aria-current="page">Morflow in Docker</li>
+      </ol>
+    </nav>
+
+    <h1 class="uc-title">{meta.title}</h1>
+    <div class="uc-meta">
+      <ul class="uc-tags" aria-label="Topics">{meta.tags.map((t) => <li class="uc-tag">{t}</li>)}</ul>
+      <span>{meta.minutes} min read</span>
+      <span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span>
+    </div>
+
+    <p class="uc-lede">
+      A server that runs Morflow pipelines needs two things: the Morflow package for its language, and the actions its pipelines use. In a Docker image, both are taken care of while the image is built, so the running container needs nothing else, not even a network connection.
+    </p>
+    <p class="doc-p">
+      This guide packs the same small audio service twice, once with Python and once with Node.js. It takes a WAV file, cleans it up with a Morflow pipeline and sends it back.
+    </p>
+
+    <h2 class="uc-h2" id="how">How it works, in three lines</h2>
+    <ul class="uc-list-plain">
+      <li><strong><code>pip install morflow</code></strong> installs the Morflow package, and the <code>morflow</code> command comes with it.</li>
+      <li><strong><code>morflow prep pipelines/</code></strong> downloads every action the pipelines use and checks each one against its published checksum. Run during <code>docker build</code>, it puts them inside the image.</li>
+      <li><strong><code>MORFLOW_ACTIONS_PATH</code></strong> says where the actions live. Set it once in the Dockerfile, and <code>prep</code> and the server both use the same folder.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="pipeline"><span class="uc-step">Step 1</span>The pipeline</h2>
+    <p class="doc-p">Both servers run this pipeline. Save it as <code>pipelines/clean.morf</code> in the service's folder:</p>
+    <CodeCard title="pipelines/clean.morf" lang="morf" code={pipeline} />
+    <p class="doc-p">
+      It reads the uploaded WAV file, removes the rumble below 80 Hz, sets the volume to the same level for every file, keeps the peaks below -1 dB, and writes a WAV file again. Any other pipeline works the same way: what matters for Docker is only which packs it imports.
+    </p>
+
+    <h2 class="uc-h2" id="python"><span class="uc-step">Step 2</span>A Python server</h2>
+    <p class="doc-p">The Python service is a small Flask app, served by gunicorn. Its dependencies go in <code>requirements.txt</code>:</p>
+    <CodeCard title="requirements.txt" lang="text" label="Text" code={requirements} />
+    <CodeCard title="server.py" lang="python" code={serverPy} />
+    <p class="doc-p">
+      The pipeline is loaded once, when the server starts, and every request reuses it. For a pipeline that ends in <code>to_wav</code>, <code>run</code> returns the WAV file as <code>bytes</code>, ready to send back.
+    </p>
+    <p class="doc-p">Now the Dockerfile, which is where Morflow is packed:</p>
+    <CodeCard title="Dockerfile" lang="shell" label="Dockerfile" code={dockerPy} />
+    <ul class="uc-list-plain">
+      <li><code>pip install</code> brings the <code>morflow</code> command along with the package, so nothing else is needed to prepare the actions.</li>
+      <li><code>MORFLOW_ACTIONS_PATH</code> puts the actions in <code>/opt/morflow/actions</code> instead of the user's home folder. Because it's an <code>ENV</code> line, it holds for <code>morflow prep</code> during the build and for the server when the container runs.</li>
+      <li>The server runs as the <code>app</code> user, which also owns the actions folder. While it loads a pipeline, the engine opens small lock files in that folder, so the server's user must be able to write there. Running <code>prep</code> as that user takes care of it.</li>
+      <li>The pipelines are copied and prepared before <code>server.py</code>. When you change only the server code, Docker reuses the downloaded actions from its build cache.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="run-python"><span class="uc-step">Step 3</span>Build and run it</h2>
+    <CodeCard title="Build, Run and Try It" lang="shell" label="Shell" code={runPy} />
+    <p class="doc-p">
+      <code>clean.wav</code> is the cleaned recording. Anything that isn't a WAV file gets a 415 error, and <code>/health</code> answers <code>ok</code> for load balancers.
+    </p>
+
+    <h2 class="uc-h2" id="node"><span class="uc-step">Step 4</span>A Node.js server</h2>
+    <p class="doc-p">The Node.js service does the same with Express:</p>
+    <CodeCard title="package.json" lang="text" label="JSON" code={packageJson} />
+    <CodeCard title="server.js" lang="js" code={serverJs} />
+    <p class="doc-p">
+      Its Dockerfile uses the Morflow CLI from pip as well, in a first stage, and copies only the prepared actions into the Node.js image:
+    </p>
+    <CodeCard title="Dockerfile" lang="shell" label="Dockerfile" code={dockerNode} />
+    <ul class="uc-list-plain">
+      <li>The first stage installs the Morflow CLI with pip and runs <code>morflow prep</code>. Python, pip and the CLI stay in that stage, so none of them end up in the final image.</li>
+      <li><code>COPY --from=actions</code> brings over the actions folder, and <code>--chown=node:node</code> gives it to the <code>node</code> user the server runs as.</li>
+      <li>The same <code>MORFLOW_ACTIONS_PATH</code> tells the Node.js package where the actions are.</li>
+      <li>Keep the two versions equal: <code>morflow==0.3.6</code> from pip in the first stage, and <code>morflow</code> 0.3.6 from npm in <code>package.json</code>.</li>
+    </ul>
+    <CodeCard title="Build and Run" lang="shell" label="Shell" code={runNode} />
+    <p class="doc-p">
+      <code>npm ci</code> in the Dockerfile needs a <code>package-lock.json</code>; the first command creates one if you don't have it yet. Then send it a recording with the same <code>curl</code> command, on port 3000.
+    </p>
+
+    <h2 class="uc-h2" id="checked">What we checked</h2>
+    <p class="doc-p">We built and ran both images from this guide with Docker 29, on Linux x86-64:</p>
+    <div class="doc-table-container">
+      <table class="doc-table">
+        <thead>
+          <tr><th>Check</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Python image</td><td>221 MB, with the Morflow package, the actions and the server</td></tr>
+          <tr><td>Node.js image</td><td>302 MB; Python and the CLI stay in the build stage</td></tr>
+          <tr><td>Cleaning the test recording</td><td>Both servers returned the same 529,244-byte WAV file, byte for byte</td></tr>
+          <tr><td>With <code>--network none</code></td><td>Both servers still cleaned the recording: everything they need is in the image</td></tr>
+          <tr><td>Users</td><td>The servers run as <code>app</code> and <code>node</code>, not as root</td></tr>
+          <tr><td>Changing only <code>server.py</code> and rebuilding</td><td>The <code>morflow prep</code> step came from the build cache, so nothing was downloaded again</td></tr>
+          <tr><td>A file that isn't a WAV file</td><td>Error 415 from both servers</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="uc-h2" id="faq">Questions people ask</h2>
+    <div class="uc-faq">
+      {faq.map(({ q, a }) => (
+        <details>
+          <summary>{q}</summary>
+          <p>{a}</p>
+        </details>
+      ))}
+    </div>
+
+    <h2 class="uc-h2" id="next">Where to go next</h2>
+    <div class="uc-next">
+      <a href={docs('cli-prep')}>Preparing pipelines with prep</a>
+      <a href={docs('cli-env')}>Environment variables</a>
+      <a href={withBase(useCasePath('audio-processing-nodejs'))}>Audio processing in Node.js</a>
+      <a href={withBase('/usecases/')}>More use cases</a>
+    </div>
+  </article>
+</Base>
