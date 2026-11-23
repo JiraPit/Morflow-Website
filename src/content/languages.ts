@@ -48,7 +48,7 @@ export const languages: Language[] = [
     summary: 'Run pipelines from Java and other JVM languages, in backend services and desktop apps.',
     tags: ['Servers', 'Desktop Apps'],
     platforms: 'Windows, macOS, Linux',
-    install: 'org.morflow:morflow:0.3.5',
+    install: 'org.morflow:morflow:0.3.6',
     doc: 'exec-java',
     featured: false,
   },
