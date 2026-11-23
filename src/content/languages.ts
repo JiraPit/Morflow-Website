@@ -60,7 +60,7 @@ export const languages: Language[] = [
     platforms: 'Windows, macOS, Linux',
     install: 'cargo add morflow',
     doc: 'exec-rust',
-    featured: false,
+    featured: true,
   },
   {
     name: 'Go',
@@ -71,7 +71,7 @@ export const languages: Language[] = [
     platforms: 'Windows, macOS, Linux',
     install: 'go get github.com/JiraPit/Morflow/bindings/go',
     doc: 'exec-go',
-    featured: true,
+    featured: false,
   },
   {
     name: 'Flutter',
