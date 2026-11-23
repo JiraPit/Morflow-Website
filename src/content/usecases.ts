@@ -35,6 +35,17 @@ export const useCases: UseCase[] = [
     updated: '2026-11-21',
   },
   {
+    slug: 'train-in-python-run-in-react-native',
+    title: 'Ship AI Models Trained in Python to React Native',
+    seoTitle: 'Ship AI Models Trained in Python to React Native',
+    summary:
+      'Preprocess images with one Morflow pipeline while you train a PyTorch model and in your React Native app, so the model sees the same numbers in both places.',
+    tags: ['Python', 'PyTorch', 'React Native', 'ONNX', 'Images'],
+    minutes: 12,
+    published: '2026-11-23',
+    updated: '2026-11-23',
+  },
+  {
     slug: 'image-processing-flutter-react-native-on-device',
     title: 'On-Device Image Processing in Flutter and React Native, Without a Server',
     seoTitle: 'On-Device Image Processing in Flutter and React Native',

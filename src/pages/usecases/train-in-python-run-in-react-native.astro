@@ -1,0 +1,454 @@
+---
+import Base from '../../layouts/Base.astro';
+import CodeCard from '../../components/CodeCard.astro';
+import { withBase } from '../../lib/content';
+import { useCases, useCasePath } from '../../content/usecases';
+import { longDate, useCaseJsonLd } from '../../lib/usecase';
+
+const meta = useCases.find((u) => u.slug === 'train-in-python-run-in-react-native')!;
+const site = Astro.site ?? new URL('https://morflow.org');
+
+const faq = [
+  {
+    q: 'Why not rewrite the preprocessing in JavaScript?',
+    a: 'You can, but then you have two implementations that have to agree to the last decimal place. Resize filters, rounding, channel order and normalization constants are easy to get slightly wrong, and nothing crashes when they do: the model just gets less accurate on the phone. With one .morf file there is nothing to keep in sync, and the work runs in native code instead of the JavaScript thread.',
+  },
+  {
+    q: 'Does the app need a server or an internet connection?',
+    a: 'No. The Morflow engine, the action packs your pipeline uses and the ONNX model all ship inside the app, so preprocessing and prediction run on the phone, offline.',
+  },
+  {
+    q: 'Does it work with Expo?',
+    a: 'Yes, with a development build (npx expo run:android or run:ios). Add "react-native-morflow" to the plugins in app.json and wrap the Metro config from expo/metro-config with withMorflow. Expo Go cannot load Morflow, ONNX Runtime or Skia, because they all contain native code.',
+  },
+  {
+    q: 'Can I use TensorFlow Lite or another runtime instead of ONNX Runtime?',
+    a: 'Yes. Morflow only prepares the input tensor. Pass its values to any model runtime that runs in React Native, as long as the model expects the same shape and layout you trained with.',
+  },
+  {
+    q: 'What happens when I change the preprocessing?',
+    a: 'Edit the one .morf file, retrain, copy the new model and pipeline into the app, and run morflow prep --prod-target react-native again. Training and the app can never drift apart, because they read the same file.',
+  },
+];
+
+const jsonLd = useCaseJsonLd(meta, site, faq, ['Image preprocessing', 'React Native', 'PyTorch', 'ONNX', 'Training-serving skew']);
+
+const pipeline = `
+import image_basics/latest
+import tensor_basics/latest
+import math_basics/latest
+
+# A photo as raw RGB pixels: height x width x 3, values 0-255
+accept Tensor[*,*,3] $photo
+
+$photo
+  >> resize(width=96, height=96, filter="bilinear")
+  >> cast("f32")
+  >> div(255.0)
+  >> sub(0.5)
+  >> div(0.5)
+  >> permute("2, 0, 1")
+  >> unsqueeze(0)
+  >> emit`;
+
+const checkOutput = `
+Shape safety: 85.7% (6/7 actions verified)
+
+│ resize    │ Runtime check │ Tensor[*, *, 3] → Tensor[96, 96, 3]      │
+│ cast      │ Verified      │ Tensor[96, 96, 3] → Tensor[96, 96, 3]    │
+│ div       │ Verified      │ Tensor[96, 96, 3] → Tensor[96, 96, 3]    │
+│ sub       │ Verified      │ Tensor[96, 96, 3] → Tensor[96, 96, 3]    │
+│ div       │ Verified      │ Tensor[96, 96, 3] → Tensor[96, 96, 3]    │
+│ permute   │ Verified      │ Tensor[96, 96, 3] → Tensor[3, 96, 96]    │
+│ unsqueeze │ Verified      │ Tensor[3, 96, 96] → Tensor[1, 3, 96, 96] │`;
+
+const train = `
+from pathlib import Path
+
+import morflow
+import numpy as np
+import torch
+from PIL import Image
+from torch import nn
+from torch.utils.data import DataLoader, Dataset
+
+CLASSES = ["ripe", "unripe"]
+preprocess = morflow.load("preprocess.morf")
+
+
+class Photos(Dataset):
+    def __init__(self, folder):
+        self.items = [
+            (path, label)
+            for label, name in enumerate(CLASSES)
+            for path in sorted(Path(folder, name).glob("*.jpg"))
+        ]
+
+    def __len__(self):
+        return len(self.items)
+
+    def __getitem__(self, i):
+        path, label = self.items[i]
+        pixels = np.asarray(Image.open(path).convert("RGB"))  # (H, W, 3) uint8
+        tensor = preprocess.run(pixels)                         # (1, 3, 96, 96) float32
+        return torch.from_numpy(tensor[0]), label
+
+
+model = nn.Sequential(
+    nn.Conv2d(3, 16, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+    nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+    nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.AdaptiveAvgPool2d(1),
+    nn.Flatten(), nn.Linear(64, len(CLASSES)),
+)
+
+train = DataLoader(Photos("data/train"), batch_size=32, shuffle=True)
+val = DataLoader(Photos("data/val"), batch_size=32)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+loss_fn = nn.CrossEntropyLoss()
+
+for epoch in range(10):
+    model.train()
+    for images, labels in train:
+        optimizer.zero_grad()
+        loss = loss_fn(model(images), labels)
+        loss.backward()
+        optimizer.step()
+
+    model.eval()
+    correct = 0
+    with torch.no_grad():
+        for images, labels in val:
+            correct += (model(images).argmax(1) == labels).sum().item()
+    print(f"epoch {epoch + 1}: val accuracy {correct / len(val.dataset):.0%}")`;
+
+const exportCode = `
+model.eval()
+example = torch.zeros(1, 3, 96, 96)
+torch.onnx.export(
+    model, (example,), "fruit.onnx",
+    input_names=["image"], output_names=["logits"],
+    external_data=False,
+)`;
+
+const install = `npm install react-native-morflow onnxruntime-react-native @shopify/react-native-skia react-native-image-picker @dr.pogodin/react-native-fs`;
+
+const metro = `
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const { withMorflow } = require('react-native-morflow/metro');
+
+module.exports = withMorflow(mergeConfig(getDefaultConfig(__dirname), {}));`;
+
+const prepOutput = `
+Packs these pipelines need: image_basics 0.3.4, math_basics 0.4.1, tensor_basics 0.3.4
+
+Changes to package.json:
+
+@@ -31,5 +31,12 @@
+   },
+   "engines": {
+     "node": ">= 22.11.0"
++  },
++  "morflow": {
++    "packs": {
++      "image_basics": "0.3.4",
++      "math_basics": "0.4.1",
++      "tensor_basics": "0.3.4"
++    }
+   }
+ }
+
+Apply these changes? [Y/n]
+Updated package.json.`;
+
+const classifier = `
+import { Platform } from 'react-native';
+import { CachesDirectoryPath, copyFileAssets, MainBundlePath } from '@dr.pogodin/react-native-fs';
+import { AlphaType, ColorType, Skia } from '@shopify/react-native-skia';
+import { InferenceSession, Tensor } from 'onnxruntime-react-native';
+import { fromStr, type MorflowTensor } from 'react-native-morflow';
+import preprocessSource from '../pipelines/preprocess.morf';
+
+const LABELS = ['ripe', 'unripe'];
+const preprocessPipeline = fromStr(preprocessSource);
+let session: Promise<InferenceSession> | undefined;
+
+/** Opens the model once. On Android it is copied out of the APK first. */
+function model(): Promise<InferenceSession> {
+  session ??= (async () => {
+    if (Platform.OS === 'ios') return InferenceSession.create(\`\${MainBundlePath}/fruit.onnx\`);
+    const path = \`\${CachesDirectoryPath}/fruit.onnx\`;
+    await copyFileAssets('fruit.onnx', path);
+    return InferenceSession.create(path);
+  })();
+  return session;
+}
+
+/** Turns a JPEG or PNG photo into the model's input tensor. */
+export async function preprocess(photoUri: string): Promise<MorflowTensor> {
+  // Decode the photo into RGBA pixels with Skia.
+  const photo = Skia.Image.MakeImageFromEncoded(await Skia.Data.fromURI(photoUri));
+  if (!photo) throw new Error(\`Cannot decode \${photoUri}\`);
+  const width = photo.width();
+  const height = photo.height();
+  const rgba = photo.readPixels(0, 0, {
+    width,
+    height,
+    colorType: ColorType.RGBA_8888,
+    alphaType: AlphaType.Unpremul,
+  }) as Uint8Array;
+
+  // Keep red, green and blue; drop the alpha channel.
+  const rgb = new Uint8Array(width * height * 3);
+  for (let p = 0, q = 0; q < rgb.length; p += 4, q += 3) {
+    rgb[q] = rgba[p];
+    rgb[q + 1] = rgba[p + 1];
+    rgb[q + 2] = rgba[p + 2];
+  }
+
+  return preprocessPipeline.run({ data: rgb, shape: [height, width, 3], dtype: 'u8' });
+}
+
+/** Returns 'ripe' or 'unripe' for a JPEG or PNG photo. */
+export async function classify(photoUri: string): Promise<string> {
+  const tensor = await preprocess(photoUri);
+  const input = new Tensor('float32', tensor.toFloat32Array(), tensor.shape);
+  const { logits } = await (await model()).run({ image: input });
+  const scores = logits.data as Float32Array;
+  return LABELS[scores[1] > scores[0] ? 1 : 0];
+}`;
+
+const screen = `
+import { useState } from 'react';
+import { Button, StyleSheet, Text, View } from 'react-native';
+import { launchCamera } from 'react-native-image-picker';
+import { classify } from './fruitClassifier';
+
+export function FruitScreen() {
+  const [result, setResult] = useState('Take a photo of a fruit');
+
+  async function takePhoto() {
+    const { assets } = await launchCamera({ mediaType: 'photo' });
+    const uri = assets?.[0]?.uri;
+    if (!uri) return;
+    setResult(\`This fruit looks \${await classify(uri)}\`);
+  }
+
+  return (
+    <View style={styles.screen}>
+      <Text style={styles.result}>{result}</Text>
+      <Button title="Take a photo" onPress={takePhoto} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 24 },
+  result: { fontSize: 20 },
+});`;
+
+const gradleFix = `
+buildscript {
+    ext {
+        // ...the settings already there...
+        // onnxruntime-react-native 1.24 still calls Gradle's VersionNumber, which Gradle 9 removed.
+        VersionNumber = [parse: { String v -> v.tokenize('.').collect { it.padLeft(4, '0') }.join('.') }]
+    }
+}`;
+
+const docs = (hash: string) => withBase(`/doc/#${hash}`);
+---
+<Base
+  title={`${meta.seoTitle} | Morflow`}
+  description={meta.summary}
+  path={useCasePath(meta.slug)}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <article class="uc-article">
+    <nav aria-label="Breadcrumb">
+      <ol class="uc-crumbs">
+        <li><a href={withBase('/')}>Home</a></li>
+        <li><a href={withBase('/usecases/')}>Use Cases</a></li>
+        <li aria-current="page">Python training, React Native app</li>
+      </ol>
+    </nav>
+
+    <h1 class="uc-title">{meta.title}</h1>
+    <div class="uc-meta">
+      <ul class="uc-tags" aria-label="Topics">{meta.tags.map((t) => <li class="uc-tag">{t}</li>)}</ul>
+      <span>{meta.minutes} min read</span>
+      <span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span>
+    </div>
+
+    <p class="uc-lede">
+      Your model scores well in the notebook. You put it in your React Native app, point the camera at something, and the answers are worse. Usually the model is fine. What changed is the way the app prepares each photo before the model sees it.
+    </p>
+    <p class="doc-p">
+      This guide shows how to write that preparation once, as a small Morflow pipeline, and run the very same file while you train in Python and inside your React Native app on the phone. We'll build a tiny classifier that tells ripe fruit from unripe fruit, but the steps are the same for any image model.
+    </p>
+
+    <h2 class="uc-h2" id="why">Why the same model answers differently on a phone</h2>
+    <p class="doc-p">
+      Before a photo reaches the model, it gets resized, turned into numbers, scaled into a certain range and rearranged into the layout the model expects. In Python you usually do this with PIL and NumPy or torchvision. React Native has none of those, so the usual move is to rewrite the steps in JavaScript.
+    </p>
+    <p class="doc-p">That rewrite is where things slip:</p>
+    <ul class="uc-list-plain">
+      <li>The JavaScript code resizes with a different filter, so the pixels come out slightly different.</li>
+      <li>Training divided by 255 and normalized; the app forgets one of the two.</li>
+      <li>The model learned from channels-first images (<code>3 × 96 × 96</code>); the app sends channels-last (<code>96 × 96 × 3</code>).</li>
+      <li>Someone changes the normalization in the training code and the app never hears about it.</li>
+    </ul>
+    <p class="doc-p">
+      None of these crash. The model still runs and still gives an answer, just a worse one. This gap between how data is prepared in training and in production is called <strong>training-serving skew</strong>, and it's one of the most common reasons a model underperforms after it ships.
+    </p>
+
+    <h2 class="uc-h2" id="idea">The idea: one pipeline file for both sides</h2>
+    <p class="doc-p">
+      With Morflow you describe the preparation steps in a <code>.morf</code> file. Each step is an <em>action</em>, compiled native code from Morflow's action packs. The Python package and the React Native package run the same actions, so when they get the same pixels, they produce the same tensor.
+    </p>
+    <div class="uc-flow" role="img" aria-label="preprocess.morf is used by Python training and by the React Native app">
+      <div class="uc-flow__box uc-flow__shared"><strong>preprocess.morf</strong>Resize, convert, normalize, rearrange. Written once.</div>
+      <div class="uc-flow__box"><strong>Python, while training</strong>Each photo goes through the pipeline before PyTorch sees it. The trained model is exported to <code>fruit.onnx</code>.</div>
+      <div class="uc-flow__arrow" aria-hidden="true">→</div>
+      <div class="uc-flow__box"><strong>React Native, on the phone</strong>Each camera photo goes through the same pipeline, then into <code>fruit.onnx</code> with ONNX Runtime.</div>
+    </div>
+
+    <h3 class="uc-h3">What you need</h3>
+    <ul class="uc-list-plain">
+      <li>Python 3.11 or newer for training (the current PyTorch needs it).</li>
+      <li>A React Native app on React Native 0.76 or newer, with the New Architecture (the default).</li>
+      <li>A folder of labelled photos. This guide expects <code>data/train/ripe</code>, <code>data/train/unripe</code>, <code>data/val/ripe</code> and <code>data/val/unripe</code>, each holding JPEG files.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="install"><span class="uc-step">Step 1</span>Install the Python packages</h2>
+    <p class="doc-p">
+      Everything for the training side comes from pip. The <code>morflow</code> package also installs the <code>morflow</code> command, which you'll use to check and prepare the pipeline. <code>onnx</code> and <code>onnxscript</code> are what PyTorch needs to export the model at the end.
+    </p>
+    <CodeCard title="Install" lang="shell" label="Shell" code="pip install morflow torch numpy pillow onnx onnxscript" />
+
+    <h2 class="uc-h2" id="pipeline"><span class="uc-step">Step 2</span>Write the preprocessing pipeline</h2>
+    <p class="doc-p">
+      Create a file called <code>preprocess.morf</code> next to your training code. It takes a photo as raw RGB pixels and returns exactly what the model will eat:
+    </p>
+    <CodeCard title="preprocess.morf" lang="morf" code={pipeline} />
+    <p class="doc-p">Reading it from top to bottom:</p>
+    <ul class="uc-list-plain">
+      <li><code>import</code> brings in three action packs: image actions, tensor reshaping actions and math actions.</li>
+      <li><code>accept Tensor[*,*,3] $photo</code> says the pipeline takes one input: any height, any width, three color channels.</li>
+      <li><code>resize</code> scales the photo to 96 × 96 pixels.</li>
+      <li><code>cast</code>, <code>div(255.0)</code>, <code>sub(0.5)</code> and <code>div(0.5)</code> turn the 0–255 pixel values into floats between -1 and 1.</li>
+      <li><code>permute("2, 0, 1")</code> moves the color channels first, the layout PyTorch models use.</li>
+      <li><code>unsqueeze(0)</code> adds a batch dimension, and <code>emit</code> returns the result.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="check"><span class="uc-step">Step 3</span>Check the pipeline and download its actions</h2>
+    <p class="doc-p">
+      Before training anything, ask Morflow to check the pipeline. It verifies the syntax and the types, and it works out the shape that comes out of every step:
+    </p>
+    <CodeCard title="Check the Pipeline" lang="shell" label="Shell" code="morflow check preprocess.morf" />
+    <CodeCard title="Output (shortened)" lang="text" label="Terminal" code={checkOutput} />
+    <p class="doc-p">
+      Whatever size the photo is, the model will always get a <code>1 × 3 × 96 × 96</code> tensor. The resize step is marked "Runtime check" only because the photo's size isn't known until the app runs. Now download the actions the pipeline uses to your computer:
+    </p>
+    <CodeCard title="Download the Actions" lang="shell" label="Shell" code="morflow prep preprocess.morf" />
+
+    <h2 class="uc-h2" id="train"><span class="uc-step">Step 4</span>Train with the pipeline</h2>
+    <p class="doc-p">
+      In the training script, load the pipeline once and run it inside the dataset's <code>__getitem__</code>. Pillow only decodes the file; everything after that is the pipeline. <code>preprocess.run</code> takes the NumPy pixel array and returns a NumPy <code>float32</code> array of shape <code>(1, 3, 96, 96)</code>. The DataLoader adds its own batch dimension, so we take <code>tensor[0]</code>.
+    </p>
+    <CodeCard title="train.py" lang="python" code={train} />
+    <p class="doc-p">
+      The model itself is a deliberately small network, so it trains in seconds on a laptop. Swap in whatever architecture you like: the only thing it has to agree on with the app is the input, and the pipeline takes care of that.
+    </p>
+
+    <h2 class="uc-h2" id="export"><span class="uc-step">Step 5</span>Export the model to ONNX</h2>
+    <p class="doc-p">
+      Phones don't run PyTorch, so export the trained model to ONNX, a portable model format. Add this to the end of <code>train.py</code>:
+    </p>
+    <CodeCard title="train.py (continued)" lang="python" code={exportCode} />
+    <p class="doc-p">
+      Naming the input <code>image</code> and the output <code>logits</code> makes the app code easy to read. <code>external_data=False</code> keeps the weights inside the one file, so you only have to copy <code>fruit.onnx</code> into the app.
+    </p>
+
+    <h2 class="uc-h2" id="app"><span class="uc-step">Step 6</span>Add the pipeline and model to your React Native app</h2>
+    <p class="doc-p">In your app's folder, add five packages:</p>
+    <CodeCard title="Add the Packages" lang="shell" label="Shell" code={install} />
+    <ul class="uc-list-plain">
+      <li><code>react-native-morflow</code> runs the pipeline, and <code>onnxruntime-react-native</code> runs the model.</li>
+      <li><code>@shopify/react-native-skia</code> decodes photos into pixels, which React Native can't do on its own.</li>
+      <li><code>react-native-image-picker</code> takes photos, and <code>@dr.pogodin/react-native-fs</code> gives ONNX Runtime a file path for the model.</li>
+    </ul>
+    <p class="doc-p">Let the app import <code>.morf</code> files by wrapping its Metro config with <code>withMorflow</code>:</p>
+    <CodeCard title="metro.config.js" lang="js" code={metro} />
+    <p class="doc-p">
+      Copy <code>preprocess.morf</code> into a <code>pipelines</code> folder in the app. Put <code>fruit.onnx</code> where each platform keeps files that ship inside the app: in <code>android/app/src/main/assets</code> for Android, and in the Xcode project's <strong>Copy Bundle Resources</strong> for iOS. Then, from the app's root folder, let Morflow set the app up:
+    </p>
+    <CodeCard title="Prepare the App" lang="shell" label="Shell" code="morflow prep --prod-target react-native pipelines/preprocess.morf" />
+    <p class="doc-p">
+      It works out which action packs the pipeline needs and shows the change it wants to make to <code>package.json</code> before touching anything:
+    </p>
+    <CodeCard title="Output" lang="text" label="Terminal" code={prepOutput} />
+    <p class="doc-p">
+      Press Enter. The packs are pinned to exact versions, so every build of the app ships the same actions. For iOS, run <code>pod install</code> in the <code>ios</code> folder afterwards, as you do after adding any native package.
+    </p>
+    <div class="doc-callout uc-callout">
+      <strong>64-bit Android only.</strong> Morflow runs on 64-bit Android phones and emulators. Set <code>reactNativeArchitectures=arm64-v8a,x86_64</code> in <code>android/gradle.properties</code>.
+    </div>
+    <p class="doc-p">
+      One more Android fix, for now: <code>onnxruntime-react-native</code> 1.24 still uses a Gradle class that Gradle 9 removed, so on recent React Native versions the Android build stops with <em>Could not get unknown property 'VersionNumber'</em>. Two lines in the <code>ext</code> block of <code>android/build.gradle</code> give it what it looks for:
+    </p>
+    <CodeCard title="android/build.gradle" lang="text" label="Gradle" code={gradleFix} />
+
+    <h2 class="uc-h2" id="classify"><span class="uc-step">Step 7</span>Preprocess and classify in TypeScript</h2>
+    <p class="doc-p">
+      This module does three things with a photo: decodes it into RGB pixels, runs <code>preprocess.morf</code> on them, and feeds the result to the model. Put it in <code>src/fruitClassifier.ts</code>:
+    </p>
+    <CodeCard title="src/fruitClassifier.ts" lang="ts" code={classifier} />
+    <p class="doc-p">A few things worth noticing:</p>
+    <ul class="uc-list-plain">
+      <li>The pipeline is imported as text and compiled with <code>fromStr</code>: the same file Python used.</li>
+      <li>Skia decodes the photo into RGBA pixels. The loop keeps red, green and blue, so the pixels go in as a <code>[height, width, 3]</code> tensor of bytes, just like the NumPy array in training.</li>
+      <li><code>run</code> works on a background thread, so the UI stays smooth while a photo is processed.</li>
+      <li>On Android the model is copied out of the APK each time the app starts, because ONNX Runtime needs a file path. On iOS it's read where the app bundle keeps it.</li>
+      <li>The model's output is two numbers, one per class. The bigger one wins.</li>
+    </ul>
+
+    <h2 class="uc-h2" id="screen"><span class="uc-step">Step 8</span>Use it in a screen</h2>
+    <p class="doc-p">Taking a photo and classifying it then takes one call:</p>
+    <CodeCard title="src/FruitScreen.tsx" lang="ts" label="TSX" code={screen} />
+    <p class="doc-p">
+      Show <code>FruitScreen</code> from your <code>App.tsx</code> and run the app with <code>npx react-native run-android</code> or <code>run-ios</code>. The Morflow engine, the three action packs and the model are all inside the app, so it works offline and sends no photos anywhere. For iOS, add a camera usage description (<code>NSCameraUsageDescription</code>) to <code>Info.plist</code>.
+    </p>
+
+    <h2 class="uc-h2" id="verify">Did both sides really agree?</h2>
+    <p class="doc-p">
+      We checked. We trained the model with the code above, then ran a JPEG photo and a PNG photo through <code>preprocess.morf</code> in Python and through <code>fruitClassifier.ts</code> in a React Native 0.88 release build on an Android emulator. For both photos, all 27,648 values of the tensor were identical, and ONNX Runtime in the app predicted the same class as the exported model in Python. We also took a photo with the camera screen to check the whole flow.
+    </p>
+    <p class="doc-p">
+      One step sits outside the pipeline: decoding the JPEG or PNG file into pixels. Python uses Pillow and the app uses Skia, and in our test they agreed exactly. If you decode photos some other way in the app, run the same check: preprocess one photo on both sides and compare.
+    </p>
+
+    <h2 class="uc-h2" id="change">When you change the preprocessing later</h2>
+    <p class="doc-p">
+      Say you want 128 × 128 input instead of 96 × 96. Edit the numbers in <code>preprocess.morf</code>, retrain, then copy the new pipeline and model into the app and run <code>morflow prep --prod-target react-native</code> again. There's no second implementation to update, so there's nothing to forget.
+    </p>
+
+    <h2 class="uc-h2" id="faq">Questions people ask</h2>
+    <div class="uc-faq">
+      {faq.map(({ q, a }) => (
+        <details>
+          <summary>{q}</summary>
+          <p>{a}</p>
+        </details>
+      ))}
+    </div>
+
+    <h2 class="uc-h2" id="next">Where to go next</h2>
+    <div class="uc-next">
+      <a href={docs('exec-react-native')}>Morflow in React Native</a>
+      <a href={docs('exec-python')}>Morflow in Python</a>
+      <a href={withBase(useCasePath('train-in-python-run-in-flutter'))}>The same guide for Flutter</a>
+      <a href={withBase('/usecases/')}>More use cases</a>
+    </div>
+  </article>
+</Base>
